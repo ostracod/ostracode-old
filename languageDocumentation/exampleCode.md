@@ -212,17 +212,17 @@ try {
 }
 ```
 
-The example below demonstrates usage of the `import` statement:
+The example below demonstrates usage of import statements:
 
 ```
 // Imports the module at path "./myModule.ostc" as `myModule`.
-import [as myModule] <"./myModule.ostc">
+importPath [as myModule] <"./myModule.ostc">
 // Invokes the member `performJob` in `myModule`.
 (myModule.performJob())
 
 // Imports the member named `generateMessage` from the module at path
 // "./myUtils.ostc", and renames the member to `createMessage`.
-import [members [
+importPath [members [
     generateMessage as createMessage
 ]] <"./myUtils.ostc">
 // Prints the item returned by invoking `createMessage`.
@@ -231,7 +231,7 @@ import [members [
 // Imports the member named `myNum` from the foreign module at path
 // "./myConstants.js", and asserts that the constraint type of
 // `myNum` is `numT`.
-import [foreign, members [
+importPath [foreign, members [
     myNum <numT>
 ]] <"./myConstants.js">
 // Stores the sum of `myNum` and 1.

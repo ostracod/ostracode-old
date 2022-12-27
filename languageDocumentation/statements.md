@@ -93,13 +93,19 @@ throw ($item)
 
 Throws error item `$item` which will be handled by a `try` statement.
 
-### Import Statement:
+### Import Statements:
 
 ```
-import [$attrs] <$path>
+importPath [$attrs] <$path>
 ```
 
 Imports the module located at file path `$path`.
+
+```
+importPackage [$attrs] <$name>
+```
+
+Imports the package with name `$name`.
 
 ## Attribute Statements
 
@@ -335,19 +341,19 @@ Valid contexts for get permission statements:
     * `feature` or `featureT` special
 
 ```
-public get
+publicGet
 ```
 
 Asserts that the parent field is readable in all contexts.
 
 ```
-protected get
+protectedGet
 ```
 
 Asserts that the parent field is only readable by features in the same bundle.
 
 ```
-private get
+privateGet
 ```
 
 Asserts that the parent field is only readable by methods in the same feature.
@@ -361,19 +367,19 @@ Valid contexts for set permission statements:
     * `feature` or `featureT` special
 
 ```
-public set
+publicSet
 ```
 
 Asserts that the parent field is writable in all contexts.
 
 ```
-protected set
+protectedSet
 ```
 
 Asserts that the parent field is only writable by features in the same bundle.
 
 ```
-private set
+privateSet
 ```
 
 Asserts that the parent field is only writable by methods in the same feature.
@@ -456,7 +462,8 @@ Asserts that the parent variable may be imported by other modules.
 
 Valid contexts for import attribute statements:
 
-* `import` statement
+* `importPath` statement
+* `importPackage` statement
 
 ```
 foreign

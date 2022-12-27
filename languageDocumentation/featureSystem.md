@@ -435,13 +435,13 @@ const citizen = (obj (bundle [
 (print(citizen.getSecret()))
 ```
 
-Fields may specify read and write permissions separately. The `get` keyword indicates that a permission statement applies to reading a field, while the `set` keyword indicates that a permission statement applies to writing. The example below demonstrates usage of the `get` and `set` keywords:
+Fields may specify read and write permissions separately. The `publicGet`, `protectedGet`, and `privateGet` statements determine field read permission. The `publicSet`, `protectedSet`, and `privateSet` statements determine field write permission. The example below demonstrates usage of read and write permission statements:
 
 ```
 const Transfer = (feature [
     fields [
-        source <numT> [private get, public set]
-        dest <numT> [public get, private set]
+        source <numT> [privateGet, publicSet]
+        dest <numT> [publicGet, privateSet]
     ]
     methods [
         transfer [public] {

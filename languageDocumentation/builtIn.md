@@ -46,7 +46,7 @@ The `toString` method converts the parent item to a string. Every non-object ite
 ```
 comp LengthT = <interfaceT [
     fields [
-        length <numT> [public get, protected set, vis <2>]
+        length <numT> [publicGet, protectedSet, vis <2>]
     ]
 ]>
 ```
@@ -160,7 +160,7 @@ The `createIterator` method creates a new iterator which iterates over members i
 ```
 comp ErrorMessageT = <interfaceT [
     fields [
-        message <strT> [public get, protected set, vis <2>]
+        message <strT> [publicGet, protectedSet, vis <2>]
     ]
 ]>
 ```
