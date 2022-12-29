@@ -36,7 +36,7 @@ An "interface" defines field types and method signatures without providing imple
 // Declares an interface with one method signature.
 comp SpeakT = <interfaceT [
     methods [
-        speak [public, returns <strT>]
+        speak [public, returns (strT)]
     ]
 ]>
 
@@ -78,7 +78,7 @@ Unlike TypeScript, OstraCode enforces nominal typing for interfaces and features
 ```
 comp SizeT = <interfaceT [
     fields [
-        size <numT> [public]
+        size (numT) [public]
     ]
 ]>
 

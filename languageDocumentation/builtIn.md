@@ -33,8 +33,8 @@ OstraCode has the following built-in interfaces:
 comp ToStringT = <interfaceT [
     methods [
         toString [
-            public, vis <2>
-            returns <strT>
+            public, vis (2)
+            returns (strT)
         ]
     ]
 ]>
@@ -47,7 +47,7 @@ The `toString` method converts the parent item to a string. Every non-object ite
 ```
 comp LengthT = <interfaceT [
     fields [
-        length <numT> [publicGet, protectedSet, vis <2>]
+        length (numT) [publicGet, protectedSet, vis (2)]
     ]
 ]>
 ```
@@ -60,9 +60,9 @@ The `length` field stores the number of members in the parent item. Strings, lis
 comp ConformsToT = <interfaceT [
     methods [
         conformsTo [
-            public, vis <2>
-            args [type <typeT>]
-            returns <boolT>
+            public, vis (2)
+            args [type (typeT)]
+            returns (boolT)
         ]
     ]
 ]>
@@ -77,9 +77,9 @@ comp SubscriptGetT = <interfaceT [
     typeArgs [subscriptT <typeT>, memberT <typeT> = (itemT)]
     methods [
         getMember [
-            public, vis <2>
-            args [subscript <subscriptT>]
-            returns <memberT>
+            public, vis (2)
+            args [subscript (subscriptT)]
+            returns (memberT)
         ]
     ]
 ]>
@@ -94,8 +94,8 @@ comp SubscriptSetT = <interfaceT [
     typeArgs [subscriptT <typeT>, memberT <typeT> = (itemT)]
     methods [
         setMember [
-            public, vis <2>
-            args [subscript <subscriptT>, item <memberT>]
+            public, vis (2)
+            args [subscript (subscriptT), item (memberT)]
         ]
     ]
 ]>
@@ -111,8 +111,8 @@ comp SubscriptDeleteT = <interfaceT [
     typeArgs [subscriptT <typeT>]
     methods [
         deleteMember [
-            public, vis <2>
-            args [subscript <subscriptT>]
+            public, vis (2)
+            args [subscript (subscriptT)]
         ]
     ]
 ]>
@@ -127,12 +127,12 @@ comp IteratorT = <interfaceT [
     typeArgs [memberT <typeT> = (itemT)]
     methods [
         getNext [
-            public, vis <2>
-            returns <memberT>
+            public, vis (2)
+            returns (memberT)
         ]
         isFinished [
-            public, vis <2>
-            returns <boolT>
+            public, vis (2)
+            returns (boolT)
         ]
     ]
 ]>
@@ -147,8 +147,8 @@ comp IterableT = <interfaceT [
     typeArgs [memberT <typeT> = (itemT)]
     methods [
         createIterator [
-            public, vis <2>
-            returns <*IteratorT(memberT)>
+            public, vis (2)
+            returns (*IteratorT(memberT))
         ]
     ]
 ]>
@@ -161,7 +161,7 @@ The `createIterator` method creates a new iterator which iterates over members i
 ```
 comp ErrorMessageT = <interfaceT [
     fields [
-        message <strT> [publicGet, protectedSet, vis <2>]
+        message (strT) [publicGet, protectedSet, vis (2)]
     ]
 ]>
 ```
@@ -175,10 +175,10 @@ comp ThenT = <interfaceT [
     typeArgs [resultT <typeT> = (undefT)]
     methods [
         then [
-            public, vis <2>
+            public, vis (2)
             args [
-                onResolve <funcT [args [result <resultT>]]>
-                onReject <funcT [args [error]] | undefT> [optional]
+                onResolve (funcT [args [result (resultT)]])
+                onReject (funcT [args [error]] | undefT) [optional]
             ]
             returns <??self>
         ]
@@ -205,8 +205,8 @@ OstraCode has the following built-in factors:
 * `$promise.init($task)` initializes the promise with function `$task`. The type of `$task` is below:
     ```
     funcT [args [
-        resolve <funcT [args [result <$resultType>]]>
-        reject <funcT [args [error]]>
+        resolve (funcT [args [result ($resultType)]])
+        reject (funcT [args [error]])
     ]
     ```
 

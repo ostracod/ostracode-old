@@ -68,11 +68,11 @@ comp createDictType = <func [
     returns <?dictT>
 ] {
     return (dictT [fields [
-        (fieldName) <boolT>
+        (fieldName) (boolT)
     ]])
 }>
 
-// `myDictType` is equal to `dictT [fields [isCool <boolT>]]`.
+// `myDictType` is equal to `dictT [fields [isCool (boolT)]]`.
 comp myDictType = <createDictType("isCool")>
 
 // Does not throw a compile-time error, because the type

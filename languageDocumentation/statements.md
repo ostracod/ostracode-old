@@ -111,23 +111,41 @@ Imports the package with name `$name`.
 
 OstraCode has the following attribute statements:
 
-### List Statements:
+### List Value Statements:
 
-Valid contexts for list statements:
+Valid contexts for list value statements:
 
-* `list` and `listT` specials
+* `list` special
 
 ```
 elemType <$type>
 ```
 
-Asserts that the type of each element in the parent list conforms to type `$type`.
+Asserts that the type of each element in the parent list value conforms to type `$type`.
 
 ```
 length <$length>
 ```
 
-Asserts that the number of elements in the parent list is `$length`.
+Asserts that the number of elements in the parent list value is `$length`.
+
+### List Type Statements:
+
+Valid contexts for list type statements:
+
+* `listT` special
+
+```
+elemType ($type)
+```
+
+Asserts that the type of each element in the parent list type conforms to type `$type`.
+
+```
+length ($length)
+```
+
+Asserts that the number of elements in the parent list type is `$length`.
 
 ### Function Statements:
 
@@ -144,18 +162,36 @@ args [$args]
 Declares the arguments which the parent function may accept.
 
 ```
-returns <$type>
-```
-
-Asserts that the parent function returns an item whose type conforms to type `$type`. The default return type is `undefT`.
-
-```
 async
 ```
 
 Asserts that the parent function is asynchronous, and has a return type which conforms to `(*ThenT)`.
 
-### Argument Statement:
+### Returns Statements:
+
+```
+returns <$type>
+```
+
+Valid contexts:
+
+* `func` special
+* Method statement
+
+Asserts that the parent function value returns an item whose type conforms to type `$type`. The default return type is `undefT`.
+
+```
+returns ($type)
+```
+
+Valid contexts:
+
+* `funcT` special
+* `methodT` special
+
+Asserts that the parent function type returns an item whose type conforms to type `$type`. The default return type is `undefT`.
+
+### Argument Statements:
 
 ```
 $name <$type> [$attrs] = ($defaultItem)
@@ -163,12 +199,26 @@ $name <$type> [$attrs] = ($defaultItem)
 
 Valid contexts:
 
-* `args` statement
+* `args` statement in one of the following contexts:
+    * `func` special
+    * Method statement
 * `typeArgs` statement
 
-Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. Arguments of function types cannot define default items, so `= ($defaultItem)` must be excluded when inside a special which defines a type.
+Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`.
 
-### Field Type Statement:
+```
+$name ($type) [$attrs]
+```
+
+Valid contexts:
+
+* `args` statement in one of the following contexts:
+    * `funcT` special
+    * `methodT` special
+
+Declares an argument with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the argument will be `undefT`.
+
+### Field Type Statements:
 
 ```
 fieldType <$type>
@@ -176,9 +226,19 @@ fieldType <$type>
 
 Valid contexts:
 
-* `dict` and `dictT` specials
+* `dict` special
 
-Asserts that the type of each field in the parent dictionary conforms to type `$type`.
+Asserts that the type of each field in the parent dictionary value conforms to type `$type`.
+
+```
+fieldType ($type)
+```
+
+Valid contexts:
+
+* `dictT` special
+
+Asserts that the type of each field in the parent dictionary type conforms to type `$type`.
 
 ### Fields Statement:
 
@@ -202,9 +262,11 @@ $name <$type> [$attrs] = ($initItem)
 
 Valid contexts:
 
-* `fields` statement
+* `fields` statement in one of the following contexts:
+    * `dict` special
+    * `feature` special
 
-Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`. Fields of types cannot define initialization items, so `= ($initItem)` must be excluded when inside a special which defines a type.
+Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`.
 
 ```
 ($name) <$type> [$attrs] = ($initItem)
@@ -212,7 +274,30 @@ Declares a field with name identifier `$name`, constraint type `$type`, and init
 
 Valid contexts:
 
-* `fields` statement in `dict` or `dictT` special
+* `fields` statement in `dict` special
+
+Declares a dictionary field whose name is the string returned by `$name`, and otherwise uses the same rules as described above.
+
+```
+$name ($type) [$attrs]
+```
+
+Valid contexts:
+
+* `fields` statement in one of the following contexts:
+    * `dictT` special
+    * `interfaceT` special
+    * `featureT` special
+
+Declares a field with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the field will be `undefT`.
+
+```
+($name) ($type) [$attrs]
+```
+
+Valid contexts:
+
+* `fields` statement in `dictT` special
 
 Declares a dictionary field whose name is the string returned by `$name`, and otherwise uses the same rules as described above.
 
@@ -242,7 +327,7 @@ Valid contexts:
 
 Declares the methods in the parent interface or feature.
 
-### Method Statement:
+### Method Statements:
 
 ```
 $name [$attrs] {$behavior}
@@ -250,14 +335,26 @@ $name [$attrs] {$behavior}
 
 Valid contexts:
 
-* `methods` statement
+* `methods` statement in `feature` special
 
-Declares a method with name identifier `$name`, whose signature is described by `$attrs`, and whose behavior is determined by `$body`. Methods of types cannot define behavior, so `{$behavior}` must be excluded when inside `interfaceT` or `featureT`.
+Declares a method with name identifier `$name`, whose signature is described by `$attrs`, and whose behavior is determined by `$body`.
+
+```
+$name [$attrs]
+```
+
+Valid contexts:
+
+* `methods` statement in one of the following contexts:
+    * `interfaceT` special
+    * `featureT` special
+
+Declares a method with name identifier `$name`, and whose signature is described by `$attrs`.
 
 ### Self Feature Statement:
 
 ```
-selfFeature <$featureType>
+selfFeature ($featureType)
 ```
 
 Valid contexts:
@@ -266,7 +363,7 @@ Valid contexts:
 
 Asserts that the type of `self` is `objT ($featureType)` when referenced in the body of the method. `$featureType` must conform to `featureT`.
 
-### This Factor Statement:
+### This Factor Statements:
 
 ```
 thisFactor <$factorType>
@@ -274,8 +371,18 @@ thisFactor <$factorType>
 
 Valid contexts:
 
-* `feature` and `featureT` specials
+* `feature` special
 * Method statement
+
+Asserts that the type of `this` is `objT ($factorType)` when referenced in the body of a method. `$factorType` must conform to `factorT`.
+
+```
+thisFactor ($factorType)
+```
+
+Valid contexts:
+
+* `featureT` special
 * `methodT` special
 
 Asserts that the type of `this` is `objT ($factorType)` when referenced in the body of a method. `$factorType` must conform to `factorT`.
@@ -392,13 +499,25 @@ vis <$vis>
 
 Valid contexts:
 
+* Field statement in `feature` special
+* Method statement
+
+Asserts that the visibility of the parent member is `$vis`. The default visibility is 1.
+
+```
+vis ($vis)
+```
+
+Valid contexts:
+
 * Field statement in one of the following contexts:
     * `interfaceT` special
-    * `feature` or `featureT` special
-* Method statement
+    * `featureT` special
 * `methodT` special
 
 Asserts that the visibility of the parent member is `$vis`. The default visibility is 1.
+
+### Shield Statements:
 
 ```
 shield <$amount>
@@ -406,9 +525,19 @@ shield <$amount>
 
 Valid contexts:
 
-* Factor statement
+* Factor statement in `bundle` special
 
-Asserts that the visibility of members in the parent factor should be decreased by `$amount`. The default shield amount is 1.
+Asserts that the visibility of members in the parent factor value should be decreased by `$amount`. The default shield amount is 1.
+
+```
+shield ($amount)
+```
+
+Valid contexts:
+
+* Factor statement in `bundleT` special
+
+Asserts that the visibility of members in the parent factor type should be decreased by `$amount`. The default shield amount is 1.
 
 ### Implements Statements:
 
@@ -418,9 +547,19 @@ implements <$interfaceType>
 
 Valid contexts:
 
-* `feature` and `featureT` specials
+* `feature` special
 
-Asserts that the parent feature declares the fields and methods of interface type `$interfaceType`.
+Asserts that the parent feature value declares the fields and methods of interface type `$interfaceType`.
+
+```
+implements ($interfaceType)
+```
+
+Valid contexts:
+
+* `featureT` special
+
+Asserts that the parent feature type declares the fields and methods of interface type `$interfaceType`.
 
 ```
 implements <$factorTypes>
@@ -428,9 +567,19 @@ implements <$factorTypes>
 
 Valid contexts:
 
-* `bundle` and `bundleT` specials
+* `bundle` special
 
-Asserts that the parent bundle includes features which satisfy factor types `$factorTypes`.
+Asserts that the parent bundle value includes features which satisfy factor types `$factorTypes`.
+
+```
+implements ($factorTypes)
+```
+
+Valid contexts:
+
+* `bundleT` special
+
+Asserts that the parent bundle type includes features which satisfy factor types `$factorTypes`.
 
 ### Type Arguments Statement:
 

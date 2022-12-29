@@ -38,27 +38,27 @@ The content of `ostraConfig.json` conforms to the following type:
 
 ```
 dictT [fields [
-    name <strT>
-    version <strT>
-    ostraCodeVersion <strT>
-    rules <dictT [
-        fieldType <dictT [fields [
-            compile <dictT [fields [
-                src <strT>
-                dest <strT> [optional]
-            ]]> [optional]
-            dependencies <dictT [fieldType <strT>]> [optional]
-            constants <dictT> [optional]
-            includeRules <listT [elemType <strT>]> [optional]
-            platformNames <listT [elemType <strT>]> [optional]
-        ]]>
-    ]>
-    platforms <dictT [
-        fieldType <dictT [fields [
-            mainRule <strT>
-            entryPoint <strT> [optional]
-        ]]>
-    ]>
+    name (strT)
+    version (strT)
+    ostraCodeVersion (strT)
+    rules (dictT [
+        fieldType (dictT [fields [
+            compile (dictT [fields [
+                src (strT)
+                dest (strT) [optional]
+            ]]) [optional]
+            dependencies (dictT [fieldType (strT)]) [optional]
+            constants (dictT) [optional]
+            includeRules (listT [elemType (strT)]) [optional]
+            platformNames (listT [elemType (strT)]) [optional]
+        ]])
+    ])
+    platforms (dictT [
+        fieldType (dictT [fields [
+            mainRule (strT)
+            entryPoint (strT) [optional]
+        ]])
+    ])
 ]]
 ```
 

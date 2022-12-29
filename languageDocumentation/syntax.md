@@ -90,7 +90,7 @@ A comment with the prefix `//` may be placed at the end of any line.
 
 A function invocation accepts an argument item sequence, and returns an item. A function may be invoked by placing an expression sequence after an expression which returns the function. For example, `$func($evalExprs)` invokes `$func` using the items returned by `$evalExprs` at evaltime. Method invocation uses the same syntax as function invocation.
 
-A factor qualification accepts an argument type sequence, and returns a qualified factor. A factor may be qualified by placing an expression sequence after an expression which returns the factor. For example, `$factor<$compExprs>` qualifies `$factor` using the types returned by `$compExprs` at comptime.
+A factor qualification accepts an argument type sequence, and returns a qualified factor. A factor may be qualified by placing an expression sequence after an expression which returns the factor. For example, `$factor<$compExprs>` qualifies `$factor` using the types returned by `$compExprs` at comptime. Factor type qualification may accept arguments with any time grade, but the arguments of factor value qualification must be known at comptime.
 
 A "special" is an identifier which may be invoked in a similar fashion to a function. A special accepts both expression sequences and statement sequences which are placed immediately after the special. For example, `$special [$attrs] ($evalExprs)` invokes `$special` with both `[$attrs]` and `($evalExprs)`.
 
