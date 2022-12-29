@@ -14,6 +14,7 @@ OstraCode includes the following built-in constants:
 * `itemT`, `typeT`, `valueT`, `missingT`, `undefT`, `nullT`, `boolT`, `numT`, `strT`, and `factorT` = Types as described earlier in this documentation
 * `this` = Current object whose factor type is specified by the `thisFactor` statement
 * `self` = Current object whose factor type is the parent feature type
+* `configConstants` = Dictionary determined by compilation rules in `ostraConfig.json`.
 
 ## Built-In Functions
 

@@ -32,5 +32,6 @@ To learn more about OstraCode, please consult these pages:
 * [Built-In Identifiers](languageDocumentation/builtIn.md)
 * [Example Code](languageDocumentation/exampleCode.md)
 * [Feature System](languageDocumentation/featureSystem.md)
+* [Package System](languageDocumentation/packageSystem.md)
 
 
