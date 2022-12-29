@@ -55,8 +55,8 @@ dictT [fields [
     ]>
     platforms <dictT [
         fieldType <dictT [fields [
-            entryPoint <strT>
             mainRule <strT>
+            entryPoint <strT> [optional]
         ]]>
     ]>
 ]]
@@ -74,7 +74,7 @@ dictT [fields [
     * `includeRules` is the list of rule names which will be evaluated after the current rule.
     * `platformNames` is the list of platform names on which compiled JavaScript will run. Platform names include `"node"` and `"browser"`. If `platformNames` is excluded, then platform names will be inherited from any parent which includes the rule.
 * `platforms` is a map from platform name to dictionary.
-    * `entryPoint` specifies the path of the entry point for the given platform. When a dependent imports the package, the dependent may access exported members of the entry point. `entryPoint` is a path relative to the `src` directory.
     * `mainRule` is the name of the rule to compile the package for distribution.
+    * `entryPoint` specifies the path of the entry point for the given platform. When a dependent imports the package, the dependent may access exported members of the entry point. `entryPoint` is a path relative to the `src` directory.
 
 
