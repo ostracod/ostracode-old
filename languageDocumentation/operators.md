@@ -66,6 +66,10 @@ OstraCode has the following type operators:
     * `$item` is an expression with constraint type `itemT`
     * `$type` is an expression with constraint type `typeT`
     * The constraint type of `$item:<$type>` is `$type`
+* `$item::<$type>` = Force cast of `$item` to `$type`
+    * `$item` is an expression with constraint type `itemT`
+    * `$type` is an expression with constraint type `typeT`
+    * The constraint type of `$item::<$type>` is `$type`
 * `$type1 | $type2` = Union of `$type1` and `$type2`
     * `$type1` and `$type2` are expressions with constraint type `typeT`
     * The constraint type of `$type1 | $type2` is also `typeT`

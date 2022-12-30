@@ -161,7 +161,7 @@ comp myNumT = <nominalT (numT)>
 // Throws an error, because the constraint type of 123 is `numT`.
 const myNum1 <myNumT> = (123)
 // Does not throw a compile-time error.
-const myNum2 <myNumT> = (123:<myNumT>)
+const myNum2 <myNumT> = (123::<myNumT>)
 ```
 
 The example below demonstrates type checking at runtime:

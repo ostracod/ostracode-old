@@ -142,10 +142,10 @@ const MyBundle = (bundle [
 // Creates an object which includes `MyBundle`.
 const myObj = (obj (MyBundle))
 // Prints "15".
-(print(myObj:<AddFive>.addFive(10)))
+(print(myObj:<*?AddFive>.addFive(10)))
 // Assigns "Steve" to the `name` field in the `Nameable`
 // feature of `myObj`.
-(myObj:<Nameable>.name = "Steve")
+(myObj:<*?Nameable>.name = "Steve")
 ```
 
 Features and bundles are both considered to be "factors". A bundle contains one or more factors, which means that a bundle may store features, other bundles, or a mixture of features and bundles. The example below declares a bundle which contains another bundle:
@@ -166,9 +166,9 @@ const BcBundle = (bundle [factors [(BFeature), (CFeature)]])
 const AbcBundle = (bundle [factors [(AFeature), (BcBundle)]])
 
 const myAbc = (obj (AbcBundle))
-(print(myAbc:<AFeature>.a)) // Prints "10".
-(print(myAbc:<BFeature>.b)) // Prints "20".
-(print(myAbc:<CFeature>.c)) // Prints "30".
+(print(myAbc:<*?AFeature>.a)) // Prints "10".
+(print(myAbc:<*?BFeature>.b)) // Prints "20".
+(print(myAbc:<*?CFeature>.c)) // Prints "30".
 ```
 
 ## Member Visibility
@@ -221,7 +221,7 @@ print(sizeChecker.isSmall(1000))
 print(sizeChecker.isTiny(1000))
 // Does not throw a compile-time error, because the visibility of
 // `isTiny` in `IsSmall` is greater than 0.
-print(sizeChecker:<IsSmall>.isTiny(1000))
+print(sizeChecker:<*?IsSmall>.isTiny(1000))
 ```
 
 In certain cases, it may be desirable to decrease factor visibility in a bundle by a different amount than 1. The `shield` statement may be used to decrease factor visibility by a custom amount. The example below demonstrates usage of the `shield` statement:
@@ -252,7 +252,7 @@ const myProfile = (obj (Profile))
 // in `Profile`.
 (myProfile.height = 180)
 // Does not throw a compile time-error.
-(myProfile:<Height>.height = 180)
+(myProfile:<*?Height>.height = 180)
 ```
 
 A "name collision" occurs when two members with the same name are visible in a bundle. The compiler will throw an error when trying to access a member with a name collision. Effective management of member visibility can prevent this issue. The example below demonstrates a name collision:
@@ -277,9 +277,9 @@ const steve = (obj (bundle [
 // name collision.
 (steve.play())
 // Does not throw a compile-time error.
-(steve:<VideoManager>.play())
+(steve:<*?VideoManager>.play())
 // Does not throw a compile-time error.
-(steve:<Athlete>.play())
+(steve:<*?Athlete>.play())
 ```
 
 ## This and Self
