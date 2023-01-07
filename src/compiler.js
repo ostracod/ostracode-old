@@ -7,10 +7,12 @@ export class Compiler {
     
     compileRule(ruleName) {
         // TODO: Implement.
+        console.log("Rule name: " + ruleName);
     }
     
     compilePlatformMainRule(platformName) {
         // TODO: Implement.
+        console.log("Platform name: " + platformName);
     }
 }
 

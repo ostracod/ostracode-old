@@ -92,10 +92,10 @@ const compile = () => {
                 }
                 const arg = process.argv[index];
                 index += 1;
-                let args = labeledArgs[name];
+                let args = labeledArgs.get(name);
                 if (typeof args === "undefined") {
                     args = [];
-                    labeledArgs[name] = args;
+                    labeledArgs.set(name, args);
                 }
                 args.push(arg);
             } else {
@@ -106,10 +106,37 @@ const compile = () => {
         }
     }
     
-    // TODO: Finish implementation.
-    console.log(unlabeledArgs);
-    console.log(labeledArgs);
-    console.log(flags);
+    if (flags.has("help")) {
+        printUsage();
+        return;
+    }
+    if (unlabeledArgs.length < 1) {
+        throw new UsageError(`Expected package path.`);
+    }
+    if (unlabeledArgs.length > 1) {
+        throw new UsageError(`Expected exactly one package path.`);
+    }
+    const [packagePath] = unlabeledArgs;
+    const compiler = new Compiler(packagePath);
+    
+    let ruleNames = labeledArgs.get("rule");
+    if (typeof ruleNames === "undefined") {
+        ruleNames = [];
+    }
+    let platformNames = labeledArgs.get("platform");
+    if (typeof platformNames === "undefined") {
+        platformNames = [];
+    }
+    if (ruleNames.length + platformNames.length <= 0) {
+        throw new UsageError("No rules or platforms specified.");
+    }
+    for (const name of ruleNames) {
+        compiler.compileRule(name);
+    }
+    for (const name of platformNames) {
+        compiler.compilePlatformMainRule(name);
+    }
+    console.log("Finished compiling.");
 };
 
 try {
@@ -119,6 +146,8 @@ try {
         console.log("Error: " + error.message);
         printUsage();
         process.exit(1);
+    } else {
+        throw error;
     }
 }
 
