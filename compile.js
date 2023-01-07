@@ -1,9 +1,6 @@
 
+import { UsageError, CompilerError } from "./src/error.js";
 import { Compiler } from "./src/compiler.js";
-
-class UsageError extends Error {
-    
-}
 
 class OptionDefinition {
     // Concrete subclasses of OptionDefintion must implement these methods:
@@ -145,6 +142,9 @@ try {
     if (error instanceof UsageError) {
         console.log("Error: " + error.message);
         printUsage();
+        process.exit(1);
+    } else if (error instanceof CompilerError) {
+        console.log(error.message);
         process.exit(1);
     } else {
         throw error;
