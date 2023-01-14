@@ -144,7 +144,7 @@ try {
         printUsage();
         process.exit(1);
     } else if (error instanceof CompilerError) {
-        console.log(error.message);
+        console.log(error.getLabel() + ": " + error.message);
         process.exit(1);
     } else {
         throw error;
