@@ -29,6 +29,10 @@ class Version {
         }
         return (this.patch > version.patch);
     }
+    
+    toString() {
+        return `${this.major}.${this.minor}.${this.patch}`;
+    }
 }
 
 class VersionBoundary {
@@ -66,6 +70,16 @@ class VersionRange {
             return false;
         }
         return true;
+    }
+    
+    toString() {
+        return [
+            this.startBoundary.isInclusive ? ">=" : ">",
+            this.startBoundary.version.toString(),
+            " ",
+            this.endBoundary.isInclusive ? "<=" : "<",
+            this.endBoundary.version.toString(),
+        ].join("");
     }
 }
 

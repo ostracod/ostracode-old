@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
+import { RuleInclusion } from "./ruleInclusion.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 
@@ -38,7 +39,8 @@ export class Compiler {
         this.buildPathMap = new Map();
     }
     
-    includeRule(ruleName, inheritedPlatformNames) {
+    includeRule(ruleInclusion) {
+        const { ruleName } = ruleInclusion;
         if (this.includedRuleNames.has(ruleName)) {
             return;
         }
@@ -51,7 +53,7 @@ export class Compiler {
             dependencies: {},
             constants: {},
             includeRules: [],
-            platformNames: inheritedPlatformNames,
+            platformNames: ruleInclusion.inheritedPlatformNames,
             ...ruleWithoutDefaults,
         };
         if (rule.compile !== null) {
@@ -120,17 +122,11 @@ export class Compiler {
             }
         }
         for (const name of rule.includeRules) {
-            this.includeRule(name, rule.platformNames);
+            this.includeRule(new RuleInclusion(name, rule.platformNames));
         }
     }
     
-    compileRule(ruleName) {
-        this.init();
-        this.includeRule(ruleName, []);
-        this.compile();
-    }
-    
-    compilePlatformMainRule(platformName) {
+    getMainRuleName(platformName) {
         const platformDefinition = this.config.platforms[platformName];
         if (typeof platformDefinition === "undefined") {
             throw new CompilerError(`ostraConfig.json has no platform definition with name "${platformName}".`);
@@ -139,9 +135,25 @@ export class Compiler {
         if (typeof ruleName === "undefined") {
             throw new CompilerError(`ostraConfig.json does not specify main rule for platform "${platformName}".`);
         }
-        this.init();
-        this.includeRule(ruleName, [platformName]);
-        this.compile();
+        return ruleName;
+    }
+    
+    initPackage() {
+        console.log("Creating package.json file...");
+        const destPath = pathUtils.join(this.packagePath, "package.json");
+        const config = {
+            name: this.config.name,
+            version: this.config.version,
+            type: "module",
+        };
+        if (this.dependencies.size > 0) {
+            const dependencies = {};
+            this.dependencies.forEach((versionRange, name) => {
+                dependencies[name] = versionRange.toString();
+            });
+            config.dependencies = dependencies;
+        }
+        fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");
     }
     
     compile() {

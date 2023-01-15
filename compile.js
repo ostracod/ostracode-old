@@ -1,6 +1,7 @@
 
 import { UsageError, CompilerError } from "./src/error.js";
 import { Compiler } from "./src/compiler.js";
+import { RuleInclusion } from "./src/ruleInclusion.js";
 
 class OptionDefinition {
     // Concrete subclasses of OptionDefintion must implement these methods:
@@ -16,7 +17,7 @@ class OptionDefinition {
 class FlagDefinition extends OptionDefinition {
     
     getUsage() {
-        return `-${this.abbreviation}, -${this.name}: ${this.description}`;
+        return `-${this.abbreviation}, --${this.name}: ${this.description}`;
     }
 }
 
@@ -28,7 +29,7 @@ class LabelDefinition extends OptionDefinition {
     }
     
     getUsage() {
-        return `-${this.abbreviation} ${this.placeholderName}, -${this.name} ${this.placeholderName}: ${this.description}`;
+        return `-${this.abbreviation} ${this.placeholderName}, --${this.name} ${this.placeholderName}: ${this.description}`;
     }
 }
 
@@ -37,13 +38,17 @@ const optionDefinitions = [
         "help", "h",
         "Print compiler usage instructions."
     ),
+    new FlagDefinition(
+        "init", "i",
+        "Create package.json file."
+    ),
     new LabelDefinition(
         "rule", "r", "NAME",
-        "Compile rule with given name.",
+        "Use rule with given name.",
     ),
     new LabelDefinition(
         "platform", "p", "NAME",
-        "Compile main rule for given platform name.",
+        "Use main rule for given platform name.",
     ),
 ];
 
@@ -54,7 +59,7 @@ const printUsage = () => {
     }
 };
 
-const compile = () => {
+const main = () => {
     const unlabeledArgs = [];
     // Map from label name to list of arguments.
     const labeledArgs = new Map();
@@ -116,28 +121,38 @@ const compile = () => {
     const [packagePath] = unlabeledArgs;
     const compiler = new Compiler(packagePath);
     
-    let ruleNames = labeledArgs.get("rule");
-    if (typeof ruleNames === "undefined") {
-        ruleNames = [];
+    const ruleInclusions = [];
+    const ruleNames = labeledArgs.get("rule");
+    if (typeof ruleNames !== "undefined") {
+        for (const ruleName of ruleNames) {
+            ruleInclusions.push(new RuleInclusion(ruleName));
+        }
     }
-    let platformNames = labeledArgs.get("platform");
-    if (typeof platformNames === "undefined") {
-        platformNames = [];
+    const platformNames = labeledArgs.get("platform");
+    if (typeof platformNames !== "undefined") {
+        for (const platformName of platformNames) {
+            const ruleName = compiler.getMainRuleName(platformName);
+            ruleInclusions.push(new RuleInclusion(ruleName, [platformName]));
+        }
     }
-    if (ruleNames.length + platformNames.length <= 0) {
+    if (ruleInclusions.length <= 0) {
         throw new UsageError("No rules or platforms specified.");
     }
-    for (const name of ruleNames) {
-        compiler.compileRule(name);
+    
+    compiler.init();
+    for (const ruleInclusion of ruleInclusions) {
+        compiler.includeRule(ruleInclusion);
     }
-    for (const name of platformNames) {
-        compiler.compilePlatformMainRule(name);
+    if (flags.has("init")) {
+        compiler.initPackage();
+    } else {
+        compiler.compile();
     }
-    console.log("Finished compiling.");
+    console.log("Finished.");
 };
 
 try {
-    compile();
+    main();
 } catch (error) {
     if (error instanceof UsageError) {
         console.log("Error: " + error.message);
