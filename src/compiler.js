@@ -29,7 +29,8 @@ export class Compiler {
     }
     
     init() {
-        this.includedRuleNames = new Set();
+        // Map from rule to set of platform names.
+        this.rulePlatformsMap = new Map();
         // Map from package name to VersionRange.
         this.dependencies = new Map();
         // Map from constant name to value.
@@ -41,9 +42,6 @@ export class Compiler {
     
     includeRule(ruleInclusion) {
         const { ruleName } = ruleInclusion;
-        if (this.includedRuleNames.has(ruleName)) {
-            return;
-        }
         const ruleWithoutDefaults = this.config.rules[ruleName];
         if (typeof ruleWithoutDefaults === "undefined") {
             throw new CompilerError(`ostraConfig.json has no rule with name "${ruleName}".`);
@@ -56,6 +54,14 @@ export class Compiler {
             platformNames: ruleInclusion.inheritedPlatformNames,
             ...ruleWithoutDefaults,
         };
+        const platformNames = new Set(rule.platformNames);
+        const oldPlatformNames = this.rulePlatformsMap.get(ruleName);
+        if (typeof oldPlatformNames !== "undefined") {
+            if (!niceUtils.nameSetsAreEqual(platformNames, oldPlatformNames)) {
+                throw new CompilerError(`Rule with name "${ruleName}" was included with inconsistent platforms.`);
+            }
+            return;
+        }
         if (rule.compile !== null) {
             let relativeSrcPath = rule.compile.src;
             let relativeDestPath = rule.compile.dest;
@@ -73,7 +79,7 @@ export class Compiler {
             );
             const codeFiles = [];
             if (srcPath.endsWith(ostraCodeExtension)) {
-                codeFiles.push(new OstraCodeFile(srcPath, destPath, rule.platformNames));
+                codeFiles.push(new OstraCodeFile(srcPath, destPath, platformNames));
             } else {
                 niceUtils.walkFiles(srcPath, (path) => {
                     if (!path.endsWith(ostraCodeExtension)) {
@@ -86,7 +92,7 @@ export class Compiler {
                     codeFiles.push(new OstraCodeFile(
                         pathUtils.join(srcPath, path),
                         pathUtils.join(destPath, javaScriptPath),
-                        rule.platformNames,
+                        platformNames,
                     ));
                 });
             }
@@ -101,7 +107,7 @@ export class Compiler {
                 }
             }
         }
-        this.includedRuleNames.add(ruleName);
+        this.rulePlatformsMap.set(ruleName, platformNames);
         for (const name in rule.dependencies) {
             const range = parseVersionRange(rule.dependencies[name]);
             const oldRange = this.dependencies.get(name);
@@ -122,7 +128,7 @@ export class Compiler {
             }
         }
         for (const name of rule.includeRules) {
-            this.includeRule(new RuleInclusion(name, rule.platformNames));
+            this.includeRule(new RuleInclusion(name, platformNames));
         }
     }
     
@@ -158,7 +164,7 @@ export class Compiler {
     
     compile() {
         // TODO: Implement.
-        console.log(this.includedRuleNames);
+        console.log(this.rulePlatformsMap);
         this.dependencies.forEach((range, name) => {
             console.log(name);
             console.log(range);

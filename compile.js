@@ -132,7 +132,7 @@ const main = () => {
     if (typeof platformNames !== "undefined") {
         for (const platformName of platformNames) {
             const ruleName = compiler.getMainRuleName(platformName);
-            ruleInclusions.push(new RuleInclusion(ruleName, [platformName]));
+            ruleInclusions.push(new RuleInclusion(ruleName, new Set([platformName])));
         }
     }
     if (ruleInclusions.length <= 0) {

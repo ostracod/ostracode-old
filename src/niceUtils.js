@@ -22,4 +22,16 @@ export const walkFiles = (path, handle) => {
     walkFilesHelper(path, ".", handle);
 };
 
+export const nameSetsAreEqual = (names1, names2) => {
+    if (names1.size !== names2.size) {
+        return false;
+    }
+    for (const name of names1) {
+        if (!names2.has(name)) {
+            return false;
+        }
+    }
+    return true;
+};
+
 
