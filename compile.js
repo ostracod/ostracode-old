@@ -1,7 +1,6 @@
 
 import { UsageError, CompilerError } from "./src/error.js";
 import { Compiler } from "./src/compiler.js";
-import { RuleInclusion } from "./src/ruleInclusion.js";
 
 class OptionDefinition {
     // Concrete subclasses of OptionDefintion must implement these methods:
@@ -121,27 +120,21 @@ const main = () => {
     const [packagePath] = unlabeledArgs;
     const compiler = new Compiler(packagePath);
     
-    const ruleInclusions = [];
+    compiler.init();
     const ruleNames = labeledArgs.get("rule");
     if (typeof ruleNames !== "undefined") {
         for (const ruleName of ruleNames) {
-            ruleInclusions.push(new RuleInclusion(ruleName));
+            compiler.includeRule(ruleName);
         }
     }
     const platformNames = labeledArgs.get("platform");
     if (typeof platformNames !== "undefined") {
         for (const platformName of platformNames) {
-            const ruleName = compiler.getMainRuleName(platformName);
-            ruleInclusions.push(new RuleInclusion(ruleName, new Set([platformName])));
+            compiler.includePlatformMainRule(platformName);
         }
     }
-    if (ruleInclusions.length <= 0) {
+    if (compiler.getIncludedRuleCount() <= 0) {
         throw new UsageError("No rules or platforms specified.");
-    }
-    
-    compiler.init();
-    for (const ruleInclusion of ruleInclusions) {
-        compiler.includeRule(ruleInclusion);
     }
     if (flags.has("init")) {
         compiler.initPackage();
