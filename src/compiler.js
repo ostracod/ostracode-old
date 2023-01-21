@@ -230,15 +230,16 @@ export class Compiler {
         fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");
     }
     
+    parseTokens() {
+        for (const codeFile of this.ostraCodeFiles) {
+            codeFile.readContent();
+            codeFile.parseTokens();
+            console.log(codeFile.bhvrPreStmtSeq);
+        }
+    }
+    
     compile() {
-        // TODO: Implement.
-        console.log(this.rulePlatformsMap);
-        this.dependencies.forEach((range, name) => {
-            console.log(name);
-            console.log(range);
-        });
-        console.log(this.constants);
-        console.log(this.ostraCodeFiles);
+        this.parseTokens();
     }
 }
 

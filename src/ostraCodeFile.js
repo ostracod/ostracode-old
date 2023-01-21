@@ -1,5 +1,7 @@
 
+import * as fs from "fs";
 import * as niceUtils from "./niceUtils.js";
+import * as parseUtils from "./parseUtils.js";
 
 export class OstraCodeFile {
     
@@ -8,6 +10,8 @@ export class OstraCodeFile {
         this.destPath = destPath;
         // Set of strings.
         this.platformNames = platformNames;
+        this.content = null;
+        this.bhvrPreStmtSeq = null;
     }
     
     equals(codeFile) {
@@ -15,6 +19,14 @@ export class OstraCodeFile {
             return false;
         }
         return niceUtils.nameSetsAreEqual(this.platformNames, codeFile.platformNames);
+    }
+    
+    readContent() {
+        this.content = fs.readFileSync(this.srcPath, "utf8");
+    }
+    
+    parseTokens() {
+        this.bhvrPreStmtSeq = parseUtils.parseFileContent(this.content);
     }
 }
 
