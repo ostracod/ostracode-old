@@ -14,6 +14,10 @@ export class NumberToken extends Token {
     
 }
 
+export class CharToken extends Token {
+    
+}
+
 export class StringToken extends Token {
     
 }

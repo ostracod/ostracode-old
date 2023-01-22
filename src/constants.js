@@ -9,6 +9,20 @@ export const delimiterTextList = [
     "[", "]",
 ].sort(compareLength);
 
+export const operatorTextList = [
+    "+", "-", "*", "/", "%", "**",
+    "~", "|", "&", "^",
+    "!", "||", "&&", "^^",
+    "#sl", "#sr", "#srz",
+    "#lt", "#lte", "#gt", "#gte", "#eq", "#neq",
+    ".", "@", ":", "::",
+    "=",
+    "+=", "-=", "*=", "/=", "%=", "**=",
+    "|=", "&=", "^=",
+    "||=", "&&=", "^^=",
+    "#sl=", "#sr=", "#srz=",
+].sort(compareLength);
+
 export const ExprSeqSelector = {
     ReturnItems: Symbol("returnItems"),
     ConstraintTypes: Symbol("constraintTypes"),
