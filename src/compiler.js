@@ -230,16 +230,14 @@ export class Compiler {
         fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");
     }
     
-    parseTokens() {
+    compile() {
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.readContent();
             codeFile.parseTokens();
+            codeFile.parsePreStmts();
+            console.log(codeFile.tokens);
             console.log(codeFile.bhvrPreStmtSeq);
         }
-    }
-    
-    compile() {
-        this.parseTokens();
     }
 }
 

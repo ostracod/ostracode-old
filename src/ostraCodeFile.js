@@ -1,7 +1,7 @@
 
 import * as fs from "fs";
 import * as niceUtils from "./niceUtils.js";
-import * as parseUtils from "./parseUtils.js";
+import { TokenParser, PreStmtParser} from "./parser.js";
 
 export class OstraCodeFile {
     
@@ -11,6 +11,7 @@ export class OstraCodeFile {
         // Set of strings.
         this.platformNames = platformNames;
         this.content = null;
+        this.tokens = null;
         this.bhvrPreStmtSeq = null;
     }
     
@@ -26,7 +27,13 @@ export class OstraCodeFile {
     }
     
     parseTokens() {
-        this.bhvrPreStmtSeq = parseUtils.parseFileContent(this.content);
+        const parser = new TokenParser(this.content);
+        this.tokens = parser.parseTokens();
+    }
+    
+    parsePreStmts() {
+        const parser = new PreStmtParser(this.tokens);
+        this.bhvrPreStmtSeq = parser.parseBhvrPreStmtSeq();
     }
 }
 
