@@ -1,8 +1,9 @@
 
 export class Token {
     
-    constructor(text) {
+    constructor(text, lineNumber) {
         this.text = text;
+        this.lineNumber = lineNumber;
     }
 }
 

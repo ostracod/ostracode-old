@@ -1,5 +1,6 @@
 
 import * as fs from "fs";
+import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { TokenParser, PreStmtParser} from "./parser.js";
 
@@ -28,7 +29,14 @@ export class OstraCodeFile {
     
     parseTokens() {
         const parser = new TokenParser(this.content);
-        this.tokens = parser.parseTokens();
+        try {
+            this.tokens = parser.parseTokens();
+        } catch (error) {
+            if (error instanceof CompilerError) {
+                error.ostraCodeFile = this;
+            }
+            throw error;
+        }
     }
     
     parsePreStmts() {

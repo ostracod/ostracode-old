@@ -5,9 +5,21 @@ export class UsageError extends Error {
 
 export class CompilerError extends Error {
     
+    constructor(message, ostraCodeFile = null, lineNumber = null) {
+        super(message);
+        this.ostraCodeFile = ostraCodeFile;
+        this.lineNumber = lineNumber;
+    }
+    
     getLabel() {
-        // In the future, we will add a line number to the label.
-        return "Error";
+        const components = ["Error"];
+        if (this.lineNumber !== null) {
+            components.push(" on line " + this.lineNumber);
+        }
+        if (this.codeFile !== null) {
+            components.push(" of " + this.ostraCodeFile.srcPath);
+        }
+        return components.join("");
     }
 }
 

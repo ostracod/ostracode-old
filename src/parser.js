@@ -25,6 +25,7 @@ export class TokenParser {
     constructor(content) {
         this.content = content;
         this.index = 0;
+        this.lineNumber = 1;
     }
     
     peekChar(offset = 0) {
@@ -36,9 +37,19 @@ export class TokenParser {
         }
     }
     
+    advanceIndex(amount = 1) {
+        for (let count = 0; count < amount; count += 1) {
+            const charCode = this.peekChar();
+            if (charCode === 10) {
+                this.lineNumber += 1;
+            }
+            this.index += 1;
+        }
+    }
+    
     readChar() {
         const output = this.peekChar();
-        this.index += 1;
+        this.advanceIndex();
         return output;
     }
     
@@ -63,7 +74,7 @@ export class TokenParser {
             if (this.index + text.length <= this.content.length) {
                 const subText = this.content.substring(this.index, this.index + text.length);
                 if (subText === text) {
-                    this.index += text.length;
+                    this.advanceIndex(text.length);
                     return text;
                 }
             }
@@ -77,7 +88,7 @@ export class TokenParser {
             if (charCode === targetCharCode) {
                 break;
             }
-            this.index += 1;
+            this.advanceIndex();
         }
     }
     
@@ -88,10 +99,10 @@ export class TokenParser {
             if (!charMatches(charCode)) {
                 break;
             }
-            this.index += 1;
+            this.advanceIndex();
         }
         const text = this.content.substring(startIndex, this.index);
-        return new tokenConstructor(text);
+        return new tokenConstructor(text, this.lineNumber);
     }
     
     parseDecNumberToken() {
@@ -107,7 +118,7 @@ export class TokenParser {
     }
     
     parseStringToken() {
-        this.index += 1;
+        this.advanceIndex();
         const chars = [];
         while (true) {
             if (this.index >= this.content.length) {
@@ -115,7 +126,7 @@ export class TokenParser {
             }
             let charCode = this.peekChar();
             if (charCode === 34) {
-                this.index += 1;
+                this.advanceIndex();
                 break;
             }
             charCode = this.readCharWithEscape();
@@ -124,11 +135,11 @@ export class TokenParser {
             }
             chars.push(String.fromCharCode(charCode));
         }
-        return new StringToken(chars.join(""));
+        return new StringToken(chars.join(""), this.lineNumber);
     }
     
     parseCharToken() {
-        this.index += 1;
+        this.advanceIndex();
         const charCode = this.readCharWithEscape();
         if (charCode === null) {
             throw new CompilerError("Expected character.");
@@ -137,13 +148,13 @@ export class TokenParser {
         if (apostropheChar !== 39) {
             throw new CompilerError("Expected apostrophe.");
         }
-        return new CharToken(String.fromCharCode(charCode));
+        return new CharToken(String.fromCharCode(charCode), this.lineNumber);
     }
     
     parseToken() {
         const firstChar = this.peekChar();
         if (firstChar === 32) {
-            this.index += 1;
+            this.advanceIndex();
             return null;
         }
         if (firstChar === 34) {
@@ -174,22 +185,30 @@ export class TokenParser {
         if (isFirstWordChar(firstChar)) {
             return this.parseWordToken();
         }
+        const lineNumber = this.lineNumber;
         text = this.readText(delimiterTextList);
         if (text !== null) {
-            return new DelimiterToken(text);
+            return new DelimiterToken(text, lineNumber);
         }
         text = this.readText(operatorTextList);
         if (text !== null) {
-            return new OperatorToken(text);
+            return new OperatorToken(text, this.lineNumber);
         }
         throw new CompilerError(`Unexpected character '${String.fromCharCode(firstChar)}'.`);
     }
     
     parseTokens() {
-        // TODO: Keep track of line numbers.
         const output = [];
         while (this.index < this.content.length) {
-            const token = this.parseToken();
+            let token;
+            try {
+                token = this.parseToken();
+            } catch (error) {
+                if (error instanceof CompilerError) {
+                    error.lineNumber = this.lineNumber;
+                }
+                throw error;
+            }
             if (token !== null) {
                 output.push(token);
             }
