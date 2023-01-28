@@ -14,6 +14,14 @@ export class NumberToken extends Token {
     
 }
 
+export class DecNumberToken extends NumberToken {
+    
+}
+
+export class HexNumberToken extends NumberToken {
+    
+}
+
 export class CharToken extends Token {
     
 }

@@ -1,10 +1,16 @@
 
 import { delimiterTextList, operatorTextList } from "./constants.js";
 import { CompilerError } from "./error.js";
-import { WordToken, NumberToken, CharToken, StringToken, DelimiterToken, OperatorToken } from "./token.js";
+import { WordToken, DecNumberToken, HexNumberToken, CharToken, StringToken, DelimiterToken, OperatorToken } from "./token.js";
 import { BhvrPreStmtSeq } from "./preStmt.js";
 
-const isNumberChar = (charCode) => (charCode >= 48 && charCode <= 57);
+const isDecDigit = (charCode) => (charCode >= 48 && charCode <= 57);
+
+const isHexDigit = (charCode) => (isDecDigit(charCode)
+    || (charCode >= 65 && charCode <= 70)
+    || (charCode >= 97 && charCode <= 102));
+
+const isDecNumberChar = (charCode) => (isDecDigit(charCode) || charCode === 46);
 
 const isFirstWordChar = (charCode) => (
     (charCode >= 65 && charCode <= 90)
@@ -12,7 +18,7 @@ const isFirstWordChar = (charCode) => (
     || charCode === 95 || charCode === 36
 );
 
-const isWordChar = (charCode) => (isFirstWordChar(charCode) || isNumberChar(charCode));
+const isWordChar = (charCode) => (isFirstWordChar(charCode) || isDecDigit(charCode));
 
 export class TokenParser {
     
@@ -21,9 +27,10 @@ export class TokenParser {
         this.index = 0;
     }
     
-    peekChar() {
-        if (this.index < this.content.length) {
-            return this.content.charCodeAt(this.index);
+    peekChar(offset = 0) {
+        const index = this.index + offset;
+        if (index < this.content.length) {
+            return this.content.charCodeAt(index);
         } else {
             return null;
         }
@@ -51,7 +58,7 @@ export class TokenParser {
     }
     
     // `textList` must be sorted by length descending.
-    parseTokenText(textList) {
+    readText(textList) {
         for (let text of textList) {
             if (this.index + text.length <= this.content.length) {
                 const subText = this.content.substring(this.index, this.index + text.length);
@@ -63,6 +70,16 @@ export class TokenParser {
         }
         return null;
     };
+    
+    seekChar(targetCharCode) {
+        while (this.index < this.content.length) {
+            const charCode = this.peekChar();
+            if (charCode === targetCharCode) {
+                break;
+            }
+            this.index += 1;
+        }
+    }
     
     parseTokenHelper(charMatches, tokenConstructor) {
         const startIndex = this.index;
@@ -77,9 +94,12 @@ export class TokenParser {
         return new tokenConstructor(text);
     }
     
-    parseNumberToken() {
-        // TODO: Parse hexadecimal and floating-point numbers.
-        return this.parseTokenHelper(isNumberChar, NumberToken);
+    parseDecNumberToken() {
+        return this.parseTokenHelper(isDecNumberChar, DecNumberToken);
+    }
+    
+    parseHexNumberToken() {
+        return this.parseTokenHelper(isHexDigit, HexNumberToken);
     }
     
     parseWordToken() {
@@ -132,17 +152,33 @@ export class TokenParser {
         if (firstChar === 39) {
             return this.parseCharToken();
         }
-        if (isNumberChar(firstChar)) {
-            return this.parseNumberToken();
+        if (firstChar === 46) {
+            // Do not confuse decimal point with member access operator.
+            const secondChar = this.peekChar(1);
+            if (isDecDigit(secondChar)) {
+                return this.parseDecNumberToken();
+            }
+        }
+        let text = this.readText(["//"]);
+        if (text !== null) {
+            this.seekChar(10);
+            return null;
+        }
+        text = this.readText(["0x"]);
+        if (text !== null) {
+            return this.parseHexNumberToken();
+        }
+        if (isDecDigit(firstChar)) {
+            return this.parseDecNumberToken();
         }
         if (isFirstWordChar(firstChar)) {
             return this.parseWordToken();
         }
-        let text = this.parseTokenText(delimiterTextList);
+        text = this.readText(delimiterTextList);
         if (text !== null) {
             return new DelimiterToken(text);
         }
-        text = this.parseTokenText(operatorTextList);
+        text = this.readText(operatorTextList);
         if (text !== null) {
             return new OperatorToken(text);
         }
@@ -150,6 +186,7 @@ export class TokenParser {
     }
     
     parseTokens() {
+        // TODO: Keep track of line numbers.
         const output = [];
         while (this.index < this.content.length) {
             const token = this.parseToken();
