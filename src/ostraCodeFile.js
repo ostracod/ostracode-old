@@ -2,7 +2,8 @@
 import * as fs from "fs";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
-import { TokenParser, PreStmtParser} from "./parser.js";
+import { BhvrPreStmt, BhvrPreStmtSeq } from "./preStmt.js";
+import { TokenParser, PreGroupParser} from "./parser.js";
 
 export class OstraCodeFile {
     
@@ -40,8 +41,9 @@ export class OstraCodeFile {
     }
     
     parsePreStmts() {
-        const parser = new PreStmtParser(this.tokens);
-        this.bhvrPreStmtSeq = parser.parseBhvrPreStmtSeq();
+        const parser = new PreGroupParser(this.tokens);
+        const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt)
+        this.bhvrPreStmtSeq = new BhvrPreStmtSeq(bhvrPreStmts);
     }
 }
 

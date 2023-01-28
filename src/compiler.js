@@ -1,6 +1,7 @@
 
 import * as fs from "fs";
 import * as pathUtils from "path";
+import * as util from "util";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { parseVersionRange } from "./version.js";
@@ -236,7 +237,10 @@ export class Compiler {
             codeFile.parseTokens();
             codeFile.parsePreStmts();
             console.log(codeFile.tokens);
-            console.log(codeFile.bhvrPreStmtSeq);
+            console.log(util.inspect(
+                codeFile.bhvrPreStmtSeq,
+                { showHidden: false, depth: null, colors: true },
+            ));
         }
     }
 }

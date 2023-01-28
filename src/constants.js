@@ -1,12 +1,18 @@
 
 const compareLength = (text1, text2) => text2.length - text1.length;
 
-export const delimiterTextList = [
+export const openBracketTextList = [
+    "(", "(*",
+    "<", "<?", "<??", "<*", "<*?", "<*??",
+    "{", "[",
+].sort(compareLength);
+
+export const closeBracketTextList = [
+    ")", ">", "}", "]",
+].sort(compareLength);
+
+export const separatorTextList = [
     ",", "\n",
-    "(", "(*", ")",
-    "<", "<?", "<??", "<*", "<*?", "<*??", ">",
-    "{", "}",
-    "[", "]",
 ].sort(compareLength);
 
 export const operatorTextList = [

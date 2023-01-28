@@ -16,7 +16,7 @@ export class CompilerError extends Error {
         if (this.lineNumber !== null) {
             components.push(" on line " + this.lineNumber);
         }
-        if (this.codeFile !== null) {
+        if (this.ostraCodeFile !== null) {
             components.push(" of " + this.ostraCodeFile.srcPath);
         }
         return components.join("");

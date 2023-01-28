@@ -1,8 +1,16 @@
 
-import { delimiterTextList, operatorTextList } from "./constants.js";
+import { openBracketTextList, closeBracketTextList, separatorTextList, operatorTextList, ExprSeqSelector } from "./constants.js";
 import { CompilerError } from "./error.js";
-import { WordToken, DecNumberToken, HexNumberToken, CharToken, StringToken, DelimiterToken, OperatorToken } from "./token.js";
-import { BhvrPreStmtSeq } from "./preStmt.js";
+import { WordToken, DecNumberToken, HexNumberToken, CharToken, StringToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
+import { PreExpr, EvalPreExprSeq, CompPreExprSeq } from "./preExpr.js";
+import { BhvrPreStmt, AttrPreStmt, BhvrPreStmtSeq, AttrPreStmtSeq } from "./preStmt.js";
+
+const tokenConstructors = [
+    { textList: openBracketTextList, constructor: OpenBracketToken },
+    { textList: closeBracketTextList, constructor: CloseBracketToken },
+    { textList: separatorTextList, constructor: SeparatorToken },
+    { textList: operatorTextList, constructor: OperatorToken },
+];
 
 const isDecDigit = (charCode) => (charCode >= 48 && charCode <= 57);
 
@@ -19,6 +27,47 @@ const isFirstWordChar = (charCode) => (
 );
 
 const isWordChar = (charCode) => (isFirstWordChar(charCode) || isDecDigit(charCode));
+
+const getSeqBuilder = (openBracketText) => {
+    const firstChar = openBracketText.charCodeAt(0);
+    const hasFactorType = (openBracketText.length > 1
+        && openBracketText.charCodeAt(1) === 42);
+    const startIndex = hasFactorType ? 2 : 1;
+    const questionMarks = openBracketText.substring(startIndex, openBracketText.length);
+    let exprSeqSelector;
+    if (questionMarks === "??") {
+        exprSeqSelector = ExprSeqSelector.InitTypes;
+    } else if (questionMarks === "?") {
+        exprSeqSelector = ExprSeqSelector.ConstraintTypes;
+    } else {
+        exprSeqSelector = ExprSeqSelector.ReturnItems;
+    }
+    let groupConstructor;
+    let closeBracketText;
+    let createSeq;
+    if (firstChar === 40) {
+        groupConstructor = PreExpr;
+        closeBracketText = ")";
+        createSeq = (preGroups) => new EvalPreExprSeq(hasFactorType, preGroups);
+    } else if (firstChar === 60) {
+        groupConstructor = PreExpr;
+        closeBracketText = ">";
+        createSeq = (preGroups) => (
+            new CompPreExprSeq(hasFactorType, exprSeqSelector, preGroups)
+        );
+    } else if (firstChar === 123) {
+        groupConstructor = BhvrPreStmt;
+        closeBracketText = "}";
+        createSeq = (preGroups) => new BhvrPreStmtSeq(preGroups);
+    } else if (firstChar === 91) {
+        groupConstructor = AttrPreStmt;
+        closeBracketText = "]";
+        createSeq = (preGroups) => new AttrPreStmtSeq(preGroups);
+    } else {
+        throw new Error(`Unexpected open bracket "${openBracketText}".`);
+    }
+    return { groupConstructor, closeBracketText, createSeq };
+};
 
 export class TokenParser {
     
@@ -186,13 +235,11 @@ export class TokenParser {
             return this.parseWordToken();
         }
         const lineNumber = this.lineNumber;
-        text = this.readText(delimiterTextList);
-        if (text !== null) {
-            return new DelimiterToken(text, lineNumber);
-        }
-        text = this.readText(operatorTextList);
-        if (text !== null) {
-            return new OperatorToken(text, this.lineNumber);
+        for (const dict of tokenConstructors) {
+            text = this.readText(dict.textList);
+            if (text !== null) {
+                return new dict.constructor(text, lineNumber);
+            }
         }
         throw new CompilerError(`Unexpected character '${String.fromCharCode(firstChar)}'.`);
     }
@@ -217,18 +264,83 @@ export class TokenParser {
     }
 }
 
-export class PreStmtParser {
+export class PreGroupParser {
     
     constructor(tokens) {
         this.tokens = tokens;
         this.index = 0;
     }
     
-    parseBhvrPreStmtSeq() {
-        const bhvrPreStmts = [];
-        // TODO: Implement.
-        
-        return new BhvrPreStmtSeq(bhvrPreStmts);
+    peekToken() {
+        if (this.index < this.tokens.length) {
+            return this.tokens[this.index];
+        } else {
+            return null;
+        }
+    }
+    
+    readToken() {
+        const output = this.peekToken();
+        this.index += 1;
+        return output;
+    }
+    
+    parsePreGroupSeq() {
+        const openBracketText = this.readToken().text;
+        const {
+            groupConstructor, closeBracketText, createSeq
+        } = getSeqBuilder(openBracketText);
+        const preGroups = this.parsePreGroups(groupConstructor);
+        const closeBracketToken = this.readToken();
+        if (!(closeBracketToken instanceof CloseBracketToken)
+                || closeBracketToken.text !== closeBracketText) {
+            throw new CompilerError(`Expected "${closeBracketText}".`);
+        }
+        return createSeq(preGroups);
+    }
+    
+    parseComponent() {
+        const token = this.peekToken();
+        if (token instanceof SeparatorToken || token instanceof CloseBracketToken) {
+            return null;
+        }
+        if (token instanceof OpenBracketToken) {
+            return this.parsePreGroupSeq();
+        }
+        this.index += 1
+        return token;
+    }
+    
+    parsePreGroup(groupConstructor) {
+        const components = [];
+        while (this.index < this.tokens.length) {
+            const token = this.peekToken();
+            if (token instanceof SeparatorToken) {
+                this.index += 1;
+                break;
+            }
+            const component = this.parseComponent();
+            if (component === null) {
+                break;
+            }
+            components.push(component);
+        }
+        return (components.length > 0) ? new groupConstructor(components) : null;
+    }
+    
+    parsePreGroups(groupConstructor) {
+        const output = [];
+        while (this.index < this.tokens.length) {
+            const token = this.peekToken();
+            if (token instanceof CloseBracketToken) {
+                break;
+            }
+            const preGroup = this.parsePreGroup(groupConstructor);
+            if (preGroup !== null) {
+                output.push(preGroup);
+            }
+        }
+        return output;
     }
 }
 

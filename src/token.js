@@ -35,6 +35,18 @@ export class DelimiterToken extends Token {
     
 }
 
+export class OpenBracketToken extends DelimiterToken {
+    
+}
+
+export class CloseBracketToken extends DelimiterToken {
+    
+}
+
+export class SeparatorToken extends DelimiterToken {
+    
+}
+
 export class OperatorToken extends Token {
     
 }

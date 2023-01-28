@@ -1,19 +1,18 @@
 
+import { PreGroup, PreGroupSeq } from "./preGroup.js";
+
 // PreExpr = Pre-expression
 // A pre-expression is an expression which has not yet been resolved to a specific type.
-export class PreExpr {
+export class PreExpr extends PreGroup {
     
-    constructor(components) {
-        this.components = components;
-    }
 }
 
 // PreExprSeq = Pre-expression sequence
-export class PreExprSeq {
+export class PreExprSeq extends PreGroupSeq {
     
     constructor(hasFactorType, preExprs) {
+        super(preExprs);
         this.hasFactorType = hasFactorType;
-        this.preExprs = preExprs;
     }
 }
 
