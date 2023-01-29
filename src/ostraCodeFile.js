@@ -15,6 +15,7 @@ export class OstraCodeFile {
         this.content = null;
         this.tokens = null;
         this.bhvrPreStmtSeq = null;
+        this.bhvrStmtSeq = null;
     }
     
     equals(codeFile) {
@@ -44,6 +45,10 @@ export class OstraCodeFile {
         const parser = new PreGroupParser(this.tokens);
         const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt)
         this.bhvrPreStmtSeq = new BhvrPreStmtSeq(bhvrPreStmts);
+    }
+    
+    resolveStmts() {
+        this.bhvrStmtSeq = this.bhvrPreStmtSeq.resolveStmts();
     }
 }
 

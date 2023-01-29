@@ -236,9 +236,9 @@ export class Compiler {
             codeFile.readContent();
             codeFile.parseTokens();
             codeFile.parsePreStmts();
-            console.log(codeFile.tokens);
+            codeFile.resolveStmts();
             console.log(util.inspect(
-                codeFile.bhvrPreStmtSeq,
+                codeFile.bhvrStmtSeq,
                 { showHidden: false, depth: null, colors: true },
             ));
         }
