@@ -61,12 +61,7 @@ export class VarStmt extends BhvrStmt {
             this.initItemExprSeq = null;
             return;
         }
-        const equalSignToken = parser.readByClass(OperatorToken, "operator");
-        if (equalSignToken.text !== "=") {
-            throw new CompilerError(
-                "Expected equal sign.", null, equalSignToken.lineNumber,
-            );
-        }
+        parser.readEqualSign();
         this.initItemExprSeq = this.readInitItem(parser);
     }
 }
@@ -112,7 +107,7 @@ export class IfStmt extends BhvrStmt {
                     this.elseIfClauses.push(clause);
                     continue;
                 } else if (keyword === "else") {
-                    this.elseStmtSeq = parser.readByClass(BhvrStmtSeq, "body");
+                    this.elseStmtSeq = parser.readBhvrStmtSeq();
                     break;
                 }
             }
@@ -120,6 +115,39 @@ export class IfStmt extends BhvrStmt {
                 "Expected keyword \"elseIf\" or \"else\".", null, component.getLineNumber(),
             );
         }
+    }
+}
+
+export class WhileStmt extends BhvrStmt {
+    
+    init(parser) {
+        this.condExprSeq = parser.readByClass(ExprSeq, "condition");
+        this.stmtSeq = parser.readBhvrStmtSeq();
+    }
+}
+
+export class ForStmt extends BhvrStmt {
+    
+    init(parser) {
+        this.varName = parser.readIdentifierText();
+        parser.readKeyword("in");
+        this.iterableExprSeq = parser.readByClass(ExprSeq, "iterable");
+        this.stmtSeq = parser.readBhvrStmtSeq();
+    }
+}
+
+export class BreakStmt extends BhvrStmt {
+    
+}
+
+export class ContinueStmt extends BhvrStmt {
+    
+}
+
+export class ReturnStmt extends BhvrStmt {
+    
+    init(parser) {
+        this.exprSeq = parser.readByClass(ExprSeq);
     }
 }
 
@@ -132,6 +160,11 @@ export const stmtConstructorMap = {
     const: ImmutEvalVarStmt,
     var: MutEvalVarStmt,
     if: IfStmt,
+    while: WhileStmt,
+    for: ForStmt,
+    break: BreakStmt,
+    continue: ContinueStmt,
+    return: ReturnStmt,
 };
 
 export class StmtSeq extends GroupSeq {

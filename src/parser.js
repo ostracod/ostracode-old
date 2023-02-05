@@ -409,6 +409,21 @@ export class GroupParser {
         return this.readByClass(WordToken, "identifier").text;
     }
     
+    readRequiredText(tokenClass, errorName, requiredText) {
+        const token = this.readByClass(tokenClass, errorName);
+        if (token.text !== requiredText) {
+            throw new CompilerError(`Expected ${errorName}.`, null, token.getLineNumber());
+        }
+    }
+    
+    readEqualSign() {
+        this.readRequiredText(OperatorToken, `equal sign`, "=");
+    }
+    
+    readKeyword(requiredText) {
+        this.readRequiredText(WordToken, `keyword "${requiredText}"`, requiredText);
+    }
+    
     readCompExprSeq(errorName = null, required = false) {
         const exprSeq = this.readByClass(ExprSeq, required ? errorName : null);
         if (exprSeq === null) {
@@ -424,9 +439,13 @@ export class GroupParser {
         return exprSeq;
     }
     
+    readBhvrStmtSeq() {
+        return this.readByClass(BhvrStmtSeq, "body");
+    }
+    
     readIfClause() {
         const condExprSeq = this.readByClass(ExprSeq, "condition");
-        const stmtSeq = this.readByClass(BhvrStmtSeq, "body");
+        const stmtSeq = this.readBhvrStmtSeq();
         return new IfClause(condExprSeq, stmtSeq);
     }
     

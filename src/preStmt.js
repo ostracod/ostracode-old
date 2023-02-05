@@ -36,7 +36,7 @@ export class BhvrPreStmt extends PreStmt {
 // AttrPreStmt = Attribute pre-statement
 export class AttrPreStmt extends PreStmt {
     
-    resolve() {
+    resolve(parentStmt) {
         // TODO: Implement.
         return null;
     }
