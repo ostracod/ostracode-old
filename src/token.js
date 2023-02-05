@@ -5,6 +5,10 @@ export class Token {
         this.text = text;
         this.lineNumber = lineNumber;
     }
+    
+    getLineNumber() {
+        return this.lineNumber;
+    }
 }
 
 export class WordToken extends Token {

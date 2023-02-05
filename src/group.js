@@ -1,5 +1,5 @@
 
-export class PreGroup {
+export class Group {
     
     constructor(components) {
         this.components = components;
@@ -10,12 +10,10 @@ export class PreGroup {
     }
 }
 
-export class PreGroupSeq {
-    // Concrete subclasses of PreGroupSeq must implement these methods:
-    // resolveStmts
+export class GroupSeq {
     
-    constructor(preGroups) {
-        this.preGroups = preGroups;
+    constructor(groups) {
+        this.groups = groups;
         this.lineNumber = null;
     }
     

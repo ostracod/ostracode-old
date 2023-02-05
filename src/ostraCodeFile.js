@@ -29,10 +29,9 @@ export class OstraCodeFile {
         this.content = fs.readFileSync(this.srcPath, "utf8");
     }
     
-    parseTokens() {
-        const parser = new TokenParser(this.content);
+    tryOperation(operation) {
         try {
-            this.tokens = parser.parseTokens();
+            operation();
         } catch (error) {
             if (error instanceof CompilerError) {
                 error.ostraCodeFile = this;
@@ -41,14 +40,24 @@ export class OstraCodeFile {
         }
     }
     
+    parseTokens() {
+        const parser = new TokenParser(this.content);
+        this.tryOperation(() => {
+            this.tokens = parser.parseTokens();
+        });
+    }
+    
     parsePreStmts() {
         const parser = new PreGroupParser(this.tokens);
         const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt)
         this.bhvrPreStmtSeq = new BhvrPreStmtSeq(bhvrPreStmts);
+        this.bhvrPreStmtSeq.lineNumber = 1;
     }
     
     resolveStmts() {
-        this.bhvrStmtSeq = this.bhvrPreStmtSeq.resolveStmts();
+        this.tryOperation(() => {
+            this.bhvrStmtSeq = this.bhvrPreStmtSeq.resolveStmts();
+        });
     }
 }
 

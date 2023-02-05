@@ -28,7 +28,8 @@ const isFirstWordChar = (charCode) => (
 
 const isWordChar = (charCode) => (isFirstWordChar(charCode) || isDecDigit(charCode));
 
-const getSeqBuilder = (openBracketText) => {
+const getSeqBuilder = (openBracketToken) => {
+    const openBracketText = openBracketToken.text;
     const firstChar = openBracketText.charCodeAt(0);
     const hasFactorType = (openBracketText.length > 1
         && openBracketText.charCodeAt(1) === 42);
@@ -44,28 +45,33 @@ const getSeqBuilder = (openBracketText) => {
     }
     let groupConstructor;
     let closeBracketText;
-    let createSeq;
+    let createHelper;
     if (firstChar === 40) {
         groupConstructor = PreExpr;
         closeBracketText = ")";
-        createSeq = (preGroups) => new EvalPreExprSeq(hasFactorType, preGroups);
+        createHelper = (preGroups) => new EvalPreExprSeq(hasFactorType, preGroups);
     } else if (firstChar === 60) {
         groupConstructor = PreExpr;
         closeBracketText = ">";
-        createSeq = (preGroups) => (
+        createHelper = (preGroups) => (
             new CompPreExprSeq(hasFactorType, exprSeqSelector, preGroups)
         );
     } else if (firstChar === 123) {
         groupConstructor = BhvrPreStmt;
         closeBracketText = "}";
-        createSeq = (preGroups) => new BhvrPreStmtSeq(preGroups);
+        createHelper = (preGroups) => new BhvrPreStmtSeq(preGroups);
     } else if (firstChar === 91) {
         groupConstructor = AttrPreStmt;
         closeBracketText = "]";
-        createSeq = (preGroups) => new AttrPreStmtSeq(preGroups);
+        createHelper = (preGroups) => new AttrPreStmtSeq(preGroups);
     } else {
         throw new Error(`Unexpected open bracket "${openBracketText}".`);
     }
+    const createSeq = (preGroups) => {
+        const output = createHelper(preGroups);
+        output.lineNumber = openBracketToken.lineNumber;
+        return output;
+    };
     return { groupConstructor, closeBracketText, createSeq };
 };
 
@@ -286,10 +292,10 @@ export class PreGroupParser {
     }
     
     parsePreGroupSeq() {
-        const openBracketText = this.readToken().text;
+        const openBracketToken = this.readToken();
         const {
             groupConstructor, closeBracketText, createSeq
-        } = getSeqBuilder(openBracketText);
+        } = getSeqBuilder(openBracketToken);
         const preGroups = this.parsePreGroups(groupConstructor);
         const closeBracketToken = this.readToken();
         if (!(closeBracketToken instanceof CloseBracketToken)
@@ -341,6 +347,55 @@ export class PreGroupParser {
             }
         }
         return output;
+    }
+}
+
+export class GroupParser {
+    
+    constructor(components) {
+        this.components = components;
+        this.index = 0;
+    }
+    
+    hasReachedEnd() {
+        return (this.index >= this.components.length);
+    }
+    
+    peekComponent() {
+        if (!this.hasReachedEnd()) {
+            return this.components[this.index];
+        } else {
+            return null;
+        }
+    }
+    
+    readComponent() {
+        const output = this.peekComponent();
+        this.index += 1;
+        return output;
+    }
+    
+    readByClass(componentClass, errorMessage = null) {
+        const component = this.peekComponent();
+        if (!(component instanceof componentClass)) {
+            if (errorMessage === null) {
+                return null;
+            }
+            let lineNumber;
+            if (component === null) {
+                const lastComponent = this.components[this.components.length - 1];
+                lineNumber = lastComponent.getLineNumber();
+            } else {
+                lineNumber = component.getLineNumber();
+            }
+            throw new CompilerError(errorMessage, null, lineNumber);
+        }
+        this.index += 1;
+        return component;
+    }
+    
+    readIdentifierText() {
+        return this.readByClass(WordToken, "Expected identifier.").text;
     }
 }
 

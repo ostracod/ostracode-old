@@ -23,14 +23,16 @@ export class PreExprSeq extends PreGroupSeq {
     // Concrete subclasses of PreExprSeq must implement these methods:
     // createExprSeq
     
-    constructor(hasFactorType, preExprs) {
-        super(preExprs);
+    constructor(hasFactorType, preExprs, lineNumber) {
+        super(preExprs, lineNumber);
         this.hasFactorType = hasFactorType;
     }
     
     resolveStmts(parentStmt = null) {
         const preExprs = this.preGroups.map((preExpr) => preExpr.resolveStmts());
-        return this.createPreExprSeq(preExprs);
+        const output = this.createPreExprSeq(preExprs);
+        output.lineNumber = this.lineNumber;
+        return output;
     }
 }
 
@@ -47,8 +49,8 @@ export class EvalPreExprSeq extends PreExprSeq {
 // Represents `<...>`, `<?...>`, `<??...>`, `<*...>`, `<*?...>`, and `<*??...>`.
 export class CompPreExprSeq extends PreExprSeq {
     
-    constructor(hasFactorType, exprSeqSelector, preExprs) {
-        super(hasFactorType, preExprs);
+    constructor(hasFactorType, exprSeqSelector, preExprs, lineNumber) {
+        super(hasFactorType, preExprs, lineNumber);
         this.exprSeqSelector = exprSeqSelector;
     }
     

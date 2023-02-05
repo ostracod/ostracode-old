@@ -1,7 +1,9 @@
 
+import { CompilerError } from "./error.js";
 import { WordToken } from "./token.js";
 import { PreGroup, PreGroupSeq } from "./preGroup.js";
-import { stmtConstructorMap, BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
+import { PreExprSeq } from "./preExpr.js";
+import { stmtConstructorMap, ExprStmt, BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
 
 // PreStmt = Pre-statement
 // A pre-statement is a statement which has not yet been resolved to a specific type.
@@ -20,11 +22,14 @@ export class BhvrPreStmt extends PreStmt {
             const keyword = firstComponent.text;
             const stmtConstructor = stmtConstructorMap[keyword]
             if (typeof stmtConstructor === "undefined") {
-                // TODO: Throw an error.
-                return null;
+                throw new CompilerError(`Unrecognized statement keyword "${keyword}".`);
             }
             return new stmtConstructor(this.components);
         }
+        if (firstComponent instanceof PreExprSeq && this.components.length === 1) {
+            return new ExprStmt(this.components);
+        }
+        throw new CompilerError(`Unrecognized statement structure.`);
     }
 }
 
@@ -44,7 +49,9 @@ export class PreStmtSeq extends PreGroupSeq {
     
     resolveStmts(parentStmt = null) {
         const stmts = this.preGroups.map((preStmt) => preStmt.resolve(parentStmt));
-        return this.createStmtSeq(stmts);
+        const output = this.createStmtSeq(stmts);
+        output.lineNumber = this.lineNumber;
+        return output;
     }
 }
 
