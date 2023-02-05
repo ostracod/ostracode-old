@@ -1,9 +1,12 @@
 
 import { openBracketTextList, closeBracketTextList, separatorTextList, operatorTextList, ExprSeqSelector } from "./constants.js";
 import { CompilerError } from "./error.js";
+import * as niceUtils from "./niceUtils.js";
 import { WordToken, DecNumberToken, HexNumberToken, CharToken, StringToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
 import { PreExpr, EvalPreExprSeq, CompPreExprSeq } from "./preExpr.js";
 import { BhvrPreStmt, AttrPreStmt, BhvrPreStmtSeq, AttrPreStmtSeq } from "./preStmt.js";
+import { ExprSeq, CompExprSeq } from "./expr.js";
+import { BhvrStmtSeq } from "./stmt.js";
 
 const tokenConstructors = [
     { textList: openBracketTextList, constructor: OpenBracketToken },
@@ -350,6 +353,14 @@ export class PreGroupParser {
     }
 }
 
+class IfClause {
+    
+    constructor(condExprSeq, stmtSeq) {
+        this.condExprSeq = condExprSeq;
+        this.stmtSeq = stmtSeq;
+    }
+}
+
 export class GroupParser {
     
     constructor(components) {
@@ -375,10 +386,10 @@ export class GroupParser {
         return output;
     }
     
-    readByClass(componentClass, errorMessage = null) {
+    readByClass(componentClass, errorName = null) {
         const component = this.peekComponent();
         if (!(component instanceof componentClass)) {
-            if (errorMessage === null) {
+            if (errorName === null) {
                 return null;
             }
             let lineNumber;
@@ -388,14 +399,44 @@ export class GroupParser {
             } else {
                 lineNumber = component.getLineNumber();
             }
-            throw new CompilerError(errorMessage, null, lineNumber);
+            throw new CompilerError(`Expected ${errorName}.`, null, lineNumber);
         }
         this.index += 1;
         return component;
     }
     
     readIdentifierText() {
-        return this.readByClass(WordToken, "Expected identifier.").text;
+        return this.readByClass(WordToken, "identifier").text;
+    }
+    
+    readCompExprSeq(errorName = null, required = false) {
+        const exprSeq = this.readByClass(ExprSeq, required ? errorName : null);
+        if (exprSeq === null) {
+            return null;
+        }
+        if (!(exprSeq instanceof CompExprSeq)) {
+            if (errorName === null) {
+                return null;
+            } else {
+                throw new CompilerError(`${niceUtils.capitalize(errorName)} must be a comptime expression sequence.`, null, exprSeq.getLineNumber());
+            }
+        }
+        return exprSeq;
+    }
+    
+    readIfClause() {
+        const condExprSeq = this.readByClass(ExprSeq, "condition");
+        const stmtSeq = this.readByClass(BhvrStmtSeq, "body");
+        return new IfClause(condExprSeq, stmtSeq);
+    }
+    
+    assertEnd(errorName) {
+        if (!this.hasReachedEnd()) {
+            const component = this.peekComponent();
+            throw new CompilerError(
+                `Expected end of ${errorName}.`, null, component.getLineNumber(),
+            );
+        }
     }
 }
 

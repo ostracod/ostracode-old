@@ -34,4 +34,8 @@ export const nameSetsAreEqual = (names1, names2) => {
     return true;
 };
 
+export const capitalize = (text) => (
+    text.charAt(0).toUpperCase() + text.substring(1, text.length)
+);
+
 
