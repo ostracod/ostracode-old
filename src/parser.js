@@ -386,7 +386,17 @@ export class GroupParser {
         return output;
     }
     
-    readByClass(componentClass, errorName = null) {
+    // Here is a beautiful ASCII table to explain things, or maybe cause confusion.
+    
+    //                                    |  Case 1  |  Case 2  |  Case 3  |
+    //                                    +----------+----------+----------+
+    //                If `errorName` is:  |  Null    |  String  |  String  |
+    //             And `mayReachEnd` is:  |  True    |  True    |  False   |
+    // Will `readByClass` throw error...  +----------+----------+----------+
+    //       ...when parser reaches end?  |  No      |  No      |  Yes     |
+    // ...when component has wrong type?  |  No      |  Yes     |  Yes     |
+    
+    readByClass(componentClass, errorName = null, mayReachEnd = false) {
         const component = this.peekComponent();
         if (!(component instanceof componentClass)) {
             if (errorName === null) {
@@ -394,6 +404,9 @@ export class GroupParser {
             }
             let lineNumber;
             if (component === null) {
+                if (mayReachEnd) {
+                    return null;
+                }
                 const lastComponent = this.components[this.components.length - 1];
                 lineNumber = lastComponent.getLineNumber();
             } else {
@@ -424,17 +437,15 @@ export class GroupParser {
         this.readRequiredText(WordToken, `keyword "${requiredText}"`, requiredText);
     }
     
-    readCompExprSeq(errorName = null, required = false) {
-        const exprSeq = this.readByClass(ExprSeq, required ? errorName : null);
+    readCompExprSeq(errorName, requireExprSeq = true, mayReachEnd = false) {
+        const exprSeq = this.readByClass(
+            ExprSeq, requireExprSeq ? errorName : null, mayReachEnd,
+        );
         if (exprSeq === null) {
             return null;
         }
         if (!(exprSeq instanceof CompExprSeq)) {
-            if (errorName === null) {
-                return null;
-            } else {
-                throw new CompilerError(`${niceUtils.capitalize(errorName)} must be a comptime expression sequence.`, null, exprSeq.getLineNumber());
-            }
+            throw new CompilerError(`${niceUtils.capitalize(errorName)} must be a comptime expression sequence.`, null, exprSeq.getLineNumber());
         }
         return exprSeq;
     }

@@ -55,8 +55,8 @@ export class VarStmt extends BhvrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.typeExprSeq = parser.readCompExprSeq("constraint type");
-        this.attrStmtSeq = parser.readByClass(AttrStmtSeq);
+        this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
+        this.attrStmtSeq = parser.readByClass(AttrStmtSeq, null, true);
         if (parser.hasReachedEnd()) {
             this.initItemExprSeq = null;
             return;
@@ -69,7 +69,7 @@ export class VarStmt extends BhvrStmt {
 export class CompVarStmt extends VarStmt {
     
     readInitItem(parser) {
-        return parser.readCompExprSeq(initItemName, true);
+        return parser.readCompExprSeq(initItemName);
     }
 }
 
@@ -147,7 +147,7 @@ export class ContinueStmt extends BhvrStmt {
 export class ReturnStmt extends BhvrStmt {
     
     init(parser) {
-        this.exprSeq = parser.readByClass(ExprSeq);
+        this.exprSeq = parser.readByClass(ExprSeq, "return item", true);
     }
 }
 
