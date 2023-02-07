@@ -56,7 +56,7 @@ export class VarStmt extends BhvrStmt {
     init(parser) {
         this.name = parser.readIdentifierText();
         this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
-        this.attrStmtSeq = parser.readByClass(AttrStmtSeq, null, true);
+        this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
             this.initItemExprSeq = null;
             return;
@@ -99,21 +99,14 @@ export class IfStmt extends BhvrStmt {
         this.elseIfClauses = [];
         this.elseStmtSeq = null;
         while (!parser.hasReachedEnd()) {
-            const component = parser.readComponent();
-            if (component instanceof WordToken) {
-                const keyword = component.text;
-                if (keyword === "elseIf") {
-                    const clause = parser.readIfClause();
-                    this.elseIfClauses.push(clause);
-                    continue;
-                } else if (keyword === "else") {
-                    this.elseStmtSeq = parser.readBhvrStmtSeq();
-                    break;
-                }
+            const keyword = parser.readKeyword(["elseIf", "else"]);
+            if (keyword === "elseIf") {
+                const clause = parser.readIfClause();
+                this.elseIfClauses.push(clause);
+            } else if (keyword === "else") {
+                this.elseStmtSeq = parser.readBhvrStmtSeq();
+                break;
             }
-            throw new CompilerError(
-                "Expected keyword \"elseIf\" or \"else\".", null, component.getLineNumber(),
-            );
         }
     }
 }
@@ -130,7 +123,7 @@ export class ForStmt extends BhvrStmt {
     
     init(parser) {
         this.varName = parser.readIdentifierText();
-        parser.readKeyword("in");
+        parser.readKeyword(["in"]);
         this.iterableExprSeq = parser.readByClass(ExprSeq, "iterable");
         this.stmtSeq = parser.readBhvrStmtSeq();
     }
@@ -151,6 +144,61 @@ export class ReturnStmt extends BhvrStmt {
     }
 }
 
+export class TryStmt extends BhvrStmt {
+    
+    init(parser) {
+        this.stmtSeq = parser.readBhvrStmtSeq();
+        const catchKeyword = parser.readKeyword(["catch"], ["finally"], true);
+        if (catchKeyword === null) {
+            this.varName = null;
+            this.catchStmtSeq = null;
+        } else {
+            this.varName = parser.readIdentifierText();
+            this.catchStmtSeq = parser.readBhvrStmtSeq();
+        }
+        const finallyKeyword = parser.readKeyword(["finally"], [], true);
+        if (finallyKeyword === null) {
+            this.finallyStmtSeq = null;
+        } else {
+            this.finallyStmtSeq = parser.readBhvrStmtSeq();
+        }
+        if (this.catchStmtSeq === null && this.finallyStmtSeq === null) {
+            throw new CompilerError("Expected catch or finally clause.");
+        }
+    }
+}
+
+export class ThrowStmt extends BhvrStmt {
+    
+    init(parser) {
+        this.exprSeq = parser.readByClass(ExprSeq, "error item");
+    }
+}
+
+export class ImportStmt extends BhvrStmt {
+    // Concrete subclasses of ImportStmt must implement these methods:
+    // getExprErrorName
+    
+    init(parser) {
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+        this.exprSeq = parser.readCompExprSeq(this.getExprErrorName());
+    }
+}
+
+export class ImportPathStmt extends ImportStmt {
+    
+    getExprErrorName() {
+        return "file path";
+    }
+}
+
+export class ImportPackageStmt extends ImportStmt {
+    
+    getExprErrorName() {
+        return "package name";
+    }
+}
+
 export class AttrStmt extends Stmt {
     
 }
@@ -165,6 +213,10 @@ export const stmtConstructorMap = {
     break: BreakStmt,
     continue: ContinueStmt,
     return: ReturnStmt,
+    try: TryStmt,
+    throw: ThrowStmt,
+    importPath: ImportPathStmt,
+    importPackage: ImportPackageStmt,
 };
 
 export class StmtSeq extends GroupSeq {

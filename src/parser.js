@@ -6,7 +6,7 @@ import { WordToken, DecNumberToken, HexNumberToken, CharToken, StringToken, Open
 import { PreExpr, EvalPreExprSeq, CompPreExprSeq } from "./preExpr.js";
 import { BhvrPreStmt, AttrPreStmt, BhvrPreStmtSeq, AttrPreStmtSeq } from "./preStmt.js";
 import { ExprSeq, CompExprSeq } from "./expr.js";
-import { BhvrStmtSeq } from "./stmt.js";
+import { BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
 
 const tokenConstructors = [
     { textList: openBracketTextList, constructor: OpenBracketToken },
@@ -392,11 +392,11 @@ export class GroupParser {
     //                                    +----------+----------+----------+
     //                If `errorName` is:  |  Null    |  String  |  String  |
     //             And `mayReachEnd` is:  |  True    |  True    |  False   |
-    // Will `readByClass` throw error...  +----------+----------+----------+
+    // Will `peekByClass` throw error...  +----------+----------+----------+
     //       ...when parser reaches end?  |  No      |  No      |  Yes     |
     // ...when component has wrong type?  |  No      |  Yes     |  Yes     |
     
-    readByClass(componentClass, errorName = null, mayReachEnd = false) {
+    peekByClass(componentClass, errorName = null, mayReachEnd = false) {
         const component = this.peekComponent();
         if (!(component instanceof componentClass)) {
             if (errorName === null) {
@@ -414,7 +414,14 @@ export class GroupParser {
             }
             throw new CompilerError(`Expected ${errorName}.`, null, lineNumber);
         }
-        this.index += 1;
+        return component;
+    }
+    
+    readByClass(componentClass, errorName = null, mayReachEnd = false) {
+        const component = this.peekByClass(componentClass, errorName, mayReachEnd);
+        if (component !== null) {
+            this.index += 1;
+        }
         return component;
     }
     
@@ -422,19 +429,34 @@ export class GroupParser {
         return this.readByClass(WordToken, "identifier").text;
     }
     
-    readRequiredText(tokenClass, errorName, requiredText) {
-        const token = this.readByClass(tokenClass, errorName);
-        if (token.text !== requiredText) {
+    readTokenText(
+        tokenClass, errorName, matchTextList, validTextList = [], mayReachEnd = false,
+    ) {
+        const token = this.peekByClass(tokenClass, errorName, mayReachEnd);
+        if (token === null) {
+            return null;
+        }
+        const { text } = token;
+        if (matchTextList.includes(text)) {
+            this.index += 1;
+            return text;
+        } else if (validTextList.includes(text)) {
+            return null;
+        } else {
             throw new CompilerError(`Expected ${errorName}.`, null, token.getLineNumber());
         }
     }
     
     readEqualSign() {
-        this.readRequiredText(OperatorToken, `equal sign`, "=");
+        this.readTokenText(OperatorToken, `equal sign`, ["="]);
     }
     
-    readKeyword(requiredText) {
-        this.readRequiredText(WordToken, `keyword "${requiredText}"`, requiredText);
+    readKeyword(matchTextList, validTextList = [], mayReachEnd = false) {
+        const textList = matchTextList.concat(validTextList);
+        const unionText = niceUtils.getUnionText(textList.map((text) => `"${text}"`));
+        return this.readTokenText(
+            WordToken, "keyword " + unionText, matchTextList, validTextList, mayReachEnd,
+        );
     }
     
     readCompExprSeq(errorName, requireExprSeq = true, mayReachEnd = false) {
@@ -452,6 +474,10 @@ export class GroupParser {
     
     readBhvrStmtSeq() {
         return this.readByClass(BhvrStmtSeq, "body");
+    }
+    
+    readAttrStmtSeq() {
+        return this.readByClass(AttrStmtSeq, null, true);
     }
     
     readIfClause() {

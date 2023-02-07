@@ -38,4 +38,13 @@ export const capitalize = (text) => (
     text.charAt(0).toUpperCase() + text.substring(1, text.length)
 );
 
+export const getUnionText = (textList) => {
+    if (textList.length > 2) {
+        const lastIndex = textList.length - 1;
+        return textList.slice(0, lastIndex).join(", ") + ", or " + textList[lastIndex];
+    } else {
+        return textList.join(" or ");
+    }
+};
+
 
