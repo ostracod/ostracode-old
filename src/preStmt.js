@@ -3,42 +3,53 @@ import { CompilerError } from "./error.js";
 import { WordToken } from "./token.js";
 import { PreGroup, PreGroupSeq } from "./preGroup.js";
 import { PreExprSeq } from "./preExpr.js";
-import { stmtConstructorMap, ExprStmt, BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
+import { bhvrStmtConstructors, attrStmtConstructors, ExprStmt, BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
 
 // PreStmt = Pre-statement
 // A pre-statement is a statement which has not yet been resolved to a specific type.
 export class PreStmt extends PreGroup {
     // Concrete subclasses of PreStmt must implement these methods:
-    // resolve
+    // getStmtConstructors
     
+    resolve(parentStmt) {
+        const firstComponent = this.components[0];
+        if (firstComponent instanceof WordToken) {
+            const keyword = firstComponent.text;
+            const stmtConstructor = this.getStmtConstructors()[keyword];
+            if (typeof stmtConstructor === "undefined") {
+                firstComponent.throwError(`Unrecognized statement keyword "${keyword}".`);
+            }
+            return new stmtConstructor(this.components);
+        }
+        this.throwError(`Unrecognized statement structure.`);
+    }
 }
 
 // BhvrPreStmt = Behavior pre-statement
 export class BhvrPreStmt extends PreStmt {
     
-    resolve() {
-        const firstComponent = this.components[0];
-        if (firstComponent instanceof WordToken) {
-            const keyword = firstComponent.text;
-            const stmtConstructor = stmtConstructorMap[keyword]
-            if (typeof stmtConstructor === "undefined") {
-                throw new CompilerError(`Unrecognized statement keyword "${keyword}".`);
-            }
-            return new stmtConstructor(this.components);
-        }
-        if (firstComponent instanceof PreExprSeq && this.components.length === 1) {
+    getStmtConstructors() {
+        return bhvrStmtConstructors;
+    }
+    
+    resolve(parentStmt) {
+        if (this.components.length === 1 && this.components[0] instanceof PreExprSeq) {
             return new ExprStmt(this.components);
         }
-        throw new CompilerError(`Unrecognized statement structure.`);
+        return super.resolve(parentStmt);
     }
 }
 
 // AttrPreStmt = Attribute pre-statement
 export class AttrPreStmt extends PreStmt {
     
+    getStmtConstructors() {
+        return attrStmtConstructors;
+    }
+    
     resolve(parentStmt) {
-        // TODO: Implement.
-        return null;
+        
+        super.resolve(parentStmt);
     }
 }
 

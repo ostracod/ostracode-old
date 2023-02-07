@@ -1,7 +1,10 @@
 
-export class Token {
+import { CompilerErrorThrower } from "./error.js";
+
+export class Token extends CompilerErrorThrower {
     
     constructor(text, lineNumber) {
+        super();
         this.text = text;
         this.lineNumber = lineNumber;
     }

@@ -1,7 +1,10 @@
 
-export class Group {
+import { CompilerErrorThrower } from "./error.js";
+
+export class Group extends CompilerErrorThrower {
     
     constructor(components) {
+        super();
         this.components = components;
     }
     
@@ -10,9 +13,10 @@ export class Group {
     }
 }
 
-export class GroupSeq {
+export class GroupSeq extends CompilerErrorThrower {
     
     constructor(groups) {
+        super();
         this.groups = groups;
         this.lineNumber = null;
     }

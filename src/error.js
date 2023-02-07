@@ -23,4 +23,13 @@ export class CompilerError extends Error {
     }
 }
 
+export class CompilerErrorThrower {
+    // Concrete subclasses of CompilerErrorThrower must implement these methods:
+    // getLineNumber
+    
+    throwError(message) {
+        throw new CompilerError(message, null, this.getLineNumber());
+    }
+}
+
 

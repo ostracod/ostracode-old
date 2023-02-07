@@ -163,7 +163,7 @@ export class TryStmt extends BhvrStmt {
             this.finallyStmtSeq = parser.readBhvrStmtSeq();
         }
         if (this.catchStmtSeq === null && this.finallyStmtSeq === null) {
-            throw new CompilerError("Expected catch or finally clause.");
+            this.throwError("Expected catch or finally clause.");
         }
     }
 }
@@ -199,11 +199,7 @@ export class ImportPackageStmt extends ImportStmt {
     }
 }
 
-export class AttrStmt extends Stmt {
-    
-}
-
-export const stmtConstructorMap = {
+export const bhvrStmtConstructors = {
     comp: CompVarStmt,
     const: ImmutEvalVarStmt,
     var: MutEvalVarStmt,
@@ -217,6 +213,14 @@ export const stmtConstructorMap = {
     throw: ThrowStmt,
     importPath: ImportPathStmt,
     importPackage: ImportPackageStmt,
+};
+
+export class AttrStmt extends Stmt {
+    
+}
+
+export const attrStmtConstructors = {
+    
 };
 
 export class StmtSeq extends GroupSeq {

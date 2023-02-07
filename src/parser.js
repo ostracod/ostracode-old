@@ -402,17 +402,16 @@ export class GroupParser {
             if (errorName === null) {
                 return null;
             }
-            let lineNumber;
+            let errorComponent;
             if (component === null) {
                 if (mayReachEnd) {
                     return null;
                 }
-                const lastComponent = this.components[this.components.length - 1];
-                lineNumber = lastComponent.getLineNumber();
+                errorComponent = this.components[this.components.length - 1];
             } else {
-                lineNumber = component.getLineNumber();
+                errorComponent = component;
             }
-            throw new CompilerError(`Expected ${errorName}.`, null, lineNumber);
+            errorComponent.throwError(`Expected ${errorName}.`);
         }
         return component;
     }
@@ -443,7 +442,7 @@ export class GroupParser {
         } else if (validTextList.includes(text)) {
             return null;
         } else {
-            throw new CompilerError(`Expected ${errorName}.`, null, token.getLineNumber());
+            token.throwError(`Expected ${errorName}.`);
         }
     }
     
@@ -467,7 +466,7 @@ export class GroupParser {
             return null;
         }
         if (!(exprSeq instanceof CompExprSeq)) {
-            throw new CompilerError(`${niceUtils.capitalize(errorName)} must be a comptime expression sequence.`, null, exprSeq.getLineNumber());
+            exprSeq.throwError(`${niceUtils.capitalize(errorName)} must be a comptime expression sequence.`);
         }
         return exprSeq;
     }
@@ -489,9 +488,7 @@ export class GroupParser {
     assertEnd(errorName) {
         if (!this.hasReachedEnd()) {
             const component = this.peekComponent();
-            throw new CompilerError(
-                `Expected end of ${errorName}.`, null, component.getLineNumber(),
-            );
+            component.throwError(`Expected end of ${errorName}.`);
         }
     }
 }
