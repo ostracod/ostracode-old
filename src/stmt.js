@@ -41,6 +41,10 @@ export class Stmt extends Group {
     isKeywordStmt() {
         return true;
     }
+    
+    resolveChild(preStmt) {
+        return null;
+    }
 }
 
 export class BhvrStmt extends Stmt {
@@ -59,10 +63,10 @@ export class VarStmt extends BhvrStmt {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
             this.initItemExprSeq = null;
-            return;
+        } else {
+            parser.readEqualSign();
+            this.initItemExprSeq = this.readInitItem(parser);
         }
-        parser.readEqualSign();
-        this.initItemExprSeq = this.readInitItem(parser);
     }
 }
 
@@ -242,10 +246,24 @@ export class LengthStmt extends ExprAttrStmt {
     }
 }
 
-export class ArgsStmt extends AttrStmt {
+export class ParentAttrStmt extends AttrStmt {
+    // Concrete subclasses of ParentAttrStatement must implement these methods:
+    // getChildConstructor
     
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
+    }
+    
+    resolveChild(preStmt) {
+        const childConstructor = this.getChildConstructor();
+        return new childConstructor(preStmt.components);
+    }
+}
+
+export class ArgsStmt extends ParentAttrStmt {
+    
+    getChildConstructor() {
+        return ArgStmt;
     }
 }
 
@@ -260,12 +278,70 @@ export class ReturnsStmt extends ExprAttrStmt {
     }
 }
 
+export class ChildAttrStmt extends AttrStmt {
+    
+    isKeywordStmt() {
+        return false;
+    }
+}
+
+export class ArgStmt extends ChildAttrStmt {
+    
+    init(parser) {
+        this.name = parser.readIdentifierText();
+        this.typeExprSeq = parser.readByClass(ExprSeq);
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+        if (parser.hasReachedEnd()) {
+            this.defaultItemExprSeq = null;
+        } else {
+            parser.readEqualSign();
+            this.defaultItemExprSeq = parser.readByClass(ExprSeq, "default item");
+        }
+    }
+}
+
+export class FieldTypeStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "field type";
+    }
+}
+
+export class FieldsStmt extends ParentAttrStmt {
+    
+    getChildConstructor() {
+        return FieldStmt;
+    }
+}
+
+export class FieldStmt extends ChildAttrStmt {
+    
+    init(parser) {
+        this.nameExprSeq = parser.readByClass(ExprSeq);
+        if (this.nameExprSeq === null) {
+            this.name = parser.readIdentifierText("name identifier or expression");
+        } else {
+            this.name = null;
+        }
+        this.typeExprSeq = parser.readByClass(ExprSeq);
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+        if (parser.hasReachedEnd()) {
+            this.initItemExprSeq = null;
+        } else {
+            parser.readEqualSign();
+            this.initItemExprSeq = parser.readByClass(ExprSeq, "init item");
+        }
+    }
+}
+
 export const attrStmtConstructors = {
     elemType: ElemTypeStmt,
     length: LengthStmt,
     args: ArgsStmt,
     async: AsyncStmt,
     returns: ReturnsStmt,
+    fieldType: FieldTypeStmt,
+    fields: FieldsStmt,
 };
 
 export class StmtSeq extends GroupSeq {

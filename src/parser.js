@@ -391,7 +391,7 @@ export class GroupParser {
     //                                    |  Case 1  |  Case 2  |  Case 3  |
     //                                    +----------+----------+----------+
     //                If `errorName` is:  |  Null    |  String  |  String  |
-    //             And `mayReachEnd` is:  |  True    |  True    |  False   |
+    //             And `mayReachEnd` is:  |  Any     |  True    |  False   |
     // Will `peekByClass` throw error...  +----------+----------+----------+
     //       ...when parser reaches end?  |  No      |  No      |  Yes     |
     // ...when component has wrong type?  |  No      |  Yes     |  Yes     |
@@ -424,8 +424,8 @@ export class GroupParser {
         return component;
     }
     
-    readIdentifierText() {
-        return this.readByClass(WordToken, "identifier").text;
+    readIdentifierText(errorName = "identifier") {
+        return this.readByClass(WordToken, errorName).text;
     }
     
     readTokenText(

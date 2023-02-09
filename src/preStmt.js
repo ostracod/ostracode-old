@@ -48,8 +48,13 @@ export class AttrPreStmt extends PreStmt {
     }
     
     resolve(parentStmt) {
-        
-        return super.resolve(parentStmt);
+        if (parentStmt !== null) {
+            const stmt = parentStmt.resolveChild(this);
+            if (stmt !== null) {
+                return stmt;
+            }
+        }
+        return super.resolve(parentStmt)
     }
 }
 
