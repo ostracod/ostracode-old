@@ -49,7 +49,7 @@ export class AttrPreStmt extends PreStmt {
     
     resolve(parentStmt) {
         
-        super.resolve(parentStmt);
+        return super.resolve(parentStmt);
     }
 }
 

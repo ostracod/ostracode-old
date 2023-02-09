@@ -219,8 +219,53 @@ export class AttrStmt extends Stmt {
     
 }
 
-export const attrStmtConstructors = {
+export class ExprAttrStmt extends AttrStmt {
+    // Concrete subclasses of ExprAttrStmt must implement these methods:
+    // getErrorName
     
+    init(parser) {
+        this.exprSeq = parser.readByClass(ExprSeq, this.getErrorName());
+    }
+}
+
+export class ElemTypeStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "element type";
+    }
+}
+
+export class LengthStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "length";
+    }
+}
+
+export class ArgsStmt extends AttrStmt {
+    
+    init(parser) {
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+    }
+}
+
+export class AsyncStmt extends AttrStmt {
+    
+}
+
+export class ReturnsStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "return type";
+    }
+}
+
+export const attrStmtConstructors = {
+    elemType: ElemTypeStmt,
+    length: LengthStmt,
+    args: ArgsStmt,
+    async: AsyncStmt,
+    returns: ReturnsStmt,
 };
 
 export class StmtSeq extends GroupSeq {
