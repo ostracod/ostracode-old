@@ -334,6 +334,81 @@ export class FieldStmt extends ChildAttrStmt {
     }
 }
 
+export class OptionalStmt extends AttrStmt {
+    
+}
+
+export class MethodsStmt extends ParentAttrStmt {
+    
+    getChildConstructor() {
+        return MethodStmt;
+    }
+}
+
+export class MethodStmt extends ChildAttrStmt {
+    
+    init(parser) {
+        this.name = parser.readIdentifierText();
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+        this.bhvrStmtSeq = parser.readBhvrStmtSeq(true);
+    }
+}
+
+export class SelfFeatureStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "feature type";
+    }
+}
+
+export class ThisFactorsStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "factor type";
+    }
+}
+
+export class FactorsStmt extends ParentAttrStmt {
+    
+    getChildConstructor() {
+        return FactorStmt;
+    }
+}
+
+export class FactorStmt extends ChildAttrStmt {
+    
+    init(parser) {
+        this.exprSeq = parser.readByClass(ExprSeq, "factor");
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+    }
+}
+
+export class PermStmt extends AttrStmt {}
+
+export class AccessPermStmt extends PermStmt {}
+
+export class PublicStmt extends AccessPermStmt {}
+
+export class ProtectedStmt extends AccessPermStmt {}
+
+export class PrivateStmt extends AccessPermStmt {}
+
+export class GetPermStmt extends PermStmt {}
+
+export class PublicGetStmt extends GetPermStmt {}
+
+export class ProtectedGetStmt extends GetPermStmt {}
+
+export class PrivateGetStmt extends GetPermStmt {}
+
+export class SetPermStmt extends PermStmt {}
+
+export class PublicSetStmt extends SetPermStmt {}
+
+export class ProtectedSetStmt extends SetPermStmt {}
+
+export class PrivateSetStmt extends SetPermStmt {}
+
 export const attrStmtConstructors = {
     elemType: ElemTypeStmt,
     length: LengthStmt,
@@ -342,6 +417,20 @@ export const attrStmtConstructors = {
     returns: ReturnsStmt,
     fieldType: FieldTypeStmt,
     fields: FieldsStmt,
+    optional: OptionalStmt,
+    methods: MethodsStmt,
+    selfFeature: SelfFeatureStmt,
+    thisFactor: ThisFactorsStmt,
+    factors: FactorsStmt,
+    public: PublicStmt,
+    protected: ProtectedStmt,
+    private: PrivateStmt,
+    publicGet: PublicGetStmt,
+    protectedGet: ProtectedGetStmt,
+    privateGet: PrivateGetStmt,
+    publicSet: PublicSetStmt,
+    protectedSet: ProtectedSetStmt,
+    privateSet: PrivateSetStmt,
 };
 
 export class StmtSeq extends GroupSeq {

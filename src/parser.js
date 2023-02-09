@@ -471,8 +471,8 @@ export class GroupParser {
         return exprSeq;
     }
     
-    readBhvrStmtSeq() {
-        return this.readByClass(BhvrStmtSeq, "body");
+    readBhvrStmtSeq(mayReachEnd = false) {
+        return this.readByClass(BhvrStmtSeq, "body", mayReachEnd);
     }
     
     readAttrStmtSeq() {
