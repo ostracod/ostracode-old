@@ -409,6 +409,63 @@ export class ProtectedSetStmt extends SetPermStmt {}
 
 export class PrivateSetStmt extends SetPermStmt {}
 
+export class VisStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "visibility number";
+    }
+}
+
+export class ShieldStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "shield number";
+    }
+}
+
+export class ImplementsStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "type expression sequence";
+    }
+}
+
+export class TypeArgsStmt extends ParentAttrStmt {
+    
+    getChildConstructor() {
+        return ArgStmt;
+    }
+}
+
+export class ExportedStmt extends AttrStmt {
+    
+}
+
+export class ForeignStmt extends AttrStmt {
+    
+}
+
+export class MembersStmt extends ParentAttrStmt {
+    
+    getChildConstructor() {
+        return MemberStmt;
+    }
+}
+
+export class MemberStmt extends ChildAttrStmt {
+    
+    init(parser) {
+        this.name = parser.readIdentifierText();
+        this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
+        if (parser.hasReachedEnd()) {
+            this.aliasName = this.name;
+        } else {
+            parser.readKeyword(["as"]);
+            this.aliasName = parser.readIdentifierText();
+        }
+    }
+}
+
 export const attrStmtConstructors = {
     elemType: ElemTypeStmt,
     length: LengthStmt,
@@ -431,6 +488,13 @@ export const attrStmtConstructors = {
     publicSet: PublicSetStmt,
     protectedSet: ProtectedSetStmt,
     privateSet: PrivateSetStmt,
+    vis: VisStmt,
+    shield: ShieldStmt,
+    implements: ImplementsStmt,
+    typeArgs: TypeArgsStmt,
+    exported: ExportedStmt,
+    foreign: ForeignStmt,
+    members: MembersStmt,
 };
 
 export class StmtSeq extends GroupSeq {
