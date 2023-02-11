@@ -1,11 +1,12 @@
 
-import { CompilerErrorThrower } from "./error.js";
+import { Node } from "./node.js";
 
-export class Group extends CompilerErrorThrower {
+export class Group extends Node {
     
     constructor(components) {
         super();
         this.components = components;
+        this.setChildren(this.components);
     }
     
     getLineNumber() {
@@ -13,11 +14,14 @@ export class Group extends CompilerErrorThrower {
     }
 }
 
-export class GroupSeq extends CompilerErrorThrower {
+export class GroupSeq extends Node {
     
     constructor(groups) {
         super();
         this.groups = groups;
+        if (this.groups !== null) {
+            this.setChildren(this.groups);
+        }
         this.lineNumber = null;
     }
     

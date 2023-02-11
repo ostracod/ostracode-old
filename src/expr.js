@@ -7,6 +7,7 @@ export class ExprSeq extends GroupSeq {
         super(null);
         this.hasFactorType = hasFactorType;
         this.preExprs = preExprs;
+        this.setChildren(this.preExprs);
     }
 }
 

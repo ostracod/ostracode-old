@@ -3,7 +3,7 @@ import { CompilerError } from "./error.js";
 import { WordToken } from "./token.js";
 import { PreGroup, PreGroupSeq } from "./preGroup.js";
 import { PreExprSeq } from "./preExpr.js";
-import { bhvrStmtConstructors, attrStmtConstructors, ExprStmt, BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
+import { Stmt, ExprStmt, bhvrStmtConstructors, attrStmtConstructors, BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
 
 // PreStmt = Pre-statement
 // A pre-statement is a statement which has not yet been resolved to a specific type.
@@ -54,18 +54,19 @@ export class AttrPreStmt extends PreStmt {
                 return stmt;
             }
         }
-        return super.resolve(parentStmt)
+        return super.resolve(parentStmt);
     }
 }
 
 // PreStmtSeq = Pre-statement sequence
 export class PreStmtSeq extends PreGroupSeq {
     // Concrete subclasses of PreStmtSeq must implement these methods:
-    // createStmtSeq
+    // getSeqConstructor
     
     resolveStmts(parentStmt = null) {
         const stmts = this.preGroups.map((preStmt) => preStmt.resolve(parentStmt));
-        const output = this.createStmtSeq(stmts);
+        const seqConstructor = this.getSeqConstructor();
+        const output = new seqConstructor(stmts);
         output.lineNumber = this.lineNumber;
         return output;
     }
@@ -75,8 +76,8 @@ export class PreStmtSeq extends PreGroupSeq {
 // Represents `{...}`.
 export class BhvrPreStmtSeq extends PreStmtSeq {
     
-    createStmtSeq(stmts) {
-        return new BhvrStmtSeq(stmts);
+    getSeqConstructor() {
+        return BhvrStmtSeq;
     }
 }
 
@@ -84,8 +85,8 @@ export class BhvrPreStmtSeq extends PreStmtSeq {
 // Represents `[...]`.
 export class AttrPreStmtSeq extends PreStmtSeq {
     
-    createStmtSeq(stmts) {
-        return new AttrStmtSeq(stmts);
+    getSeqConstructor() {
+        return AttrStmtSeq;
     }
 }
 

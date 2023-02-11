@@ -1,7 +1,7 @@
 
-import { CompilerErrorThrower } from "./error.js";
+import { Node } from "./node.js";
 
-export class Token extends CompilerErrorThrower {
+export class Token extends Node {
     
     constructor(text, lineNumber) {
         super();
