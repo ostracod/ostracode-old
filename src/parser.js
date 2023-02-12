@@ -363,7 +363,8 @@ class IfClause {
 
 export class GroupParser {
     
-    constructor(components) {
+    constructor(parentGroup, components) {
+        this.parentGroup = parentGroup;
         this.components = components;
         this.index = 0;
     }
@@ -424,6 +425,14 @@ export class GroupParser {
         return component;
     }
     
+    readChildSeq(groupSeqClass, errorName = null, mayReachEnd = false) {
+        const groupSeq = this.readByClass(groupSeqClass, errorName, mayReachEnd);
+        if (groupSeq !== null) {
+            this.parentGroup.addChild(groupSeq);
+        }
+        return groupSeq;
+    }
+    
     readIdentifierText(errorName = "identifier") {
         return this.readByClass(WordToken, errorName).text;
     }
@@ -458,10 +467,12 @@ export class GroupParser {
         );
     }
     
+    readExprSeq(errorName = null, mayReachEnd = false) {
+        return this.readChildSeq(ExprSeq, errorName, mayReachEnd);
+    }
+    
     readCompExprSeq(errorName, requireExprSeq = true, mayReachEnd = false) {
-        const exprSeq = this.readByClass(
-            ExprSeq, requireExprSeq ? errorName : null, mayReachEnd,
-        );
+        const exprSeq = this.readExprSeq(requireExprSeq ? errorName : null, mayReachEnd);
         if (exprSeq === null) {
             return null;
         }
@@ -472,15 +483,15 @@ export class GroupParser {
     }
     
     readBhvrStmtSeq(mayReachEnd = false) {
-        return this.readByClass(BhvrStmtSeq, "body", mayReachEnd);
+        return this.readChildSeq(BhvrStmtSeq, "body", mayReachEnd);
     }
     
     readAttrStmtSeq() {
-        return this.readByClass(AttrStmtSeq, null, true);
+        return this.readChildSeq(AttrStmtSeq, null, true);
     }
     
     readIfClause() {
-        const condExprSeq = this.readByClass(ExprSeq, "condition");
+        const condExprSeq = this.readExprSeq("condition");
         const stmtSeq = this.readBhvrStmtSeq();
         return new IfClause(condExprSeq, stmtSeq);
     }

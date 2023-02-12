@@ -19,7 +19,8 @@ export class Stmt extends Group {
                 return component;
             }
         });
-        const parser = new GroupParser(resolvedComponents);
+        this.clearChildren();
+        const parser = new GroupParser(this, resolvedComponents);
         if (this.isKeywordStmt()) {
             parser.index += 1;
         }
@@ -54,7 +55,7 @@ export class BhvrStmt extends Stmt {
 export class VarStmt extends BhvrStmt {
     
     readInitItem(parser) {
-        return parser.readByClass(ExprSeq, initItemName);
+        return parser.readExprSeq(initItemName);
     }
     
     init(parser) {
@@ -118,7 +119,7 @@ export class IfStmt extends BhvrStmt {
 export class WhileStmt extends BhvrStmt {
     
     init(parser) {
-        this.condExprSeq = parser.readByClass(ExprSeq, "condition");
+        this.condExprSeq = parser.readExprSeq("condition");
         this.stmtSeq = parser.readBhvrStmtSeq();
     }
 }
@@ -128,7 +129,7 @@ export class ForStmt extends BhvrStmt {
     init(parser) {
         this.varName = parser.readIdentifierText();
         parser.readKeyword(["in"]);
-        this.iterableExprSeq = parser.readByClass(ExprSeq, "iterable");
+        this.iterableExprSeq = parser.readExprSeq("iterable");
         this.stmtSeq = parser.readBhvrStmtSeq();
     }
 }
@@ -144,7 +145,7 @@ export class ContinueStmt extends BhvrStmt {
 export class ReturnStmt extends BhvrStmt {
     
     init(parser) {
-        this.exprSeq = parser.readByClass(ExprSeq, "return item", true);
+        this.exprSeq = parser.readExprSeq("return item", true);
     }
 }
 
@@ -175,7 +176,7 @@ export class TryStmt extends BhvrStmt {
 export class ThrowStmt extends BhvrStmt {
     
     init(parser) {
-        this.exprSeq = parser.readByClass(ExprSeq, "error item");
+        this.exprSeq = parser.readExprSeq("error item");
     }
 }
 
@@ -228,7 +229,7 @@ export class ExprAttrStmt extends AttrStmt {
     // getErrorName
     
     init(parser) {
-        this.exprSeq = parser.readByClass(ExprSeq, this.getErrorName());
+        this.exprSeq = parser.readExprSeq(this.getErrorName());
     }
 }
 
@@ -289,13 +290,13 @@ export class ArgStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.typeExprSeq = parser.readByClass(ExprSeq);
+        this.typeExprSeq = parser.readExprSeq();
         this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
             this.defaultItemExprSeq = null;
         } else {
             parser.readEqualSign();
-            this.defaultItemExprSeq = parser.readByClass(ExprSeq, "default item");
+            this.defaultItemExprSeq = parser.readExprSeq("default item");
         }
     }
 }
@@ -317,19 +318,19 @@ export class FieldsStmt extends ParentAttrStmt {
 export class FieldStmt extends ChildAttrStmt {
     
     init(parser) {
-        this.nameExprSeq = parser.readByClass(ExprSeq);
+        this.nameExprSeq = parser.readExprSeq();
         if (this.nameExprSeq === null) {
             this.name = parser.readIdentifierText("name identifier or expression");
         } else {
             this.name = null;
         }
-        this.typeExprSeq = parser.readByClass(ExprSeq);
+        this.typeExprSeq = parser.readExprSeq();
         this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
             this.initItemExprSeq = null;
         } else {
             parser.readEqualSign();
-            this.initItemExprSeq = parser.readByClass(ExprSeq, "init item");
+            this.initItemExprSeq = parser.readExprSeq("init item");
         }
     }
 }
@@ -378,7 +379,7 @@ export class FactorsStmt extends ParentAttrStmt {
 export class FactorStmt extends ChildAttrStmt {
     
     init(parser) {
-        this.exprSeq = parser.readByClass(ExprSeq, "factor");
+        this.exprSeq = parser.readExprSeq("factor");
         this.attrStmtSeq = parser.readAttrStmtSeq();
     }
 }
