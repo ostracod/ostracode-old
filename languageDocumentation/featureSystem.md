@@ -474,7 +474,7 @@ A factor which uses the `typeArgs` statement may be "qualified" with one or more
 const ListNode = (feature [
     // `ListNode` may be qualified with a type argument
     // named `contentT`, whose constraint type is `typeT`.
-    typeArgs [contentT <typeT>]
+    typeArgs [contentT]
     fields [
         // The constraint type of `content` is equal to the
         // type argument `contentT`.

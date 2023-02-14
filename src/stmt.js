@@ -446,6 +446,13 @@ export class ForeignStmt extends AttrStmt {
     
 }
 
+export class AsStmt extends AttrStmt {
+    
+    init(parser) {
+        this.name = parser.readIdentifierText();
+    }
+}
+
 export class MembersStmt extends ParentAttrStmt {
     
     getChildConstructor() {
@@ -495,6 +502,7 @@ export const attrStmtConstructors = {
     typeArgs: TypeArgsStmt,
     exported: ExportedStmt,
     foreign: ForeignStmt,
+    as: AsStmt,
     members: MembersStmt,
 };
 

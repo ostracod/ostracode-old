@@ -25,7 +25,7 @@ Declares an immutable evaltime variable with name identifier `$name`, constraint
 var $name <$type> [$attrs] = ($initItem)
 ```
 
-Declares a mutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the variable will be `undef`.
+Declares a mutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the variable will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the variable will be `itemT`.
 
 ### Expression Statement:
 
@@ -204,7 +204,7 @@ Valid contexts:
     * Method statement
 * `typeArgs` statement
 
-Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`.
+Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. If both `<$type>` and `= ($defaultItem)` are excluded, then the constraint type of the argument will be `itemT` within `args` statements, and `typeT` within `typeArgs` statements.
 
 ```
 $name ($type) [$attrs]
@@ -216,7 +216,7 @@ Valid contexts:
     * `funcT` special
     * `methodT` special
 
-Declares an argument with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the argument will be `undefT`.
+Declares an argument with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the argument will be `itemT`.
 
 ### Field Type Statements:
 
@@ -266,7 +266,7 @@ Valid contexts:
     * `dict` special
     * `feature` special
 
-Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`.
+Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the field will be `itemT`.
 
 ```
 ($name) <$type> [$attrs] = ($initItem)
@@ -289,7 +289,7 @@ Valid contexts:
     * `interfaceT` special
     * `featureT` special
 
-Declares a field with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the field will be `undefT`.
+Declares a field with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the field will be `itemT`.
 
 ```
 ($name) ($type) [$attrs]
@@ -589,11 +589,13 @@ typeArgs [$args]
 
 Valid contexts:
 
+* `listT` special
+* `dictT` special
 * `interfaceT` special
 * `feature` and `featureT` specials
 * `bundle` and `bundleT` specials
 
-Declares type arguments with which the parent factor may be qualified.
+Declares type arguments with which the parent item may be qualified.
 
 ### Exported Statement:
 

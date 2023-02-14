@@ -185,6 +185,21 @@ if (myType.conformsTo(numT)) {
 }
 ```
 
+The example below demonstrates item qualification:
+
+```
+// Declares the type `pairT` which is a list of two elements having
+// type `elemT`. Type `elemT` is determined during the qualification
+// of `pairT`.
+comp pairT = <listT [typeArgs [elemT]] (elemT, elemT)>
+
+// Does not throw a compile-time error.
+const myPair1 <pairT(numT)> = (list (10, 20))
+// Throws an error, because the type of the second
+// element does not conform to `numT`.
+const myPair2 <pairT(numT)> = (list (10, "Ouch"))
+```
+
 ## Miscellaneous Statements
 
 The example below demonstrates usage of the `throw` and `try` statements:

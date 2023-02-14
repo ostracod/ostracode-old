@@ -74,7 +74,7 @@ The `conformsTo` method determines whether the parent item conforms to the given
 
 ```
 comp SubscriptGetT = <interfaceT [
-    typeArgs [subscriptT <typeT>, memberT <typeT> = (itemT)]
+    typeArgs [subscriptT, memberT = (itemT)]
     methods [
         getMember [
             public, vis (2)
@@ -91,7 +91,7 @@ The `getMember` method retrieves the member located at `subscript`. Strings, lis
 
 ```
 comp SubscriptSetT = <interfaceT [
-    typeArgs [subscriptT <typeT>, memberT <typeT> = (itemT)]
+    typeArgs [subscriptT, memberT = (itemT)]
     methods [
         setMember [
             public, vis (2)
@@ -108,7 +108,7 @@ The `setMember` method modifies the member located at `subscript`. Lists and dic
 
 ```
 comp SubscriptDeleteT = <interfaceT [
-    typeArgs [subscriptT <typeT>]
+    typeArgs [subscriptT]
     methods [
         deleteMember [
             public, vis (2)
@@ -124,7 +124,7 @@ The `deleteMember` method deletes the member located at `subscript`. Dictionarie
 
 ```
 comp IteratorT = <interfaceT [
-    typeArgs [memberT <typeT> = (itemT)]
+    typeArgs [memberT = (itemT)]
     methods [
         getNext [
             public, vis (2)
@@ -144,7 +144,7 @@ The `getNext` method retrieves the next member in the iteration. The `isFinished
 
 ```
 comp IterableT = <interfaceT [
-    typeArgs [memberT <typeT> = (itemT)]
+    typeArgs [memberT = (itemT)]
     methods [
         createIterator [
             public, vis (2)
@@ -172,7 +172,7 @@ The `message` field stores an error message. The `Error` factor implements `Erro
 
 ```
 comp ThenT = <interfaceT [
-    typeArgs [resultT <typeT> = (undefT)]
+    typeArgs [resultT = (undefT)]
     methods [
         then [
             public, vis (2)
