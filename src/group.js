@@ -14,20 +14,12 @@ export class Group extends Node {
     }
 }
 
-export class GroupSeq extends Node {
+export class PreGroup extends Group {
     
-    constructor(groups) {
-        super();
-        this.groups = groups;
-        if (this.groups !== null) {
-            this.setChildren(this.groups);
-        }
-        this.lineNumber = null;
-    }
+}
+
+export class ResolvedGroup extends Group {
     
-    getLineNumber() {
-        return this.lineNumber;
-    }
 }
 
 

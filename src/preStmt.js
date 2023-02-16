@@ -1,9 +1,8 @@
 
-import { CompilerError } from "./error.js";
 import { WordToken } from "./token.js";
-import { PreGroup, PreGroupSeq } from "./preGroup.js";
-import { PreExprSeq } from "./preExpr.js";
-import { Stmt, ExprStmt, bhvrStmtConstructors, attrStmtConstructors, BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
+import { PreGroup } from "./group.js";
+import { ExprSeq } from "./groupSeq.js";
+import { ExprStmt, bhvrStmtConstructors, attrStmtConstructors } from "./stmt.js";
 
 // PreStmt = Pre-statement
 // A pre-statement is a statement which has not yet been resolved to a specific type.
@@ -33,7 +32,7 @@ export class BhvrPreStmt extends PreStmt {
     }
     
     resolve(parentStmt) {
-        if (this.components.length === 1 && this.components[0] instanceof PreExprSeq) {
+        if (this.components.length === 1 && this.components[0] instanceof ExprSeq) {
             return new ExprStmt(this.components);
         }
         return super.resolve(parentStmt);
@@ -55,38 +54,6 @@ export class AttrPreStmt extends PreStmt {
             }
         }
         return super.resolve(parentStmt);
-    }
-}
-
-// PreStmtSeq = Pre-statement sequence
-export class PreStmtSeq extends PreGroupSeq {
-    // Concrete subclasses of PreStmtSeq must implement these methods:
-    // getSeqConstructor
-    
-    resolveStmts(parentStmt = null) {
-        const stmts = this.preGroups.map((preStmt) => preStmt.resolve(parentStmt));
-        const seqConstructor = this.getSeqConstructor();
-        const output = new seqConstructor(stmts);
-        output.lineNumber = this.lineNumber;
-        return output;
-    }
-}
-
-// BhvrPreStmtSeq = Behavior pre-statement sequence
-// Represents `{...}`.
-export class BhvrPreStmtSeq extends PreStmtSeq {
-    
-    getSeqConstructor() {
-        return BhvrStmtSeq;
-    }
-}
-
-// AttrPreStmtSeq = Attribute pre-statement sequence
-// Represents `[...]`.
-export class AttrPreStmtSeq extends PreStmtSeq {
-    
-    getSeqConstructor() {
-        return AttrStmtSeq;
     }
 }
 

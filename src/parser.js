@@ -3,10 +3,9 @@ import { openBracketTextList, closeBracketTextList, separatorTextList, operatorT
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { WordToken, DecNumberToken, HexNumberToken, CharToken, StringToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
-import { PreExpr, EvalPreExprSeq, CompPreExprSeq } from "./preExpr.js";
-import { BhvrPreStmt, AttrPreStmt, BhvrPreStmtSeq, AttrPreStmtSeq } from "./preStmt.js";
-import { ExprSeq, CompExprSeq } from "./expr.js";
-import { BhvrStmtSeq, AttrStmtSeq } from "./stmt.js";
+import { BhvrStmtSeq, AttrStmtSeq, ExprSeq, EvalExprSeq, CompExprSeq } from "./groupSeq.js";
+import { PreExpr } from "./preExpr.js";
+import { BhvrPreStmt, AttrPreStmt } from "./preStmt.js";
 
 const tokenConstructors = [
     { textList: openBracketTextList, constructor: OpenBracketToken },
@@ -52,21 +51,21 @@ const getSeqBuilder = (openBracketToken) => {
     if (firstChar === 40) {
         groupConstructor = PreExpr;
         closeBracketText = ")";
-        createHelper = (preGroups) => new EvalPreExprSeq(hasFactorType, preGroups);
+        createHelper = (preGroups) => new EvalExprSeq(hasFactorType, preGroups);
     } else if (firstChar === 60) {
         groupConstructor = PreExpr;
         closeBracketText = ">";
         createHelper = (preGroups) => (
-            new CompPreExprSeq(hasFactorType, exprSeqSelector, preGroups)
+            new CompExprSeq(hasFactorType, exprSeqSelector, preGroups)
         );
     } else if (firstChar === 123) {
         groupConstructor = BhvrPreStmt;
         closeBracketText = "}";
-        createHelper = (preGroups) => new BhvrPreStmtSeq(preGroups);
+        createHelper = (preGroups) => new BhvrStmtSeq(preGroups);
     } else if (firstChar === 91) {
         groupConstructor = AttrPreStmt;
         closeBracketText = "]";
-        createHelper = (preGroups) => new AttrPreStmtSeq(preGroups);
+        createHelper = (preGroups) => new AttrStmtSeq(preGroups);
     } else {
         throw new Error(`Unexpected open bracket "${openBracketText}".`);
     }

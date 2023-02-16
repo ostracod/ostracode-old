@@ -234,8 +234,9 @@ export class Compiler {
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.readContent();
             codeFile.parseTokens();
-            codeFile.parsePreStmts();
+            codeFile.parsePreGroups();
             codeFile.resolveStmts();
+            codeFile.resolveExprsAndVars();
             console.log(codeFile.bhvrStmtSeq.getDisplayString());
         }
     }

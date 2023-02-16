@@ -2,7 +2,8 @@
 import * as fs from "fs";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
-import { BhvrPreStmt, BhvrPreStmtSeq } from "./preStmt.js";
+import { BhvrStmtSeq } from "./groupSeq.js";
+import { BhvrPreStmt } from "./preStmt.js";
 import { TokenParser, PreGroupParser} from "./parser.js";
 
 export class OstraCodeFile {
@@ -14,7 +15,6 @@ export class OstraCodeFile {
         this.platformNames = platformNames;
         this.content = null;
         this.tokens = null;
-        this.bhvrPreStmtSeq = null;
         this.bhvrStmtSeq = null;
     }
     
@@ -47,17 +47,21 @@ export class OstraCodeFile {
         });
     }
     
-    parsePreStmts() {
+    parsePreGroups() {
         const parser = new PreGroupParser(this.tokens);
-        const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt)
-        this.bhvrPreStmtSeq = new BhvrPreStmtSeq(bhvrPreStmts);
-        this.bhvrPreStmtSeq.lineNumber = 1;
+        const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt);
+        this.bhvrStmtSeq = new BhvrStmtSeq(bhvrPreStmts);
+        this.bhvrStmtSeq.lineNumber = 1;
     }
     
     resolveStmts() {
         this.tryOperation(() => {
-            this.bhvrStmtSeq = this.bhvrPreStmtSeq.resolveStmts();
+            this.bhvrStmtSeq.resolveStmts();
         });
+    }
+    
+    resolveExprsAndVars() {
+        // TODO: Implement.
     }
 }
 

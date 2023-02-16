@@ -1,26 +1,22 @@
 
 import { CompilerError } from "./error.js";
-import { WordToken, OperatorToken } from "./token.js";
-import { PreGroupSeq } from "./preGroup.js";
-import { Group, GroupSeq } from "./group.js";
-import { ExprSeq } from "./expr.js";
+import { ResolvedGroup } from "./group.js";
+import { GroupSeq } from "./groupSeq.js";
 import { GroupParser } from "./parser.js";
 
 const initItemName = "initialization item";
 
-export class Stmt extends Group {
+export class Stmt extends ResolvedGroup {
     
     constructor(components) {
         super(components);
-        const resolvedComponents = components.map((component) => {
-            if (component instanceof PreGroupSeq) {
-                return component.resolveStmts(this);
-            } else {
-                return component;
+        for (const component of components) {
+            if (component instanceof GroupSeq) {
+                component.resolveStmts(this);
             }
-        });
+        }
         this.clearChildren();
-        const parser = new GroupParser(this, resolvedComponents);
+        const parser = new GroupParser(this, components);
         if (this.isKeywordStmt()) {
             parser.index += 1;
         }
@@ -505,17 +501,5 @@ export const attrStmtConstructors = {
     as: AsStmt,
     members: MembersStmt,
 };
-
-export class StmtSeq extends GroupSeq {
-    
-}
-
-export class BhvrStmtSeq extends StmtSeq {
-    
-}
-
-export class AttrStmtSeq extends StmtSeq {
-    
-}
 
 
