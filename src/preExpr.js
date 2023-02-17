@@ -7,14 +7,11 @@ import { GroupSeq } from "./groupSeq.js";
 export class PreExpr extends PreGroup {
     
     resolveStmts() {
-        const resolvedComponents = this.components.map((component) => {
+        for (const component of this.components) {
             if (component instanceof GroupSeq) {
-                return component.resolveStmts();
-            } else {
-                return component;
+                component.resolveStmts();
             }
-        });
-        return new PreExpr(resolvedComponents);
+        }
     }
 }
 

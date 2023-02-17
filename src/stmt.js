@@ -28,7 +28,7 @@ export class Stmt extends ResolvedGroup {
             }
             throw error;
         }
-        parser.assertEnd("statement")
+        parser.assertEnd("statement");
     }
     
     init(parser) {

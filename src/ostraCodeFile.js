@@ -49,7 +49,10 @@ export class OstraCodeFile {
     
     parsePreGroups() {
         const parser = new PreGroupParser(this.tokens);
-        const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt);
+        let bhvrPreStmts;
+        this.tryOperation(() => {
+            bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt);
+        });
         this.bhvrStmtSeq = new BhvrStmtSeq(bhvrPreStmts);
         this.bhvrStmtSeq.lineNumber = 1;
     }

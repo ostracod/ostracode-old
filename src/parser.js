@@ -302,7 +302,7 @@ export class PreGroupParser {
         const closeBracketToken = this.readToken();
         if (!(closeBracketToken instanceof CloseBracketToken)
                 || closeBracketToken.text !== closeBracketText) {
-            throw new CompilerError(`Expected "${closeBracketText}".`);
+            openBracketToken.throwError(`Missing "${closeBracketText}".`);
         }
         return createSeq(preGroups);
     }

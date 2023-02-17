@@ -52,8 +52,8 @@ export class AttrStmtSeq extends StmtSeq {
 // ExprSeq = Expression sequence
 export class ExprSeq extends GroupSeq {
     
-    constructor(hasFactorType, exprs, lineNumber) {
-        super(exprs, lineNumber);
+    constructor(hasFactorType, exprs) {
+        super(exprs);
         this.hasFactorType = hasFactorType;
     }
     
@@ -74,8 +74,8 @@ export class EvalExprSeq extends ExprSeq {
 // Represents `<...>`, `<?...>`, `<??...>`, `<*...>`, `<*?...>`, and `<*??...>`.
 export class CompExprSeq extends ExprSeq {
     
-    constructor(hasFactorType, exprSeqSelector, exprs, lineNumber) {
-        super(hasFactorType, exprs, lineNumber);
+    constructor(hasFactorType, exprSeqSelector, exprs) {
+        super(hasFactorType, exprs);
         this.exprSeqSelector = exprSeqSelector;
     }
 }
