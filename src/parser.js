@@ -2,7 +2,7 @@
 import { openBracketTextList, closeBracketTextList, separatorTextList, operatorTextList, ExprSeqSelector } from "./constants.js";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
-import { WordToken, DecNumberToken, HexNumberToken, CharToken, StringToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
+import { WordToken, DecNumToken, HexNumToken, CharToken, StringToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
 import { BhvrStmtSeq, AttrStmtSeq, ExprSeq, EvalExprSeq, CompExprSeq } from "./groupSeq.js";
 import { PreExpr } from "./preExpr.js";
 import { BhvrPreStmt, AttrPreStmt } from "./preStmt.js";
@@ -162,12 +162,12 @@ export class TokenParser {
         return new tokenConstructor(text, this.lineNumber);
     }
     
-    parseDecNumberToken() {
-        return this.parseTokenHelper(isDecNumberChar, DecNumberToken);
+    parseDecNumToken() {
+        return this.parseTokenHelper(isDecNumberChar, DecNumToken);
     }
     
-    parseHexNumberToken() {
-        return this.parseTokenHelper(isHexDigit, HexNumberToken);
+    parseHexNumToken() {
+        return this.parseTokenHelper(isHexDigit, HexNumToken);
     }
     
     parseWordToken() {
@@ -224,7 +224,7 @@ export class TokenParser {
             // Do not confuse decimal point with member access operator.
             const secondChar = this.peekChar(1);
             if (isDecDigit(secondChar)) {
-                return this.parseDecNumberToken();
+                return this.parseDecNumToken();
             }
         }
         let text = this.readText(["//"]);
@@ -234,10 +234,10 @@ export class TokenParser {
         }
         text = this.readText(["0x"]);
         if (text !== null) {
-            return this.parseHexNumberToken();
+            return this.parseHexNumToken();
         }
         if (isDecDigit(firstChar)) {
-            return this.parseDecNumberToken();
+            return this.parseDecNumToken();
         }
         if (isFirstWordChar(firstChar)) {
             return this.parseWordToken();

@@ -1,6 +1,7 @@
 
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
+import { PreExpr } from "./preExpr.js";
 
 export class GroupSeq extends Node {
     
@@ -24,6 +25,17 @@ export class GroupSeq extends Node {
             group.resolveStmts();
         }
     }
+    
+    resolveVars() {
+        // Do nothing.
+    }
+    
+    resolveExprsAndVars() {
+        this.resolveVars();
+        for (const group of this.groups) {
+            group.resolveExprsAndVars();
+        }
+    }
 }
 
 // StmtSeq = Statement sequence
@@ -42,6 +54,10 @@ export class StmtSeq extends GroupSeq {
 // Represents `{...}`.
 export class BhvrStmtSeq extends StmtSeq {
     
+    resolveVars() {
+        // TODO: Resolve variables.
+        
+    }
 }
 
 // AttrStmtSeq = Attribute statement sequence
@@ -56,6 +72,14 @@ export class ExprSeq extends GroupSeq {
     constructor(hasFactorType, exprs) {
         super(exprs);
         this.hasFactorType = hasFactorType;
+    }
+    
+    resolveExprsAndVars() {
+        const exprs = this.groups.map((expr) => (
+            (expr instanceof PreExpr) ? expr.resolve() : expr
+        ));
+        this.setGroups(exprs);
+        super.resolveExprsAndVars();
     }
 }
 

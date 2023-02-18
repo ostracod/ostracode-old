@@ -23,6 +23,16 @@ export class PreGroup extends Group {
 
 export class ResolvedGroup extends Group {
     
+    resolveVars() {
+        // Do nothing.
+    }
+    
+    resolveExprsAndVars() {
+        this.resolveVars();
+        for (const node of this.children) {
+            node.resolveExprsAndVars();
+        }
+    }
 }
 
 

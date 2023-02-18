@@ -18,20 +18,30 @@ export class WordToken extends Token {
     
 }
 
-export class NumberToken extends Token {
-    
+export class NumToken extends Token {
+    // Concrete subclasses of NumToken must implement these methods:
+    // getNum
 }
 
-export class DecNumberToken extends NumberToken {
+export class DecNumToken extends NumToken {
     
+    getNum() {
+        return parseInt(this.text, 10);
+    }
 }
 
-export class HexNumberToken extends NumberToken {
+export class HexNumToken extends NumToken {
     
+    getNum() {
+        return parseInt(this.text, 16);
+    }
 }
 
-export class CharToken extends Token {
+export class CharToken extends NumToken {
     
+    getNum() {
+        return this.text.charCodeAt(0);
+    }
 }
 
 export class StringToken extends Token {

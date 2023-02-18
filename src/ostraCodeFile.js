@@ -64,7 +64,9 @@ export class OstraCodeFile {
     }
     
     resolveExprsAndVars() {
-        // TODO: Implement.
+        this.tryOperation(() => {
+            this.bhvrStmtSeq.resolveExprsAndVars();
+        });
     }
 }
 
