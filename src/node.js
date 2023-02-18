@@ -26,10 +26,6 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
-    clearChildren() {
-        this.setChildren([]);
-    }
-    
     getDisplayString(indentation = "") {
         const textList = [indentation + this.constructor.name];
         const nextIndentation = indentation + "    ";

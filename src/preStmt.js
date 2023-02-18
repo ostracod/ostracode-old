@@ -2,7 +2,7 @@
 import { WordToken } from "./token.js";
 import { PreGroup } from "./group.js";
 import { ExprSeq } from "./groupSeq.js";
-import { ExprStmt, bhvrStmtConstructors, attrStmtConstructors } from "./stmt.js";
+import { Stmt, ExprStmt, bhvrStmtConstructors, attrStmtConstructors } from "./stmt.js";
 
 // PreStmt = Pre-statement
 // A pre-statement is a statement which has not yet been resolved to a specific type.
@@ -10,7 +10,7 @@ export class PreStmt extends PreGroup {
     // Concrete subclasses of PreStmt must implement these methods:
     // getStmtConstructors
     
-    resolve(parentStmt) {
+    resolve() {
         const firstComponent = this.components[0];
         if (firstComponent instanceof WordToken) {
             const keyword = firstComponent.text;
@@ -31,11 +31,11 @@ export class BhvrPreStmt extends PreStmt {
         return bhvrStmtConstructors;
     }
     
-    resolve(parentStmt) {
+    resolve() {
         if (this.components.length === 1 && this.components[0] instanceof ExprSeq) {
             return new ExprStmt(this.components);
         }
-        return super.resolve(parentStmt);
+        return super.resolve();
     }
 }
 
@@ -46,14 +46,15 @@ export class AttrPreStmt extends PreStmt {
         return attrStmtConstructors;
     }
     
-    resolve(parentStmt) {
-        if (parentStmt !== null) {
+    resolve() {
+        const parentStmt = this.parent.parent;
+        if (parentStmt instanceof Stmt) {
             const stmt = parentStmt.resolveChild(this);
             if (stmt !== null) {
                 return stmt;
             }
         }
-        return super.resolve(parentStmt);
+        return super.resolve();
     }
 }
 

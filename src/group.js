@@ -6,7 +6,6 @@ export class Group extends Node {
     constructor(components) {
         super();
         this.components = components;
-        this.setChildren(this.components);
     }
     
     getLineNumber() {
@@ -16,6 +15,10 @@ export class Group extends Node {
 
 export class PreGroup extends Group {
     
+    constructor(components) {
+        super(components);
+        this.setChildren(this.components);
+    }
 }
 
 export class ResolvedGroup extends Group {

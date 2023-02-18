@@ -10,12 +10,6 @@ export class Stmt extends ResolvedGroup {
     
     constructor(components) {
         super(components);
-        for (const component of components) {
-            if (component instanceof GroupSeq) {
-                component.resolveStmts(this);
-            }
-        }
-        this.clearChildren();
         const parser = new GroupParser(this, components);
         if (this.isKeywordStmt()) {
             parser.index += 1;
@@ -41,6 +35,12 @@ export class Stmt extends ResolvedGroup {
     
     resolveChild(preStmt) {
         return null;
+    }
+    
+    resolveStmts() {
+        for (const groupSeq of this.children) {
+            groupSeq.resolveStmts();
+        }
     }
 }
 
