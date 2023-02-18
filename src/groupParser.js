@@ -2,8 +2,8 @@
 import * as niceUtils from "./niceUtils.js";
 import { WordToken, NumToken, OperatorToken } from "./token.js";
 import { BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
-import { NumLiteralExpr, BinaryExpr } from "./expr.js";
-import { binaryOperatorMap } from "./operator.js";
+import { NumLiteralExpr, UnaryExpr, BinaryExpr } from "./expr.js";
+import { unaryOperatorMap, binaryOperatorMap } from "./operator.js";
 
 class IfClause {
     
@@ -178,6 +178,12 @@ export class ExprParser extends GroupParser {
         let output = null;
         if (component instanceof NumToken) {
             output = new NumLiteralExpr(component);
+        } else if (component instanceof OperatorToken) {
+            const operator = unaryOperatorMap.get(component.text);
+            if (typeof operator !== "undefined") {
+                const expr = this.readExpr(-99);
+                output = new UnaryExpr(operator, expr);
+            }
         }
         if (output === null) {
             component.throwError("Cannot parse expression.");

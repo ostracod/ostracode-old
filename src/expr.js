@@ -33,6 +33,14 @@ export class OperatorExpr extends Expr {
     }
 }
 
+export class UnaryExpr extends OperatorExpr {
+    
+    constructor(operator, operand) {
+        super(operator);
+        this.operand = this.addChild(operand);
+    }
+}
+
 export class BinaryExpr extends OperatorExpr {
     
     constructor(operator, operand1, operand2) {
