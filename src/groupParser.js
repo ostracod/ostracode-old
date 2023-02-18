@@ -2,7 +2,7 @@
 import * as niceUtils from "./niceUtils.js";
 import { WordToken, NumToken, OperatorToken } from "./token.js";
 import { BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
-import { NumLiteralExpr, UnaryExpr, BinaryExpr } from "./expr.js";
+import { NumLiteralExpr, IdentifierExpr, UnaryExpr, BinaryExpr, ExprSeqExpr } from "./expr.js";
 import { unaryOperatorMap, binaryOperatorMap } from "./operator.js";
 
 class IfClause {
@@ -169,6 +169,10 @@ export class StmtParser extends GroupParser {
 
 export class ExprParser extends GroupParser {
     
+    getComponents(startIndex) {
+        return this.components.slice(startIndex, this.index);
+    }
+    
     readExpr(precedence = 99) {
         const startIndex = this.index;
         const component = this.readComponent();
@@ -178,11 +182,16 @@ export class ExprParser extends GroupParser {
         let output = null;
         if (component instanceof NumToken) {
             output = new NumLiteralExpr(component);
+        } else if (component instanceof WordToken) {
+            output = new IdentifierExpr(component);
+        } else if (component instanceof ExprSeq) {
+            output = new ExprSeqExpr(component);
         } else if (component instanceof OperatorToken) {
             const operator = unaryOperatorMap.get(component.text);
             if (typeof operator !== "undefined") {
                 const expr = this.readExpr(-99);
-                output = new UnaryExpr(operator, expr);
+                const components = this.getComponents(startIndex);
+                output = new UnaryExpr(components, operator, expr);
             }
         }
         if (output === null) {
@@ -201,7 +210,8 @@ export class ExprParser extends GroupParser {
                     }
                     this.index += 1;
                     const expr = this.readExpr(operator.precedence);
-                    output = new BinaryExpr(operator, output, expr);
+                    const components = this.getComponents(startIndex);
+                    output = new BinaryExpr(components, operator, output, expr);
                     continue;
                 }
             }

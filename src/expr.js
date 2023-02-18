@@ -5,14 +5,21 @@ export class Expr extends ResolvedGroup {
     
 }
 
-export class LiteralExpr extends Expr {
+export class SingleComponentExpr extends Expr {
+    
+    constructor(component) {
+        super([component]);
+    }
+}
+
+export class LiteralExpr extends SingleComponentExpr {
     
 }
 
 export class NumLiteralExpr extends LiteralExpr {
     
     constructor(numToken) {
-        super([numToken]);
+        super(numToken);
         this.value = numToken.getNum();
     }
     
@@ -21,10 +28,22 @@ export class NumLiteralExpr extends LiteralExpr {
     }
 }
 
+export class IdentifierExpr extends SingleComponentExpr {
+    
+    constructor(wordToken) {
+        super(wordToken);
+        this.name = wordToken.text;
+    }
+    
+    getDisplayStringDetail() {
+        return this.name;
+    }
+}
+
 export class OperatorExpr extends Expr {
     
-    constructor(operator, operand1, operand2) {
-        super();
+    constructor(components, operator) {
+        super(components);
         this.operator = operator;
     }
     
@@ -35,18 +54,26 @@ export class OperatorExpr extends Expr {
 
 export class UnaryExpr extends OperatorExpr {
     
-    constructor(operator, operand) {
-        super(operator);
+    constructor(components, operator, operand) {
+        super(components, operator);
         this.operand = this.addChild(operand);
     }
 }
 
 export class BinaryExpr extends OperatorExpr {
     
-    constructor(operator, operand1, operand2) {
-        super(operator);
+    constructor(components, operator, operand1, operand2) {
+        super(components, operator);
         this.operand1 = this.addChild(operand1);
         this.operand2 = this.addChild(operand2);
+    }
+}
+
+export class ExprSeqExpr extends SingleComponentExpr {
+    
+    constructor(exprSeq) {
+        super(exprSeq);
+        this.exprSeq = this.addChild(exprSeq);
     }
 }
 
