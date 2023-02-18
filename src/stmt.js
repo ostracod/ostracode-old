@@ -2,7 +2,7 @@
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { GroupSeq } from "./groupSeq.js";
-import { GroupParser } from "./parser.js";
+import { StmtParser } from "./groupParser.js";
 
 const initItemName = "initialization item";
 
@@ -10,7 +10,7 @@ export class Stmt extends ResolvedGroup {
     
     constructor(components) {
         super(components);
-        const parser = new GroupParser(this, components);
+        const parser = new StmtParser(components, this);
         if (this.isKeywordStmt()) {
             parser.index += 1;
         }

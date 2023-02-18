@@ -12,6 +12,7 @@ export class Node extends CompilerErrorThrower {
     addChild(child) {
         this.children.push(child);
         child.parent = this;
+        return child;
     }
     
     setChildren(children) {
@@ -26,8 +27,17 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
+    getDisplayStringDetail() {
+        return null;
+    }
+    
     getDisplayString(indentation = "") {
-        const textList = [indentation + this.constructor.name];
+        let text = indentation + this.constructor.name;
+        const detail = this.getDisplayStringDetail();
+        if (detail !== null) {
+            text += ` (${detail})`;
+        }
+        const textList = [text];
         const nextIndentation = indentation + "    ";
         for (const child of this.children) {
             textList.push(child.getDisplayString(nextIndentation));

@@ -1,0 +1,208 @@
+
+import * as niceUtils from "./niceUtils.js";
+import { WordToken, NumToken, OperatorToken } from "./token.js";
+import { BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
+import { NumLiteralExpr, BinaryExpr } from "./expr.js";
+import { binaryOperatorMap } from "./operator.js";
+
+class IfClause {
+    
+    constructor(condExprSeq, stmtSeq) {
+        this.condExprSeq = condExprSeq;
+        this.stmtSeq = stmtSeq;
+    }
+}
+
+export class GroupParser {
+    
+    constructor(components) {
+        this.components = components;
+        this.index = 0;
+    }
+    
+    hasReachedEnd() {
+        return (this.index >= this.components.length);
+    }
+    
+    getLastComponent() {
+        return this.components[this.components.length - 1];
+    }
+    
+    peekComponent() {
+        if (this.hasReachedEnd()) {
+            return null;
+        } else {
+            return this.components[this.index];
+        }
+    }
+    
+    readComponent() {
+        const output = this.peekComponent();
+        this.index += 1;
+        return output;
+    }
+    
+    // Here is a beautiful ASCII table to explain things, or maybe cause confusion.
+    
+    //                                    |  Case 1  |  Case 2  |  Case 3  |
+    //                                    +----------+----------+----------+
+    //                If `errorName` is:  |  Null    |  String  |  String  |
+    //             And `mayReachEnd` is:  |  Any     |  True    |  False   |
+    // Will `peekByClass` throw error...  +----------+----------+----------+
+    //       ...when parser reaches end?  |  No      |  No      |  Yes     |
+    // ...when component has wrong type?  |  No      |  Yes     |  Yes     |
+    
+    peekByClass(componentClass, errorName = null, mayReachEnd = false) {
+        const component = this.peekComponent();
+        if (!(component instanceof componentClass)) {
+            if (errorName === null) {
+                return null;
+            }
+            let errorComponent;
+            if (component === null) {
+                if (mayReachEnd) {
+                    return null;
+                }
+                errorComponent = this.getLastComponent();
+            } else {
+                errorComponent = component;
+            }
+            errorComponent.throwError(`Expected ${errorName}.`);
+        }
+        return component;
+    }
+    
+    readByClass(componentClass, errorName = null, mayReachEnd = false) {
+        const component = this.peekByClass(componentClass, errorName, mayReachEnd);
+        if (component !== null) {
+            this.index += 1;
+        }
+        return component;
+    }
+}
+
+export class StmtParser extends GroupParser {
+    
+    constructor(components, parentStmt) {
+        super(components);
+        this.parentStmt = parentStmt;
+    }
+    
+    readChildSeq(groupSeqClass, errorName = null, mayReachEnd = false) {
+        const groupSeq = this.readByClass(groupSeqClass, errorName, mayReachEnd);
+        if (groupSeq !== null) {
+            this.parentStmt.addChild(groupSeq);
+        }
+        return groupSeq;
+    }
+    
+    readIdentifierText(errorName = "identifier") {
+        return this.readByClass(WordToken, errorName).text;
+    }
+    
+    readTokenText(
+        tokenClass, errorName, matchTextList, validTextList = [], mayReachEnd = false,
+    ) {
+        const token = this.peekByClass(tokenClass, errorName, mayReachEnd);
+        if (token === null) {
+            return null;
+        }
+        const { text } = token;
+        if (matchTextList.includes(text)) {
+            this.index += 1;
+            return text;
+        } else if (validTextList.includes(text)) {
+            return null;
+        } else {
+            token.throwError(`Expected ${errorName}.`);
+        }
+    }
+    
+    readEqualSign() {
+        this.readTokenText(OperatorToken, `equal sign`, ["="]);
+    }
+    
+    readKeyword(matchTextList, validTextList = [], mayReachEnd = false) {
+        const textList = matchTextList.concat(validTextList);
+        const unionText = niceUtils.getUnionText(textList.map((text) => `"${text}"`));
+        return this.readTokenText(
+            WordToken, "keyword " + unionText, matchTextList, validTextList, mayReachEnd,
+        );
+    }
+    
+    readExprSeq(errorName = null, mayReachEnd = false) {
+        return this.readChildSeq(ExprSeq, errorName, mayReachEnd);
+    }
+    
+    readCompExprSeq(errorName, requireExprSeq = true, mayReachEnd = false) {
+        const exprSeq = this.readExprSeq(requireExprSeq ? errorName : null, mayReachEnd);
+        if (exprSeq === null) {
+            return null;
+        }
+        if (!(exprSeq instanceof CompExprSeq)) {
+            exprSeq.throwError(`${niceUtils.capitalize(errorName)} must be a comptime expression sequence.`);
+        }
+        return exprSeq;
+    }
+    
+    readBhvrStmtSeq(mayReachEnd = false) {
+        return this.readChildSeq(BhvrStmtSeq, "body", mayReachEnd);
+    }
+    
+    readAttrStmtSeq() {
+        return this.readChildSeq(AttrStmtSeq, null, true);
+    }
+    
+    readIfClause() {
+        const condExprSeq = this.readExprSeq("condition");
+        const stmtSeq = this.readBhvrStmtSeq();
+        return new IfClause(condExprSeq, stmtSeq);
+    }
+    
+    assertEnd(errorName) {
+        if (!this.hasReachedEnd()) {
+            const component = this.peekComponent();
+            component.throwError(`Expected end of ${errorName}.`);
+        }
+    }
+}
+
+export class ExprParser extends GroupParser {
+    
+    readExpr(precedence = 99) {
+        const startIndex = this.index;
+        const component = this.readComponent();
+        if (component === null) {
+            this.getLastComponent().throwError("Unexpected end of expression.");
+        }
+        let output = null;
+        if (component instanceof NumToken) {
+            output = new NumLiteralExpr(component);
+        }
+        if (output === null) {
+            component.throwError("Cannot parse expression.");
+        }
+        while (true) {
+            const component = this.peekComponent();
+            if (component === null) {
+                break;
+            }
+            if (component instanceof OperatorToken) {
+                const operator = binaryOperatorMap.get(component.text);
+                if (typeof operator !== "undefined") {
+                    if (operator.precedence >= precedence) {
+                        break;
+                    }
+                    this.index += 1;
+                    const expr = this.readExpr(operator.precedence);
+                    output = new BinaryExpr(operator, output, expr);
+                    continue;
+                }
+            }
+            component.throwError("Cannot parse expression.");
+        }
+        return output;
+    }
+}
+
+

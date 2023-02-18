@@ -16,8 +16,29 @@ export class NumLiteralExpr extends LiteralExpr {
         this.value = numToken.getNum();
     }
     
-    getDisplayString(indentation) {
-        return super.getDisplayString(indentation) + ` (${this.value})`;
+    getDisplayStringDetail() {
+        return this.value;
+    }
+}
+
+export class OperatorExpr extends Expr {
+    
+    constructor(operator, operand1, operand2) {
+        super();
+        this.operator = operator;
+    }
+    
+    getDisplayStringDetail() {
+        return this.operator.text;
+    }
+}
+
+export class BinaryExpr extends OperatorExpr {
+    
+    constructor(operator, operand1, operand2) {
+        super(operator);
+        this.operand1 = this.addChild(operand1);
+        this.operand2 = this.addChild(operand2);
     }
 }
 
