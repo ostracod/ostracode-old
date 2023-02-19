@@ -56,10 +56,7 @@ export class BhvrStmtSeq extends StmtSeq {
     
     resolveVars() {
         for (const stmt of this.groups) {
-            const vars = stmt.createParentVars();
-            for (const variable of vars) {
-                this.addVar(variable);
-            }
+            this.addVars(stmt.createParentVars());
         }
     }
 }
@@ -68,6 +65,14 @@ export class BhvrStmtSeq extends StmtSeq {
 // Represents `[...]`.
 export class AttrStmtSeq extends StmtSeq {
     
+    getAttrStmt(attrStmtClass) {
+        for (const stmt of this.groups) {
+            if (stmt instanceof attrStmtClass) {
+                return stmt;
+            }
+        }
+        return null;
+    }
 }
 
 // ExprSeq = Expression sequence

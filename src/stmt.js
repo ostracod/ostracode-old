@@ -1,5 +1,6 @@
 
 import { CompilerError } from "./error.js";
+import * as niceUtils from "./niceUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { GroupSeq } from "./groupSeq.js";
 import { StmtParser } from "./groupParser.js";
@@ -35,12 +36,11 @@ export class Stmt extends ResolvedGroup {
     }
     
     getAttrStmt(attrStmtClass) {
-        for (const stmt of this.attrStmtSeq.groups) {
-            if (stmt instanceof attrStmtClass) {
-                return stmt;
-            }
+        if (this.attrStmtSeq === null) {
+            return null;
+        } else {
+            return this.attrStmtSeq.getAttrStmt(attrStmtClass);
         }
-        return null;
     }
     
     resolveChild(preStmt) {
@@ -103,7 +103,7 @@ export class MutEvalVarStmt extends VarStmt {
 export class ExprStmt extends BhvrStmt {
     
     init(parser) {
-        this.exprSeq = parser.readComponent();
+        this.exprSeq = parser.readExprSeq("expression sequence");
     }
     
     isKeywordStmt() {
@@ -217,14 +217,11 @@ export class ImportStmt extends BhvrStmt {
         const output = [];
         const asStmt = this.getAttrStmt(AsStmt);
         if (asStmt !== null) {
-            output.push(new Var(asStmt.name, asStmt));
+            output.push(asStmt.createVar());
         }
         const membersStmt = this.getAttrStmt(MembersStmt);
         if (membersStmt !== null) {
-            const memberStmts = membersStmt.getChildStmts();
-            for (const memberStmt of memberStmts) {
-                output.push(new Var(memberStmt.aliasName, memberStmt));
-            }
+            niceUtils.extendList(output, membersStmt.createVars());
         }
         return output;
     }
@@ -303,6 +300,10 @@ export class ParentAttrStmt extends AttrStmt {
     getChildStmts() {
         return (this.attrStmtSeq === null) ? [] : this.attrStmtSeq.groups;
     }
+    
+    createVars() {
+        return this.getChildStmts().map((stmt) => stmt.createVar());
+    }
 }
 
 export class ArgsStmt extends ParentAttrStmt {
@@ -342,6 +343,10 @@ export class ArgStmt extends ChildAttrStmt {
             parser.readEqualSign();
             this.defaultItemExprSeq = parser.readExprSeq("default item");
         }
+    }
+    
+    createVar() {
+        return new Var(this.name, this);
     }
 }
 
@@ -495,6 +500,10 @@ export class AsStmt extends AttrStmt {
     init(parser) {
         this.name = parser.readIdentifierText();
     }
+    
+    createVar() {
+        return new Var(this.name, this);
+    }
 }
 
 export class MembersStmt extends ParentAttrStmt {
@@ -515,6 +524,10 @@ export class MemberStmt extends ChildAttrStmt {
             parser.readKeyword(["as"]);
             this.aliasName = parser.readIdentifierText();
         }
+    }
+    
+    createVar() {
+        return new Var(this.aliasName, this);
     }
 }
 

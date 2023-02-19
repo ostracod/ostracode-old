@@ -1,4 +1,6 @@
 
+import { AttrStmtSeq } from "./groupSeq.js";
+import { ArgsStmt, TypeArgsStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 
@@ -9,6 +11,28 @@ export class SpecialExpr extends Expr {
         const parser = new SpecialParser(groupSeqs, this);
         this.init(parser);
         parser.assertEnd();
+    }
+    
+    resolveVars() {
+        const argsStmt = this.getAttrStmt(ArgsStmt);
+        if (argsStmt !== null) {
+            this.addVars(argsStmt.createVars());
+        }
+        const typeArgsStmt = this.getAttrStmt(TypeArgsStmt);
+        if (typeArgsStmt !== null) {
+            this.addVars(typeArgsStmt.createVars());
+        }
+    }
+    
+    getAttrStmt(attrStmtClass) {
+        let attrStmtSeq = null;
+        for (const groupSeq of this.children) {
+            if (groupSeq instanceof AttrStmtSeq) {
+                attrStmtSeq = groupSeq;
+                break;
+            }
+        }
+        return (attrStmtSeq === null) ? null : attrStmtSeq.getAttrStmt(attrStmtClass);
     }
 }
 

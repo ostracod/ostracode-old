@@ -3,6 +3,12 @@ import * as fs from "fs";
 import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
 
+export const extendList = (destination, elements) => {
+    for (const element of elements) {
+        destination.push(element);
+    }
+};
+
 const walkFilesHelper = (rootPath, relativePath, handle) => {
     const path = pathUtils.join(rootPath, relativePath);
     if (fs.lstatSync(path).isDirectory()) {

@@ -33,6 +33,12 @@ export class Node extends CompilerErrorThrower {
         this.varMap.set(variable.name, variable);
     }
     
+    addVars(vars) {
+        for (const variable of vars) {
+            this.addVar(variable);
+        }
+    }
+    
     getDisplayStringDetail() {
         return null;
     }
