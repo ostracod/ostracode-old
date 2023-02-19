@@ -170,6 +170,11 @@ export class StmtParser extends GroupParser {
 
 export class ExprParser extends GroupParser {
     
+    constructor(components, parentNode) {
+        super(components);
+        this.parentNode = parentNode;
+    }
+    
     getComponents(startIndex) {
         return this.components.slice(startIndex, this.index);
     }
@@ -186,9 +191,10 @@ export class ExprParser extends GroupParser {
         } else if (component instanceof StrToken) {
             output = new StrLiteralExpr(component);
         } else if (component instanceof WordToken) {
-            // TODO: Allow shadowing of special identifiers by variables.
-            const specialConstructor = specialConstructorMap[component.text];
-            if (typeof specialConstructor !== "undefined") {
+            const wordText = component.text;
+            const specialConstructor = specialConstructorMap[wordText];
+            const variable = this.parentNode.getVar(wordText);
+            if (typeof specialConstructor !== "undefined" && variable === null) {
                 const groupSeqs = [];
                 while (true) {
                     const component = this.readByClass(GroupSeq, null, true);
@@ -222,13 +228,14 @@ export class ExprParser extends GroupParser {
             }
             const components = this.getComponents(startIndex);
             if (component instanceof OperatorToken) {
-                if (component.text === ".") {
+                const operatorText = component.text;
+                if (operatorText === ".") {
                     this.index += 1;
                     const name = this.readIdentifierText();
                     output = new IdentifierAccessExpr(components, output, name);
                     continue;
                 }
-                const operator = binaryOperatorMap.get(component.text);
+                const operator = binaryOperatorMap.get(operatorText);
                 if (typeof operator !== "undefined") {
                     if (operator.precedence >= precedence) {
                         break;

@@ -16,7 +16,7 @@ export class PreExpr extends PreGroup {
     }
     
     resolve() {
-        const parser = new ExprParser(this.components);
+        const parser = new ExprParser(this.components, this);
         return parser.readExpr();
     }
 }

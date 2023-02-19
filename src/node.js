@@ -39,6 +39,15 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
+    getVar(name) {
+        const variable = this.varMap.get(name);
+        if (typeof variable === "undefined") {
+            return (this.parent === null) ? null : this.parent.getVar(name);
+        } else {
+            return variable;
+        }
+    }
+    
     getDisplayStringDetail() {
         return null;
     }
