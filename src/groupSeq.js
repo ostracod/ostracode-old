@@ -55,8 +55,12 @@ export class StmtSeq extends GroupSeq {
 export class BhvrStmtSeq extends StmtSeq {
     
     resolveVars() {
-        // TODO: Resolve variables.
-        
+        for (const stmt of this.groups) {
+            const vars = stmt.createParentVars();
+            for (const variable of vars) {
+                this.addVar(variable);
+            }
+        }
     }
 }
 

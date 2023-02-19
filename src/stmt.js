@@ -3,6 +3,7 @@ import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { GroupSeq } from "./groupSeq.js";
 import { StmtParser } from "./groupParser.js";
+import { Var } from "./var.js";
 
 const initItemName = "initialization item";
 
@@ -33,6 +34,15 @@ export class Stmt extends ResolvedGroup {
         return true;
     }
     
+    getAttrStmt(attrStmtClass) {
+        for (const stmt of this.attrStmtSeq.groups) {
+            if (stmt instanceof attrStmtClass) {
+                return stmt;
+            }
+        }
+        return null;
+    }
+    
     resolveChild(preStmt) {
         return null;
     }
@@ -41,6 +51,10 @@ export class Stmt extends ResolvedGroup {
         for (const groupSeq of this.children) {
             groupSeq.resolveStmts();
         }
+    }
+    
+    createParentVars() {
+        return [];
     }
 }
 
@@ -64,6 +78,10 @@ export class VarStmt extends BhvrStmt {
             parser.readEqualSign();
             this.initItemExprSeq = this.readInitItem(parser);
         }
+    }
+    
+    createParentVars() {
+        return [new Var(this.name, this)];
     }
 }
 
@@ -128,6 +146,10 @@ export class ForStmt extends BhvrStmt {
         this.iterableExprSeq = parser.readExprSeq("iterable");
         this.stmtSeq = parser.readBhvrStmtSeq();
     }
+    
+    resolveVars() {
+        this.stmtSeq.addVar(new Var(this.varName, this));
+    }
 }
 
 export class BreakStmt extends BhvrStmt {
@@ -167,6 +189,12 @@ export class TryStmt extends BhvrStmt {
             this.throwError("Expected catch or finally clause.");
         }
     }
+    
+    resolveVars() {
+        if (this.varName !== null && this.catchStmtSeq !== null) {
+            this.catchStmtSeq.addVar(new Var(this.varName, this));
+        }
+    }
 }
 
 export class ThrowStmt extends BhvrStmt {
@@ -183,6 +211,22 @@ export class ImportStmt extends BhvrStmt {
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.exprSeq = parser.readCompExprSeq(this.getExprErrorName());
+    }
+    
+    createParentVars() {
+        const output = [];
+        const asStmt = this.getAttrStmt(AsStmt);
+        if (asStmt !== null) {
+            output.push(new Var(asStmt.name, asStmt));
+        }
+        const membersStmt = this.getAttrStmt(MembersStmt);
+        if (membersStmt !== null) {
+            const memberStmts = membersStmt.getChildStmts();
+            for (const memberStmt of memberStmts) {
+                output.push(new Var(memberStmt.aliasName, memberStmt));
+            }
+        }
+        return output;
     }
 }
 
@@ -254,6 +298,10 @@ export class ParentAttrStmt extends AttrStmt {
     resolveChild(preStmt) {
         const childConstructor = this.getChildConstructor();
         return new childConstructor(preStmt.components);
+    }
+    
+    getChildStmts() {
+        return (this.attrStmtSeq === null) ? [] : this.attrStmtSeq.groups;
     }
 }
 

@@ -7,6 +7,8 @@ export class Node extends CompilerErrorThrower {
         super();
         this.parent = null;
         this.children = [];
+        // Map from variable name to Var.
+        this.varMap = new Map();
     }
     
     addChild(child) {
@@ -25,6 +27,10 @@ export class Node extends CompilerErrorThrower {
         for (const child of children) {
             this.addChild(child);
         }
+    }
+    
+    addVar(variable) {
+        this.varMap.set(variable.name, variable);
     }
     
     getDisplayStringDetail() {
