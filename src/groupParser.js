@@ -1,8 +1,9 @@
 
 import * as niceUtils from "./niceUtils.js";
 import { WordToken, NumToken, StrToken, OperatorToken } from "./token.js";
-import { BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
+import { GroupSeq, BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
 import { NumLiteralExpr, StrLiteralExpr, IdentifierExpr, UnaryExpr, BinaryExpr, IdentifierAccessExpr, ExprSeqExpr, ArgsExpr } from "./expr.js";
+import { specialConstructorMap } from "./specialExpr.js";
 import { unaryOperatorMap, binaryOperatorMap } from "./operator.js";
 
 class IfClause {
@@ -185,7 +186,22 @@ export class ExprParser extends GroupParser {
         } else if (component instanceof StrToken) {
             output = new StrLiteralExpr(component);
         } else if (component instanceof WordToken) {
-            output = new IdentifierExpr(component);
+            // TODO: Allow shadowing of special identifiers by variables.
+            const specialConstructor = specialConstructorMap[component.text];
+            if (typeof specialConstructor !== "undefined") {
+                const groupSeqs = [];
+                while (true) {
+                    const component = this.readByClass(GroupSeq, null, true);
+                    if (component === null) {
+                        break;
+                    }
+                    groupSeqs.push(component);
+                }
+                const components = this.getComponents(startIndex);
+                output = new specialConstructor(components, groupSeqs);
+            } else {
+                output = new IdentifierExpr(component);
+            }
         } else if (component instanceof ExprSeq) {
             output = new ExprSeqExpr(component);
         } else if (component instanceof OperatorToken) {
@@ -197,7 +213,7 @@ export class ExprParser extends GroupParser {
             }
         }
         if (output === null) {
-            component.throwError("Cannot parse expression.");
+            component.throwError("Invalid expression.");
         }
         while (true) {
             const component = this.peekComponent();
@@ -227,9 +243,68 @@ export class ExprParser extends GroupParser {
                 output = new ArgsExpr(components, output, component);
                 continue;
             }
-            component.throwError("Cannot parse expression.");
+            component.throwError("Expected operator or argument expression sequence.");
         }
         return output;
+    }
+}
+
+export class SpecialParser {
+    
+    constructor(groupSeqs, specialExpr) {
+        this.groupSeqs = groupSeqs;
+        this.specialExpr = specialExpr;
+        this.index = 0;
+    }
+    
+    hasReachedEnd() {
+        return (this.index >= this.groupSeqs.length);
+    }
+    
+    getLastComponent() {
+        const { components } = this.specialExpr;
+        return components[components.length - 1];
+    }
+    
+    peekGroupSeq() {
+        if (this.hasReachedEnd()) {
+            return null;
+        } else {
+            return this.groupSeqs[this.index];
+        }
+    }
+    
+    readGroupSeq(groupSeqClass, errorName = null) {
+        const groupSeq = this.peekGroupSeq();
+        if (groupSeq instanceof groupSeqClass) {
+            this.index += 1;
+            this.specialExpr.addChild(groupSeq);
+            return groupSeq;
+        }
+        if (errorName === null) {
+            return null;
+        }
+        const errorComponent = (groupSeq === null) ? this.getLastComponent() : groupSeq;
+        errorComponent.throwError(`Expected ${errorName}.`);
+    }
+    
+    readExprSeq() {
+        return this.readGroupSeq(ExprSeq, "expression sequence");
+    }
+    
+    readBhvrStmtSeq() {
+        return this.readGroupSeq(BhvrStmtSeq, "behavior statement sequence");
+    }
+    
+    readAttrStmtSeq() {
+        return this.readGroupSeq(AttrStmtSeq);
+    }
+    
+    assertEnd() {
+        if (!this.hasReachedEnd()) {
+            const groupSeq = this.peekGroupSeq();
+            groupSeq.throwError(`Expected end of special invocation.`);
+        }
     }
 }
 
