@@ -44,7 +44,7 @@ export class CharToken extends NumToken {
     }
 }
 
-export class StringToken extends Token {
+export class StrToken extends Token {
     
 }
 

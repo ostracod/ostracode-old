@@ -1,8 +1,8 @@
 
 import * as niceUtils from "./niceUtils.js";
-import { WordToken, NumToken, OperatorToken } from "./token.js";
+import { WordToken, NumToken, StrToken, OperatorToken } from "./token.js";
 import { BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
-import { NumLiteralExpr, IdentifierExpr, UnaryExpr, BinaryExpr, ExprSeqExpr } from "./expr.js";
+import { NumLiteralExpr, StrLiteralExpr, IdentifierExpr, UnaryExpr, BinaryExpr, IdentifierAccessExpr, ExprSeqExpr, ArgsExpr } from "./expr.js";
 import { unaryOperatorMap, binaryOperatorMap } from "./operator.js";
 
 class IfClause {
@@ -79,6 +79,10 @@ export class GroupParser {
         }
         return component;
     }
+    
+    readIdentifierText(errorName = "identifier") {
+        return this.readByClass(WordToken, errorName).text;
+    }
 }
 
 export class StmtParser extends GroupParser {
@@ -94,10 +98,6 @@ export class StmtParser extends GroupParser {
             this.parentStmt.addChild(groupSeq);
         }
         return groupSeq;
-    }
-    
-    readIdentifierText(errorName = "identifier") {
-        return this.readByClass(WordToken, errorName).text;
     }
     
     readTokenText(
@@ -182,6 +182,8 @@ export class ExprParser extends GroupParser {
         let output = null;
         if (component instanceof NumToken) {
             output = new NumLiteralExpr(component);
+        } else if (component instanceof StrToken) {
+            output = new StrLiteralExpr(component);
         } else if (component instanceof WordToken) {
             output = new IdentifierExpr(component);
         } else if (component instanceof ExprSeq) {
@@ -202,7 +204,14 @@ export class ExprParser extends GroupParser {
             if (component === null) {
                 break;
             }
+            const components = this.getComponents(startIndex);
             if (component instanceof OperatorToken) {
+                if (component.text === ".") {
+                    this.index += 1;
+                    const name = this.readIdentifierText();
+                    output = new IdentifierAccessExpr(components, output, name);
+                    continue;
+                }
                 const operator = binaryOperatorMap.get(component.text);
                 if (typeof operator !== "undefined") {
                     if (operator.precedence >= precedence) {
@@ -210,10 +219,13 @@ export class ExprParser extends GroupParser {
                     }
                     this.index += 1;
                     const expr = this.readExpr(operator.precedence);
-                    const components = this.getComponents(startIndex);
                     output = new BinaryExpr(components, operator, output, expr);
                     continue;
                 }
+            } else if (component instanceof ExprSeq) {
+                this.index += 1;
+                output = new ArgsExpr(components, output, component);
+                continue;
             }
             component.throwError("Cannot parse expression.");
         }

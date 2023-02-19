@@ -1,7 +1,7 @@
 
 import { openBracketTextList, closeBracketTextList, separatorTextList, operatorTextList, ExprSeqSelector } from "./constants.js";
 import { CompilerError } from "./error.js";
-import { WordToken, DecNumToken, HexNumToken, CharToken, StringToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
+import { WordToken, DecNumToken, HexNumToken, CharToken, StrToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
 import { BhvrStmtSeq, AttrStmtSeq, EvalExprSeq, CompExprSeq } from "./groupSeq.js";
 import { PreExpr } from "./preExpr.js";
 import { BhvrPreStmt, AttrPreStmt } from "./preStmt.js";
@@ -173,7 +173,7 @@ export class TokenParser {
         return this.parseTokenHelper(isWordChar, WordToken);
     }
     
-    parseStringToken() {
+    parseStrToken() {
         this.advanceIndex();
         const chars = [];
         while (true) {
@@ -191,7 +191,7 @@ export class TokenParser {
             }
             chars.push(String.fromCharCode(charCode));
         }
-        return new StringToken(chars.join(""), this.lineNumber);
+        return new StrToken(chars.join(""), this.lineNumber);
     }
     
     parseCharToken() {
@@ -214,7 +214,7 @@ export class TokenParser {
             return null;
         }
         if (firstChar === 34) {
-            return this.parseStringToken();
+            return this.parseStrToken();
         }
         if (firstChar === 39) {
             return this.parseCharToken();

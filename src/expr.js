@@ -28,6 +28,18 @@ export class NumLiteralExpr extends LiteralExpr {
     }
 }
 
+export class StrLiteralExpr extends LiteralExpr {
+    
+    constructor(strToken) {
+        super(strToken);
+        this.text = strToken.text;
+    }
+    
+    getDisplayStringDetail() {
+        return this.text;
+    }
+}
+
 export class IdentifierExpr extends SingleComponentExpr {
     
     constructor(wordToken) {
@@ -69,11 +81,33 @@ export class BinaryExpr extends OperatorExpr {
     }
 }
 
+export class IdentifierAccessExpr extends Expr {
+    
+    constructor(components, operand, name) {
+        super(components);
+        this.operand = this.addChild(operand);
+        this.name = name;
+    }
+    
+    getDisplayStringDetail() {
+        return this.name;
+    }
+}
+
 export class ExprSeqExpr extends SingleComponentExpr {
     
     constructor(exprSeq) {
         super(exprSeq);
         this.exprSeq = this.addChild(exprSeq);
+    }
+}
+
+export class ArgsExpr extends Expr {
+    
+    constructor(components, operand, argExprSeq) {
+        super(components);
+        this.operand = this.addChild(operand);
+        this.argExprSeq = this.addChild(argExprSeq);
     }
 }
 
