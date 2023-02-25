@@ -1,4 +1,5 @@
 
+import * as compUtils from "./compUtils.js";
 import { CompilerErrorThrower } from "./error.js";
 
 export class Node extends CompilerErrorThrower {
@@ -64,6 +65,10 @@ export class Node extends CompilerErrorThrower {
             textList.push(child.getDisplayString(nextIndentation));
         }
         return textList.join("\n");
+    }
+    
+    resolveCompItems() {
+        return compUtils.resolveCompItems(this.children);
     }
 }
 

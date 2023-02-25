@@ -47,7 +47,7 @@ OstraCode includes the following expression sequence bracket delimeters:
 * `(` and `)` enclose evaltime expressions, and return the items returned by the expressions.
 * `(*` and `)` enclose an evaltime expression, and return an item type whose factor type is the item returned by the expression.
 * `<` and `>` enclose comptime expressions, and return the items returned by the expressions.
-* `<?` and `>` enclose nevertime expression, and return the constraint types of the expressions.
+* `<?` and `>` enclose nevertime expressions, and return the constraint types of the expressions.
 * `<??` and `>` enclose nevertime expressions, and return the initialization types of the expressions.
 * `<*$expr>` is equivalent to `<(*$expr)>`.
 * `<*?$expr>` is equivalent to `<*<?$expr>>`.

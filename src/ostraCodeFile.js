@@ -2,13 +2,15 @@
 import * as fs from "fs";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
+import { Node } from "./node.js";
 import { BhvrStmtSeq } from "./groupSeq.js";
 import { BhvrPreStmt } from "./preStmt.js";
 import { TokenParser, PreGroupParser} from "./parser.js";
 
-export class OstraCodeFile {
+export class OstraCodeFile extends Node {
     
     constructor(srcPath, destPath, platformNames) {
+        super();
         this.srcPath = srcPath;
         this.destPath = destPath;
         // Set of strings.
@@ -25,10 +27,6 @@ export class OstraCodeFile {
         return niceUtils.nameSetsAreEqual(this.platformNames, codeFile.platformNames);
     }
     
-    readContent() {
-        this.content = fs.readFileSync(this.srcPath, "utf8");
-    }
-    
     tryOperation(operation) {
         try {
             operation();
@@ -42,29 +40,24 @@ export class OstraCodeFile {
     
     parseTokens() {
         const parser = new TokenParser(this.content);
-        this.tryOperation(() => {
-            this.tokens = parser.parseTokens();
-        });
+        this.tokens = parser.parseTokens();
+        this.setChildren(this.tokens);
     }
     
     parsePreGroups() {
         const parser = new PreGroupParser(this.tokens);
-        let bhvrPreStmts;
-        this.tryOperation(() => {
-            bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt);
-        });
+        const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt);
         this.bhvrStmtSeq = new BhvrStmtSeq(bhvrPreStmts);
         this.bhvrStmtSeq.lineNumber = 1;
+        this.setChildren([this.bhvrStmtSeq]);
     }
     
-    resolveStmts() {
+    parse() {
+        this.content = fs.readFileSync(this.srcPath, "utf8");
         this.tryOperation(() => {
+            this.parseTokens();
+            this.parsePreGroups();
             this.bhvrStmtSeq.resolveStmts();
-        });
-    }
-    
-    resolveExprsAndVars() {
-        this.tryOperation(() => {
             this.bhvrStmtSeq.resolveExprsAndVars();
         });
     }

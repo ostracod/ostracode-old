@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
+import * as compUtils from "./compUtils.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 
@@ -232,13 +233,10 @@ export class Compiler {
     
     compile() {
         for (const codeFile of this.ostraCodeFiles) {
-            codeFile.readContent();
-            codeFile.parseTokens();
-            codeFile.parsePreGroups();
-            codeFile.resolveStmts();
-            codeFile.resolveExprsAndVars();
-            console.log(codeFile.bhvrStmtSeq.getDisplayString());
+            codeFile.parse();
+            console.log(codeFile.getDisplayString());
         }
+        compUtils.resolveAllCompItems(this.ostraCodeFiles);
     }
 }
 

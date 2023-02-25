@@ -106,6 +106,11 @@ export class CompExprSeq extends ExprSeq {
         super(hasFactorType, exprs);
         this.exprSeqSelector = exprSeqSelector;
     }
+    
+    resolveCompItems() {
+        // TODO: Implement.
+        return { resolvedCount: 0, unresolvedSeqs: [this] };
+    }
 }
 
 
