@@ -61,6 +61,14 @@ export class OstraCodeFile extends Node {
             this.bhvrStmtSeq.resolveExprsAndVars();
         });
     }
+    
+    resolveCompItems() {
+        let output;
+        this.tryOperation(() => {
+            output = super.resolveCompItems();
+        });
+        return output;
+    }
 }
 
 

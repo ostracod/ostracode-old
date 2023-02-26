@@ -1,5 +1,5 @@
 
-import { CompilerError } from "./error.js";
+import { CompilerError, UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { GroupSeq } from "./groupSeq.js";
@@ -89,6 +89,17 @@ export class CompVarStmt extends VarStmt {
     
     readInitItem(parser) {
         return parser.readCompExprSeq(initItemName);
+    }
+    
+    getCompItem() {
+        if (this.initItemExprSeq === null) {
+            this.throwError("Comptime variable has no initialization item.");
+        }
+        const [resolution] = this.initItemExprSeq.itemResolutions;
+        if (!resolution.hasResolved) {
+            throw new UnresolvedItemError();
+        }
+        return resolution.item;
     }
 }
 

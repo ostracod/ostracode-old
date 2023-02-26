@@ -1,8 +1,12 @@
 
+import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 
 export class Expr extends ResolvedGroup {
     
+    evaluate() {
+        this.throwError("Evaluation of this expression type is not yet implemented.");
+    }
 }
 
 export class SingleComponentExpr extends Expr {
@@ -26,6 +30,10 @@ export class NumLiteralExpr extends LiteralExpr {
     getDisplayStringDetail() {
         return this.value;
     }
+    
+    evaluate() {
+        return this.value;
+    }
 }
 
 export class StrLiteralExpr extends LiteralExpr {
@@ -36,6 +44,10 @@ export class StrLiteralExpr extends LiteralExpr {
     }
     
     getDisplayStringDetail() {
+        return this.text;
+    }
+    
+    evaluate() {
         return this.text;
     }
 }
@@ -49,6 +61,23 @@ export class IdentifierExpr extends SingleComponentExpr {
     
     getDisplayStringDetail() {
         return this.name;
+    }
+    
+    evaluate() {
+        const variable = this.getVar(this.name);
+        if (variable === null) {
+            this.throwError(`Cannot find variable with name "${this.name}".`);
+        }
+        let output;
+        try {
+            output = variable.getCompItem();
+        } catch (error) {
+            if (error instanceof CompilerError) {
+                error.lineNumber = this.getLineNumber();
+            }
+            throw error;
+        }
+        return output;
     }
 }
 

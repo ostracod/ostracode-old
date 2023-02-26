@@ -132,7 +132,11 @@ export class StmtParser extends GroupParser {
     }
     
     readExprSeq(errorName = null, mayReachEnd = false) {
-        return this.readChildSeq(ExprSeq, errorName, mayReachEnd);
+        const output = this.readChildSeq(ExprSeq, errorName, mayReachEnd);
+        if (output !== null && output.groups.length !== 1) {
+            output.throwError("Expression sequence must contain exactly one expression.");
+        }
+        return output;
     }
     
     readCompExprSeq(errorName, requireExprSeq = true, mayReachEnd = false) {

@@ -1,4 +1,6 @@
 
+import { UnresolvedItemError } from "./error.js";
+import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
@@ -105,11 +107,50 @@ export class CompExprSeq extends ExprSeq {
     constructor(hasFactorType, exprSeqSelector, exprs) {
         super(hasFactorType, exprs);
         this.exprSeqSelector = exprSeqSelector;
+        this.itemResolutions = [];
+        while (this.itemResolutions.length < this.groups.length) {
+            this.itemResolutions.push({
+                hasResolved: false,
+                item: 0,
+            });
+        }
     }
     
     resolveCompItems() {
-        // TODO: Implement.
-        return { resolvedCount: 0, unresolvedSeqs: [this] };
+        // TODO: Use `exprSeqSelector` and `hasFactorType`.
+        let resolvedCount = 0;
+        const unresolvedExprs = [];
+        for (let index = 0; index < this.groups.length; index++) {
+            const resolution = this.itemResolutions[index];
+            if (resolution.hasResolved) {
+                continue;
+            }
+            const expr = this.groups[index];
+            const result = expr.resolveCompItems();
+            resolvedCount += result.resolvedCount;
+            niceUtils.extendList(unresolvedExprs, result.unresolvedExprs);
+            if (result.unresolvedExprs.length > 0) {
+                continue;
+            }
+            try {
+                resolution.item = expr.evaluate();
+                resolution.hasResolved = true;
+            } catch (error) {
+                if (!(error instanceof UnresolvedItemError)) {
+                    throw error;
+                }
+            }
+        }
+        for (let index = 0; index < this.groups.length; index++) {
+            const resolution = this.itemResolutions[index];
+            if (resolution.hasResolved) {
+                resolvedCount += 1;
+            } else {
+                const expr = this.groups[index];
+                unresolvedExprs.push(expr);
+            }
+        }
+        return { resolvedCount, unresolvedExprs };
     }
 }
 

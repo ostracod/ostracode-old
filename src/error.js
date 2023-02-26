@@ -32,4 +32,8 @@ export class CompilerErrorThrower {
     }
 }
 
+export class UnresolvedItemError extends Error {
+    
+}
+
 
