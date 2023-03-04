@@ -35,6 +35,14 @@ Declares a mutable evaltime variable with name identifier `$name`, constraint ty
 
 Evaluates expression `$expr` to achieve a side-effect.
 
+### Scope Statement:
+
+```
+{$behavior}
+```
+
+Evaluates `$behavior` in a nested scope.
+
 ### If Statement:
 
 ```

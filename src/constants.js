@@ -35,4 +35,11 @@ export const ExprSeqSelector = {
     InitTypes: Symbol("initTypes"),
 };
 
+export const FlowControl = {
+    None: Symbol("none"),
+    Return: Symbol("return"),
+    Break: Symbol("break"),
+    Continue: Symbol("continue"),
+};
+
 

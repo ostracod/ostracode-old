@@ -1,4 +1,5 @@
 
+import { FlowControl } from "./constants.js";
 import { CompilerError, UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { ResolvedGroup } from "./group.js";
@@ -59,7 +60,12 @@ export class Stmt extends ResolvedGroup {
 }
 
 export class BhvrStmt extends Stmt {
+    // Concrete subclasses of BhvrStmt must implement these methods:
+    // evaluate
     
+    evaluate() {
+        this.throwError("Evaluation is not yet supported for this type of statement.");
+    }
 }
 
 export class VarStmt extends BhvrStmt {
@@ -134,6 +140,32 @@ export class ExprStmt extends BhvrStmt {
     isKeywordStmt() {
         return false;
     }
+    
+    evaluate() {
+        this.exprSeq.evaluate();
+        return { flowControl: FlowControl.None };
+    }
+}
+
+export class ScopeStmt extends BhvrStmt {
+    
+    init(parser) {
+        this.stmtSeq = parser.readBhvrStmtSeq();
+    }
+    
+    isKeywordStmt() {
+        return false;
+    }
+    
+    evaluate() {
+        for (const stmt of this.stmtSeq.groups) {
+            const result = stmt.evaluate();
+            if (result.flowControl !== FlowControl.None) {
+                return result;
+            }
+        }
+        return { flowControl: FlowControl.None };
+    }
 }
 
 export class IfStmt extends BhvrStmt {
@@ -189,6 +221,11 @@ export class ReturnStmt extends BhvrStmt {
     
     init(parser) {
         this.exprSeq = parser.readExprSeq("return item", true);
+    }
+    
+    evaluate() {
+        const returnItem = (this.exprSeq === null) ? undefined : this.exprSeq.evaluate()[0];
+        return { flowControl: FlowControl.Return, returnItem };
     }
 }
 

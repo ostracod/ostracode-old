@@ -1,4 +1,6 @@
 
+import { FlowControl } from "./constants.js";
+
 export class Func {
     
     constructor(argStmts, bhvrStmtSeq) {
@@ -7,8 +9,14 @@ export class Func {
     }
     
     evaluate(args) {
-        // TODO: Implement.
-        console.log(args);
+        for (const stmt of this.bhvrStmtSeq.groups) {
+            const result = stmt.evaluate();
+            if (result.flowControl === FlowControl.Return) {
+                return result.returnItem;
+            } else if (result.flowControl !== FlowControl.None) {
+                stmt.throwError("Invalid flow control statement in function.");
+            }
+        }
     }
 }
 

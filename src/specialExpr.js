@@ -64,9 +64,7 @@ export class FuncExpr extends SpecialExpr {
         const argsStmt = this.getAttrStmt(ArgsStmt);
         const argStmts = (argsStmt === null) ? [] : argsStmt.getChildStmts();
         const func = new Func(argStmts, this.bhvrStmtSeq);
-        return (...args) => {
-            func.evaluate(args);
-        };
+        return (...args) => func.evaluate(args);
     }
 }
 

@@ -79,6 +79,8 @@ export class AttrStmtSeq extends StmtSeq {
 
 // ExprSeq = Expression sequence
 export class ExprSeq extends GroupSeq {
+    // Concrete subclasses of ExprSeq must implement these methods:
+    // evaluate
     
     constructor(hasFactorType, exprs) {
         super(exprs);
@@ -154,6 +156,13 @@ export class CompExprSeq extends ExprSeq {
             }
         }
         return { resolvedCount, unresolvedExprs };
+    }
+    
+    evaluate() {
+        if (this.itemResolutions.some((resolution) => !resolution.hasResolved)) {
+            throw new UnresolvedItemError();
+        }
+        return this.itemResolutions.map((resolution) => resolution.item);
     }
 }
 

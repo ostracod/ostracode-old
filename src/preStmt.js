@@ -1,8 +1,8 @@
 
 import { WordToken } from "./token.js";
 import { PreGroup } from "./group.js";
-import { ExprSeq } from "./groupSeq.js";
-import { Stmt, ExprStmt, bhvrStmtConstructors, attrStmtConstructors } from "./stmt.js";
+import { ExprSeq, BhvrStmtSeq } from "./groupSeq.js";
+import { Stmt, ExprStmt, ScopeStmt, bhvrStmtConstructors, attrStmtConstructors } from "./stmt.js";
 
 // PreStmt = Pre-statement
 // A pre-statement is a statement which has not yet been resolved to a specific type.
@@ -32,8 +32,14 @@ export class BhvrPreStmt extends PreStmt {
     }
     
     resolve() {
-        if (this.components.length === 1 && this.components[0] instanceof ExprSeq) {
-            return new ExprStmt(this.components);
+        if (this.components.length === 1) {
+            const [component] = this.components;
+            if (component instanceof ExprSeq) {
+                return new ExprStmt(this.components);
+            }
+            if (component instanceof BhvrStmtSeq) {
+                return new ScopeStmt(this.components);
+            }
         }
         return super.resolve();
     }
