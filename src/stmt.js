@@ -4,7 +4,7 @@ import * as niceUtils from "./niceUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { GroupSeq } from "./groupSeq.js";
 import { StmtParser } from "./groupParser.js";
-import { Var } from "./var.js";
+import { CompVar, EvalVar } from "./var.js";
 
 const initItemName = "initialization item";
 
@@ -63,6 +63,8 @@ export class BhvrStmt extends Stmt {
 }
 
 export class VarStmt extends BhvrStmt {
+    // Concrete subclasses of VarStmt must implement these methods:
+    // getVarConstructor
     
     readInitItem(parser) {
         return parser.readExprSeq(initItemName);
@@ -81,7 +83,8 @@ export class VarStmt extends BhvrStmt {
     }
     
     createParentVars() {
-        return [new Var(this.name, this)];
+        const varConstructor = this.getVarConstructor();
+        return [new varConstructor(this.name, this)];
     }
 }
 
@@ -89,6 +92,10 @@ export class CompVarStmt extends VarStmt {
     
     readInitItem(parser) {
         return parser.readCompExprSeq(initItemName);
+    }
+    
+    getVarConstructor() {
+        return CompVar;
     }
     
     getCompItem() {
@@ -103,11 +110,18 @@ export class CompVarStmt extends VarStmt {
     }
 }
 
-export class ImmutEvalVarStmt extends VarStmt {
+export class EvalVarStmt extends VarStmt {
+    
+    getVarConstructor() {
+        return EvalVar;
+    }
+}
+
+export class ImmutEvalVarStmt extends EvalVarStmt {
     
 }
 
-export class MutEvalVarStmt extends VarStmt {
+export class MutEvalVarStmt extends EvalVarStmt {
     
 }
 

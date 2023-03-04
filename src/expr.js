@@ -70,7 +70,7 @@ export class IdentifierExpr extends SingleComponentExpr {
         }
         let output;
         try {
-            output = variable.getCompItem();
+            output = variable.getItem();
         } catch (error) {
             if (error instanceof CompilerError) {
                 error.lineNumber = this.getLineNumber();
