@@ -49,6 +49,10 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
+    getVars() {
+        return Array.from(this.varMap.values());
+    }
+    
     getDisplayStringDetail() {
         return null;
     }

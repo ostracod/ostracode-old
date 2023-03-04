@@ -17,11 +17,11 @@ export class SpecialExpr extends Expr {
     resolveVars() {
         const argsStmt = this.getAttrStmt(ArgsStmt);
         if (argsStmt !== null) {
-            this.addVars(argsStmt.createVars());
+            this.addVars(argsStmt.getChildVars());
         }
         const typeArgsStmt = this.getAttrStmt(TypeArgsStmt);
         if (typeArgsStmt !== null) {
-            this.addVars(typeArgsStmt.createVars());
+            this.addVars(typeArgsStmt.getChildVars());
         }
     }
     
@@ -60,10 +60,10 @@ export class FuncExpr extends SpecialExpr {
         this.bhvrStmtSeq = parser.readBhvrStmtSeq();
     }
     
-    evaluate() {
+    evaluate(context) {
         const argsStmt = this.getAttrStmt(ArgsStmt);
-        const argStmts = (argsStmt === null) ? [] : argsStmt.getChildStmts();
-        const func = new Func(argStmts, this.bhvrStmtSeq);
+        const argVars = (argsStmt === null) ? [] : argsStmt.getChildVars();
+        const func = new Func(argVars, this.bhvrStmtSeq, context);
         return (...args) => func.evaluate(args);
     }
 }

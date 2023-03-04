@@ -54,7 +54,7 @@ export class Stmt extends ResolvedGroup {
         }
     }
     
-    createParentVars() {
+    getParentVars() {
         return [];
     }
 }
@@ -63,7 +63,7 @@ export class BhvrStmt extends Stmt {
     // Concrete subclasses of BhvrStmt must implement these methods:
     // evaluate
     
-    evaluate() {
+    evaluate(context) {
         this.throwError("Evaluation is not yet supported for this type of statement.");
     }
 }
@@ -78,6 +78,8 @@ export class VarStmt extends BhvrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
+        const varConstructor = this.getVarConstructor();
+        this.variable = new varConstructor(this.name, this);
         this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
         this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
@@ -88,9 +90,8 @@ export class VarStmt extends BhvrStmt {
         }
     }
     
-    createParentVars() {
-        const varConstructor = this.getVarConstructor();
-        return [new varConstructor(this.name, this)];
+    getParentVars() {
+        return [this.variable];
     }
 }
 
@@ -141,8 +142,8 @@ export class ExprStmt extends BhvrStmt {
         return false;
     }
     
-    evaluate() {
-        this.exprSeq.evaluate();
+    evaluate(context) {
+        this.exprSeq.evaluate(context);
         return { flowControl: FlowControl.None };
     }
 }
@@ -157,14 +158,8 @@ export class ScopeStmt extends BhvrStmt {
         return false;
     }
     
-    evaluate() {
-        for (const stmt of this.stmtSeq.groups) {
-            const result = stmt.evaluate();
-            if (result.flowControl !== FlowControl.None) {
-                return result;
-            }
-        }
-        return { flowControl: FlowControl.None };
+    evaluate(context) {
+        return this.stmtSeq.evaluate(context);
     }
 }
 
@@ -199,13 +194,14 @@ export class ForStmt extends BhvrStmt {
     
     init(parser) {
         this.varName = parser.readIdentifierText();
+        this.variable = new EvalVar(this.varName, this);
         parser.readKeyword(["in"]);
         this.iterableExprSeq = parser.readExprSeq("iterable");
         this.stmtSeq = parser.readBhvrStmtSeq();
     }
     
     resolveVars() {
-        this.stmtSeq.addVar(new EvalVar(this.varName, this));
+        this.stmtSeq.addVar(this.variable);
     }
 }
 
@@ -223,9 +219,14 @@ export class ReturnStmt extends BhvrStmt {
         this.exprSeq = parser.readExprSeq("return item", true);
     }
     
-    evaluate() {
-        const returnItem = (this.exprSeq === null) ? undefined : this.exprSeq.evaluate()[0];
-        return { flowControl: FlowControl.Return, returnItem };
+    evaluate(context) {
+        let returnItem;
+        if (this.exprSeq === null) {
+            returnItem = undefined;
+        } else {
+            returnItem = this.exprSeq.evaluate(context)[0];
+        }
+        return { flowControl: FlowControl.Return, returnItem, stmt: this };
     }
 }
 
@@ -236,9 +237,11 @@ export class TryStmt extends BhvrStmt {
         const catchKeyword = parser.readKeyword(["catch"], ["finally"], true);
         if (catchKeyword === null) {
             this.varName = null;
+            this.variable = null;
             this.catchStmtSeq = null;
         } else {
             this.varName = parser.readIdentifierText();
+            this.variable = new EvalVar(this.varName, this);
             this.catchStmtSeq = parser.readBhvrStmtSeq();
         }
         const finallyKeyword = parser.readKeyword(["finally"], [], true);
@@ -253,8 +256,8 @@ export class TryStmt extends BhvrStmt {
     }
     
     resolveVars() {
-        if (this.varName !== null && this.catchStmtSeq !== null) {
-            this.catchStmtSeq.addVar(new EvalVar(this.varName, this));
+        if (this.variable !== null && this.catchStmtSeq !== null) {
+            this.catchStmtSeq.addVar(this.variable);
         }
     }
 }
@@ -275,15 +278,15 @@ export class ImportStmt extends BhvrStmt {
         this.exprSeq = parser.readCompExprSeq(this.getExprErrorName());
     }
     
-    createParentVars() {
+    getParentVars() {
         const output = [];
         const asStmt = this.getAttrStmt(AsStmt);
         if (asStmt !== null) {
-            output.push(asStmt.createVar());
+            output.push(asStmt.variable);
         }
         const membersStmt = this.getAttrStmt(MembersStmt);
         if (membersStmt !== null) {
-            niceUtils.extendList(output, membersStmt.createVars());
+            niceUtils.extendList(output, membersStmt.getChildVars());
         }
         return output;
     }
@@ -363,8 +366,8 @@ export class ParentAttrStmt extends AttrStmt {
         return (this.attrStmtSeq === null) ? [] : this.attrStmtSeq.groups;
     }
     
-    createVars() {
-        return this.getChildStmts().map((stmt) => stmt.createVar());
+    getChildVars() {
+        return this.getChildStmts().map((stmt) => stmt.variable);
     }
 }
 
@@ -397,6 +400,7 @@ export class ArgStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
+        this.variable = new EvalVar(this.name, this);
         this.typeExprSeq = parser.readExprSeq();
         this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
@@ -405,10 +409,6 @@ export class ArgStmt extends ChildAttrStmt {
             parser.readEqualSign();
             this.defaultItemExprSeq = parser.readExprSeq("default item");
         }
-    }
-    
-    createVar() {
-        return new EvalVar(this.name, this);
     }
 }
 
@@ -561,10 +561,7 @@ export class AsStmt extends AttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-    }
-    
-    createVar() {
-        return new EvalVar(this.name, this);
+        this.variable = new EvalVar(this.name, this);
     }
 }
 
@@ -579,6 +576,7 @@ export class MemberStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
+        this.variable = new EvalVar(this.aliasName, this);
         this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
         if (parser.hasReachedEnd()) {
             this.aliasName = this.name;
@@ -586,10 +584,6 @@ export class MemberStmt extends ChildAttrStmt {
             parser.readKeyword(["as"]);
             this.aliasName = parser.readIdentifierText();
         }
-    }
-    
-    createVar() {
-        return new EvalVar(this.aliasName, this);
     }
 }
 

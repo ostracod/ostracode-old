@@ -3,8 +3,10 @@ import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 
 export class Expr extends ResolvedGroup {
+    // Concrete subclasses of Expr must implement these methods:
+    // evaluate
     
-    evaluate() {
+    evaluate(context) {
         this.throwError("Evaluation of this expression type is not yet implemented.");
     }
 }
@@ -31,7 +33,7 @@ export class NumLiteralExpr extends LiteralExpr {
         return this.value;
     }
     
-    evaluate() {
+    evaluate(context) {
         return this.value;
     }
 }
@@ -47,7 +49,7 @@ export class StrLiteralExpr extends LiteralExpr {
         return this.text;
     }
     
-    evaluate() {
+    evaluate(context) {
         return this.text;
     }
 }
@@ -63,14 +65,14 @@ export class IdentifierExpr extends SingleComponentExpr {
         return this.name;
     }
     
-    evaluate() {
+    evaluate(context) {
         const variable = this.getVar(this.name);
         if (variable === null) {
             this.throwError(`Cannot find variable with name "${this.name}".`);
         }
         let output;
         try {
-            output = variable.getItem();
+            output = context.getItem(variable);
         } catch (error) {
             if (error instanceof CompilerError) {
                 error.lineNumber = this.getLineNumber();
@@ -139,9 +141,9 @@ export class ArgsExpr extends Expr {
         this.argExprSeq = this.addChild(argExprSeq);
     }
     
-    evaluate() {
-        const func = this.operand.evaluate();
-        const args = this.argExprSeq.evaluate();
+    evaluate(context) {
+        const func = this.operand.evaluate(context);
+        const args = this.argExprSeq.evaluate(context);
         return func(...args);
     }
 }

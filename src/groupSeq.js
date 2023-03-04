@@ -1,9 +1,11 @@
 
+import { FlowControl } from "./constants.js";
 import { UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
+import { EvalContext } from "./evalContext.js";
 
 export class GroupSeq extends Node {
     
@@ -58,8 +60,19 @@ export class BhvrStmtSeq extends StmtSeq {
     
     resolveVars() {
         for (const stmt of this.groups) {
-            this.addVars(stmt.createParentVars());
+            this.addVars(stmt.getParentVars());
         }
+    }
+    
+    evaluate(parentContext) {
+        const context = new EvalContext(this.getVars(), parentContext);
+        for (const stmt of this.groups) {
+            const result = stmt.evaluate(context);
+            if (result.flowControl !== FlowControl.None) {
+                return result;
+            }
+        }
+        return { flowControl: FlowControl.None };
     }
 }
 
@@ -100,8 +113,8 @@ export class ExprSeq extends GroupSeq {
 // Represents `(...)`, and `(*...)`
 export class EvalExprSeq extends ExprSeq {
     
-    evaluate() {
-        return this.groups.map((group) => group.evaluate());
+    evaluate(context) {
+        return this.groups.map((group) => group.evaluate(context));
     }
 }
 
@@ -137,8 +150,9 @@ export class CompExprSeq extends ExprSeq {
             if (result.unresolvedExprs.length > 0) {
                 continue;
             }
+            const context = new EvalContext();
             try {
-                resolution.item = expr.evaluate();
+                resolution.item = expr.evaluate(context);
                 resolution.hasResolved = true;
             } catch (error) {
                 if (!(error instanceof UnresolvedItemError)) {
@@ -158,7 +172,7 @@ export class CompExprSeq extends ExprSeq {
         return { resolvedCount, unresolvedExprs };
     }
     
-    evaluate() {
+    evaluate(context) {
         if (this.itemResolutions.some((resolution) => !resolution.hasResolved)) {
             throw new UnresolvedItemError();
         }
