@@ -3,7 +3,7 @@ import { AttrStmtSeq } from "./groupSeq.js";
 import { ArgsStmt, TypeArgsStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
-import { Func } from "./func.js";
+import { CustomFunc } from "./func.js";
 
 export class SpecialExpr extends Expr {
     
@@ -63,8 +63,7 @@ export class FuncExpr extends SpecialExpr {
     evaluate(context) {
         const argsStmt = this.getAttrStmt(ArgsStmt);
         const argVars = (argsStmt === null) ? [] : argsStmt.getChildVars();
-        const func = new Func(argVars, this.bhvrStmtSeq, context);
-        return (...args) => func.evaluate(args);
+        return new CustomFunc(argVars, this.bhvrStmtSeq, context);
     }
 }
 

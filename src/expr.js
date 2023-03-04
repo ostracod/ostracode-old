@@ -1,6 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
+import { builtInItems } from "./builtIn.js";
 
 export class Expr extends ResolvedGroup {
     // Concrete subclasses of Expr must implement these methods:
@@ -68,7 +69,11 @@ export class IdentifierExpr extends SingleComponentExpr {
     evaluate(context) {
         const variable = this.getVar(this.name);
         if (variable === null) {
-            this.throwError(`Cannot find variable with name "${this.name}".`);
+            const item = builtInItems[this.name];
+            if (typeof item === "undefined") {
+                this.throwError(`Cannot find variable with name "${this.name}".`);
+            }
+            return item;
         }
         let output;
         try {
@@ -144,7 +149,7 @@ export class ArgsExpr extends Expr {
     evaluate(context) {
         const func = this.operand.evaluate(context);
         const args = this.argExprSeq.evaluate(context);
-        return func(...args);
+        return func.evaluate(args);
     }
 }
 

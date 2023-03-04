@@ -3,8 +3,18 @@ import { FlowControl } from "./constants.js";
 import { EvalContext } from "./evalContext.js";
 
 export class Func {
+    // Concrete subclasses of Func must implement these methods:
+    // evaluate
+}
+
+export class BuiltInFunc extends Func {
+    
+}
+
+export class CustomFunc extends Func {
     
     constructor(argVars, bhvrStmtSeq, parentContext) {
+        super();
         this.argVars = argVars;
         this.bhvrStmtSeq = bhvrStmtSeq;
         // TODO: Use `parentContext` to create a closure.
