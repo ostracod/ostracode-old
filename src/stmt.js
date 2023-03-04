@@ -173,7 +173,7 @@ export class ForStmt extends BhvrStmt {
     }
     
     resolveVars() {
-        this.stmtSeq.addVar(new Var(this.varName, this));
+        this.stmtSeq.addVar(new EvalVar(this.varName, this));
     }
 }
 
@@ -217,7 +217,7 @@ export class TryStmt extends BhvrStmt {
     
     resolveVars() {
         if (this.varName !== null && this.catchStmtSeq !== null) {
-            this.catchStmtSeq.addVar(new Var(this.varName, this));
+            this.catchStmtSeq.addVar(new EvalVar(this.varName, this));
         }
     }
 }
@@ -371,7 +371,7 @@ export class ArgStmt extends ChildAttrStmt {
     }
     
     createVar() {
-        return new Var(this.name, this);
+        return new EvalVar(this.name, this);
     }
 }
 
@@ -527,7 +527,7 @@ export class AsStmt extends AttrStmt {
     }
     
     createVar() {
-        return new Var(this.name, this);
+        return new EvalVar(this.name, this);
     }
 }
 
@@ -552,7 +552,7 @@ export class MemberStmt extends ChildAttrStmt {
     }
     
     createVar() {
-        return new Var(this.aliasName, this);
+        return new EvalVar(this.aliasName, this);
     }
 }
 

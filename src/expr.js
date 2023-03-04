@@ -138,6 +138,12 @@ export class ArgsExpr extends Expr {
         this.operand = this.addChild(operand);
         this.argExprSeq = this.addChild(argExprSeq);
     }
+    
+    evaluate() {
+        const func = this.operand.evaluate();
+        const args = this.argExprSeq.evaluate();
+        return func(...args);
+    }
 }
 
 

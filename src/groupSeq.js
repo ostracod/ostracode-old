@@ -98,6 +98,9 @@ export class ExprSeq extends GroupSeq {
 // Represents `(...)`, and `(*...)`
 export class EvalExprSeq extends ExprSeq {
     
+    evaluate() {
+        return this.groups.map((group) => group.evaluate());
+    }
 }
 
 // CompExprSeq = Comptime expression sequence
