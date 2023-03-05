@@ -1,4 +1,5 @@
 
+import { ItemType, TypeType, ValueType, MissingType, UndefType, NullType, BoolType, NumType, StrType } from "./itemType.js";
 import { BuiltInFunc } from "./func.js";
 
 class PrintFunc {
@@ -14,6 +15,15 @@ export const builtInItems = {
     null: null,
     true: true,
     false: false,
+    itemT: new ItemType(),
+    typeT: new TypeType(),
+    valueT: new ValueType(),
+    missingT: new MissingType(),
+    undefT: new UndefType(),
+    nullT: new NullType(),
+    boolT: new BoolType(),
+    numT: new NumType(),
+    strT: new StrType(),
     print: new PrintFunc(),
 };
 

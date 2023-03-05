@@ -26,6 +26,7 @@ export class CustomFunc extends Func {
         for (let index = 0; index < args.length; index++) {
             const item = args[index];
             const variable = this.argVars[index];
+            // TODO: Populate default arg items.
             context.setItem(variable, item);
         }
         const result = this.bhvrStmtSeq.evaluate(context);

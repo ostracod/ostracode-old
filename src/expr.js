@@ -1,11 +1,16 @@
 
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
+import { NumType, StrType } from "./itemType.js";
 import { builtInItems } from "./builtIn.js";
 
 export class Expr extends ResolvedGroup {
     // Concrete subclasses of Expr must implement these methods:
-    // evaluate
+    // getConstraintType, evaluate
+    
+    getConstraintType() {
+        this.throwError("getConstraintType is not yet implemented for this expression type.");
+    }
     
     evaluate(context) {
         this.throwError("Evaluation of this expression type is not yet implemented.");
@@ -34,6 +39,10 @@ export class NumLiteralExpr extends LiteralExpr {
         return this.value;
     }
     
+    getConstraintType() {
+        return new NumType();
+    }
+    
     evaluate(context) {
         return this.value;
     }
@@ -48,6 +57,10 @@ export class StrLiteralExpr extends LiteralExpr {
     
     getDisplayStringDetail() {
         return this.text;
+    }
+    
+    getConstraintType() {
+        return new StrType();
     }
     
     evaluate(context) {

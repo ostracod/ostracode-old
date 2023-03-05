@@ -1,6 +1,6 @@
 
-import { FlowControl } from "./constants.js";
-import { UnresolvedItemError } from "./error.js";
+import { ExprSeqSelector, FlowControl } from "./constants.js";
+import { CompilerError, UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
@@ -66,6 +66,7 @@ export class BhvrStmtSeq extends StmtSeq {
     
     evaluate(parentContext) {
         const context = new EvalContext(this.getVars(), parentContext);
+        // TODO: Populate default var items.
         for (const stmt of this.groups) {
             const result = stmt.evaluate(context);
             if (result.flowControl !== FlowControl.None) {
@@ -134,8 +135,22 @@ export class CompExprSeq extends ExprSeq {
         }
     }
     
+    resolveCompItem(expr) {
+        if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
+            const context = new EvalContext();
+            return expr.evaluate(context);
+        }
+        if (this.exprSeqSelector === ExprSeqSelector.ConstraintTypes) {
+            return expr.getConstraintType();
+        }
+        if (this.exprSeqSelector === ExprSeqSelector.InitTypes) {
+            throw new CompilerError("Retrieving initialization type is not yet supported.");
+        }
+        throw new Error("Unexpected expression sequence selector.");
+    }
+    
     resolveCompItems() {
-        // TODO: Use `exprSeqSelector` and `hasFactorType`.
+        // TODO: Use `hasFactorType`.
         let resolvedCount = 0;
         const unresolvedExprs = [];
         for (let index = 0; index < this.groups.length; index++) {
@@ -150,9 +165,8 @@ export class CompExprSeq extends ExprSeq {
             if (result.unresolvedExprs.length > 0) {
                 continue;
             }
-            const context = new EvalContext();
             try {
-                resolution.item = expr.evaluate(context);
+                resolution.item = this.resolveCompItem(expr);
                 resolution.hasResolved = true;
             } catch (error) {
                 if (!(error instanceof UnresolvedItemError)) {
