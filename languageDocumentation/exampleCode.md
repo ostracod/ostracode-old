@@ -77,11 +77,11 @@ comp myDictType = <createDictType("isCool")>
 
 // Does not throw a compile-time error, because the type
 // of `myDict1` conforms to `myDictType`.
-const myDict1 <myDictType> = (dict [fields [isCool = true]])
+const myDict1 <myDictType> = (dict [fields [isCool = (true)]])
 
 // Throws a compile-time error, because the `isCool` field
 // in `myDict2` stores the wrong type of item.
-const myDict2 <myDictType> = (dict [fields [isCool = 123]])
+const myDict2 <myDictType> = (dict [fields [isCool = (123)]])
 ```
 
 The example below demonstrates the difference between constraint type and initialization type:
@@ -140,15 +140,15 @@ comp sevenT = <??7>
 
 // Does not throw a compile-time error, because the constraint
 // type of `50` is `numT`.
-const myNumber <sevenConstraintT> = 50
+const myNumber <sevenConstraintT> = (50)
 // Does not throw a compile-time error. The initialization
 // type of `7` is equal to `sevenT`, so `7` is implicitly
 // cast to `sevenT`.
-const myNumber <sevenT> = 7
+const myNumber <sevenT> = (7)
 // Throws a compile-time error. The initialization type of
 // `50` is not equal to `sevenT`, so `50` cannot be
 // implicitly cast to `sevenT`.
-const myNumber <sevenT> = 50
+const myNumber <sevenT> = (50)
 ```
 
 The example below demonstrates usage of the `nominalT` special:
@@ -161,7 +161,7 @@ comp myNumT = <nominalT (numT)>
 // Throws an error, because the constraint type of 123 is `numT`.
 const myNum1 <myNumT> = (123)
 // Does not throw a compile-time error.
-const myNum2 <myNumT> = (123::<myNumT>)
+const myNum2 <myNumT> = (123:<myNumT>)
 ```
 
 The example below demonstrates type checking at runtime:

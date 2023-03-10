@@ -289,7 +289,7 @@ The `thisFactor` statement determines the type of `this` when referenced in a me
 ```
 const Count = (feature [
     fields [
-        count <numT> [public, vis <2>] = 0
+        count <numT> [public, vis <2>] = (0)
     ]
 ])
 
@@ -337,7 +337,11 @@ const GreetWorld = (feature [
 
 // Throws a compile-time error, because `CreateGreeting` must be
 // included in the same object as `GreetWorld`.
-const counter = (obj (GreetWorld))
+const badGreeter = (obj (GreetWorld))
+// Does not throw a compile-time error.
+const goodGreeter = (obj (bundle [
+    factors[(CreateGreeting), (GreetWorld)]
+]))
 ```
 
 When referenced in a method, the type of `self` is determined by the feature in which the method is defined. Unlike `this`, the type of `self` cannot be changed with an attribute statement. `self` is used to access members of the parent feature. The example below demonstrates usage of `self`:
@@ -345,14 +349,14 @@ When referenced in a method, the type of `self` is determined by the feature in 
 ```
 const IsActive = (feature [
     fields [
-        isActive <boolT> [public] = false
+        isActive <boolT> [public] = (false)
     ]
 ])
 
 const Toggle = (feature [
     thisFactor <?IsActive>
     fields [
-        toggleCount <numT> [public] = 0
+        toggleCount <numT> [public] = (0)
     ]
     methods [
         toggle [public] {
