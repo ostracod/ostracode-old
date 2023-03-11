@@ -111,6 +111,37 @@ const myCargo <*?CargoSize> = (obj (CargoSize))
 const myShirt <*?ShirtSize> = (obj (CargoSize))
 ```
 
+In order to access members of a feature, the feature must have a "discerned" type. The output of the `feature` special always has a discerned type, but the output of the `featureT` special is not a discerned type. The `discern` special helps in the case when a feature does not have a discerned type. The `discern` special accepts a feature, and returns the same feature with a discerned type. The example below demonstrates usage of the `discern` special:
+
+```
+// The output of `createCoinFeature` has a constraint type
+// which is not discerned.
+const createCoinFeature = (func [
+    args [probability <numT>]
+    returns <featureT [methods [
+        flip [returns (boolT)]
+    ]]>
+] {
+    return (feature [methods [
+        flip [returns <boolT>] {
+            return (mathUtils.random() < probability)
+        }
+    ]])
+})
+
+// `AmbiguousCoin` does not have a discerned type.
+const AmbiguousCoin = (createCoinFeature(0.7))
+// `DiscernedCoin` has a discerned type.
+const DiscernedCoin = (discern (AmbiguousCoin))
+const coin1 = (obj (AmbiguousCoin))
+const coin2 = (obj (DiscernedCoin))
+// Throws a compile-time error, because the feature of `coin1`
+// does not have a discerned type.
+(print(coin1.flip()))
+// Does not throw a compile-time error.
+(print(coin2.flip()))
+```
+
 ## Bundles and Factors
 
 A "bundle" is a data structure which can group several features together. When an object includes a bundle, the members of all features in the bundle belong to the object. Members may be selected from individual features by casting the object to a type. The example below declares a bundle and creates an object which includes the bundle:

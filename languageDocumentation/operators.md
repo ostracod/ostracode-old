@@ -49,7 +49,7 @@ Supose that `$bool1` and `$bool2` are expressions with constraint type `boolT`. 
 
 OstraCode has the following member access operators:
 
-* `$item.$identifier` = Member of feature in `$item` with name `$identifier`
+* `$item.$identifier` = Member of discerned feature in `$item` with name `$identifier`
     * `$item` is an expression with constraint type `itemT`
     * `$identifier` is an identifier
 * `$module.$identifier` = Member of `$module` with name `$identifier`
@@ -160,13 +160,13 @@ Creates an interface type whose fields and methods are described by `$attrs`.
 feature [$attrs]
 ```
 
-Creates a feature value whose fields and methods are described by `$attrs`.
+Creates a feature value whose fields and methods are described by `$attrs`. The output feature has a discerned type.
 
 ```
 featureT [$attrs]
 ```
 
-Creates a feature type whose field types and method signatures are described by `$attrs`.
+Creates a feature type whose field types and method signatures are described by `$attrs`. The output type is not discerned.
 
 ### Bundle Specials:
 
@@ -204,4 +204,10 @@ nominalT ($type)
 
 Creates a subtype of type `$type`. The subtype defines the same data structure as `$type`, but is distinguished through the nominal type system.
 
+### Discern Special:
 
+```
+discern ($feature)
+```
+
+Accepts feature value `$feature`, and returns the same feature with a discerned type.

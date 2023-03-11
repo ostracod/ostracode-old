@@ -67,40 +67,22 @@ export class FuncExpr extends SpecialExpr {
     }
 }
 
-export class FuncTypeExpr extends SpecialExpr {
-    
-    init(parser) {
-        this.attrStmtSeq = parser.readAttrStmtSeq();
-    }
-}
-
-export class AwaitExpr extends SpecialExpr {
+export class ExprSpecialExpr extends SpecialExpr {
     
     init(parser) {
         this.exprSeq = parser.readExprSeq();
     }
 }
 
-export class ObjExpr extends SpecialExpr {
-    
-    init(parser) {
-        this.exprSeq = parser.readExprSeq();
-    }
-}
+export class AwaitExpr extends ExprSpecialExpr {}
 
-export class ObjTypeExpr extends SpecialExpr {
-    
-    init(parser) {
-        this.exprSeq = parser.readExprSeq();
-    }
-}
+export class ObjExpr extends ExprSpecialExpr {}
 
-export class NominalTypeExpr extends SpecialExpr {
-    
-    init(parser) {
-        this.exprSeq = parser.readExprSeq();
-    }
-}
+export class ObjTypeExpr extends ExprSpecialExpr {}
+
+export class NominalTypeExpr extends ExprSpecialExpr {}
+
+export class DiscernExpr extends ExprSpecialExpr {}
 
 export class AttrsSpecialExpr extends SpecialExpr {
     
@@ -112,6 +94,8 @@ export class AttrsSpecialExpr extends SpecialExpr {
 export class DictExpr extends AttrsSpecialExpr {}
 
 export class DictTypeExpr extends AttrsSpecialExpr {}
+
+export class FuncTypeExpr extends AttrsSpecialExpr {}
 
 export class MethodTypeExpr extends AttrsSpecialExpr {}
 
@@ -142,6 +126,7 @@ export const specialConstructorMap = {
     obj: ObjExpr,
     objT: ObjTypeExpr,
     nominalT: NominalTypeExpr,
+    discern: DiscernExpr,
 };
 
 
