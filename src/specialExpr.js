@@ -1,9 +1,11 @@
 
 import { AttrStmtSeq } from "./groupSeq.js";
-import { ArgsStmt, TypeArgsStmt } from "./stmt.js";
+import { ArgsStmt, TypeArgsStmt, FieldsStmt, MethodsStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc } from "./func.js";
+import { Feature } from "./factor.js";
+import { Obj } from "./obj.js";
 
 export class SpecialExpr extends Expr {
     
@@ -15,14 +17,10 @@ export class SpecialExpr extends Expr {
     }
     
     resolveVars() {
-        const argsStmt = this.getAttrStmt(ArgsStmt);
-        if (argsStmt !== null) {
-            this.addVars(argsStmt.getChildVars());
-        }
-        const typeArgsStmt = this.getAttrStmt(TypeArgsStmt);
-        if (typeArgsStmt !== null) {
-            this.addVars(typeArgsStmt.getChildVars());
-        }
+        const argVars = this.getAttrStmtVars(ArgsStmt);
+        this.addVars(argVars);
+        const typeArgVars = this.getAttrStmtVars(TypeArgsStmt);
+        this.addVars(typeArgVars);
     }
     
     getAttrStmt(attrStmtClass) {
@@ -34,6 +32,16 @@ export class SpecialExpr extends Expr {
             }
         }
         return (attrStmtSeq === null) ? null : attrStmtSeq.getAttrStmt(attrStmtClass);
+    }
+    
+    getAttrStmtChildren(attrStmtClass) {
+        const stmt = this.getAttrStmt(attrStmtClass);
+        return (stmt === null) ? [] : stmt.getChildStmts();
+    }
+    
+    getAttrStmtVars(attrStmtClass) {
+        const stmt = this.getAttrStmt(attrStmtClass);
+        return (stmt === null) ? [] : stmt.getChildVars();
     }
 }
 
@@ -61,8 +69,7 @@ export class FuncExpr extends SpecialExpr {
     }
     
     evaluate(context) {
-        const argsStmt = this.getAttrStmt(ArgsStmt);
-        const argVars = (argsStmt === null) ? [] : argsStmt.getChildVars();
+        const argVars = this.getAttrStmtVars(ArgsStmt);
         return new CustomFunc(argVars, this.bhvrStmtSeq, context);
     }
 }
@@ -70,13 +77,19 @@ export class FuncExpr extends SpecialExpr {
 export class ExprSpecialExpr extends SpecialExpr {
     
     init(parser) {
-        this.exprSeq = parser.readExprSeq();
+        this.exprSeq = parser.readExprSeq(true);
     }
 }
 
 export class AwaitExpr extends ExprSpecialExpr {}
 
-export class ObjExpr extends ExprSpecialExpr {}
+export class ObjExpr extends ExprSpecialExpr {
+    
+    evaluate(context) {
+        const feature = this.exprSeq.groups[0].evaluate(context);
+        return new Obj(feature);
+    }
+}
 
 export class ObjTypeExpr extends ExprSpecialExpr {}
 
@@ -101,7 +114,14 @@ export class MethodTypeExpr extends AttrsSpecialExpr {}
 
 export class InterfaceTypeExpr extends AttrsSpecialExpr {}
 
-export class FeatureExpr extends AttrsSpecialExpr {}
+export class FeatureExpr extends AttrsSpecialExpr {
+    
+    evaluate(context) {
+        const fieldStmts = this.getAttrStmtChildren(FieldsStmt);
+        const methodStmts = this.getAttrStmtChildren(MethodsStmt);
+        return new Feature(fieldStmts, methodStmts, context);
+    }
+}
 
 export class FeatureTypeExpr extends AttrsSpecialExpr {}
 
