@@ -115,12 +115,24 @@ export class CompVarStmt extends VarStmt {
         }
         return resolution.item;
     }
+    
+    evaluate(context) {
+        return { flowControl: FlowControl.None };
+    }
 }
 
 export class EvalVarStmt extends VarStmt {
     
     getVarConstructor() {
         return EvalVar;
+    }
+    
+    evaluate(context) {
+        if (this.initItemExprSeq !== null) {
+            const varItem = context.getVarItem(this.variable);
+            varItem.item = this.initItemExprSeq.evaluate(context)[0];
+        }
+        return { flowControl: FlowControl.None };
     }
 }
 

@@ -66,7 +66,6 @@ export class BhvrStmtSeq extends StmtSeq {
     
     evaluate(parentContext) {
         const context = new EvalContext(this.getVars(), parentContext);
-        // TODO: Populate default var items.
         for (const stmt of this.groups) {
             const result = stmt.evaluate(context);
             if (result.flowControl !== FlowControl.None) {
@@ -107,6 +106,15 @@ export class ExprSeq extends GroupSeq {
         ));
         this.setGroups(exprs);
         super.resolveExprsAndVars();
+    }
+    
+    getConstraintTypesHelper() {
+        return this.groups.map((expr) => expr.getConstraintType());
+    }
+    
+    getConstraintTypes() {
+        // TODO: Use `hasFactorType`.
+        return this.getConstraintTypesHelper();
     }
 }
 
@@ -186,11 +194,15 @@ export class CompExprSeq extends ExprSeq {
         return { resolvedCount, unresolvedExprs };
     }
     
-    evaluate(context) {
+    getCompItems() {
         if (this.itemResolutions.some((resolution) => !resolution.hasResolved)) {
             throw new UnresolvedItemError();
         }
         return this.itemResolutions.map((resolution) => resolution.item);
+    }
+    
+    evaluate(context) {
+        return this.getCompItems();
     }
 }
 

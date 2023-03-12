@@ -86,7 +86,7 @@ export class AwaitExpr extends ExprSpecialExpr {}
 export class ObjExpr extends ExprSpecialExpr {
     
     evaluate(context) {
-        const feature = this.exprSeq.groups[0].evaluate(context);
+        const feature = this.exprSeq.evaluate(context)[0];
         return new Obj(feature);
     }
 }

@@ -99,6 +99,15 @@ export class IdentifierExpr extends SingleComponentExpr {
         }
         return output;
     }
+    
+    getConstraintType() {
+        const variable = this.getVar(this.name);
+        if (variable === null) {
+            // TODO: Retrieve type of built-in item.
+            this.throwError(`Cannot determine constraint type of "${this.name}".`);
+        }
+        return variable.getConstraintType();
+    }
 }
 
 export class OperatorExpr extends Expr {
