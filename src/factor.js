@@ -14,16 +14,16 @@ export class FeatureMember {
 
 export class FeatureField extends FeatureMember {
     
-    constructor(name, context, initItemExpr) {
+    constructor(name, context, initItemExprSeq) {
         super(name, context);
-        this.initItemExpr = initItemExpr;
+        this.initItemExprSeq = initItemExprSeq;
     }
     
     getInitItem() {
         if (this.initItemExpr === null) {
             return undefined;
         }
-        return this.initItemExpr.evaluate(this.context);
+        return this.initItemExprSeq.evaluate(this.context)[0];
     }
 }
 
@@ -48,7 +48,7 @@ export class Feature {
             if (name === null) {
                 fieldStmt.throwError("Feature field must use name identifier.");
             }
-            return new FeatureField(name, context, fieldStmt.initItemExprSeq.children[0]);
+            return new FeatureField(name, context, fieldStmt.initItemExprSeq);
         });
         this.methods = methodStmts.map((methodStmt) => {
             const { bhvrStmtSeq } = methodStmt;

@@ -4,7 +4,9 @@ import { ArgsStmt, TypeArgsStmt, FieldsStmt, MethodsStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc } from "./func.js";
+import { TypeType } from "./itemType.js";
 import { Feature } from "./factor.js";
+import { FeatureType } from "./factorType.js";
 import { Obj } from "./obj.js";
 
 export class SpecialExpr extends Expr {
@@ -116,14 +118,38 @@ export class InterfaceTypeExpr extends AttrsSpecialExpr {}
 
 export class FeatureExpr extends AttrsSpecialExpr {
     
-    evaluate(context) {
-        const fieldStmts = this.getAttrStmtChildren(FieldsStmt);
-        const methodStmts = this.getAttrStmtChildren(MethodsStmt);
-        return new Feature(fieldStmts, methodStmts, context);
+    constructor(components, groupSeqs) {
+        super(components, groupSeqs);
+        this.fieldStmts = this.getAttrStmtChildren(FieldsStmt);
+        this.methodStmts = this.getAttrStmtChildren(MethodsStmt);
     }
 }
 
-export class FeatureTypeExpr extends AttrsSpecialExpr {}
+export class FeatureValueExpr extends FeatureExpr {
+    
+    evaluate(context) {
+        return new Feature(this.fieldStmts, this.methodStmts, context);
+    }
+    
+    getConstraintType() {
+        return new FeatureType(this.fieldStmts, this.methodStmts, this);
+    }
+}
+
+export class FeatureTypeExpr extends FeatureExpr {
+    
+    createFeatureType() {
+        return new FeatureType(this.fieldStmts, this.methodStmts);
+    }
+    
+    evaluate(context) {
+        return this.createFeatureType();
+    }
+    
+    getConstraintType() {
+        return new TypeType(this.createFeatureType());
+    }
+}
 
 export class BundleExpr extends AttrsSpecialExpr {}
 
@@ -139,7 +165,7 @@ export const specialConstructorMap = {
     methodT: MethodTypeExpr,
     await: AwaitExpr,
     interfaceT: InterfaceTypeExpr,
-    feature: FeatureExpr,
+    feature: FeatureValueExpr,
     featureT: FeatureTypeExpr,
     bundle: BundleExpr,
     bundleT: BundleTypeExpr,
