@@ -1,5 +1,6 @@
 
 import { FeatureInstance } from "./factor.js";
+import { ItemType } from "./itemType.js";
 
 export class Obj {
     
@@ -10,6 +11,14 @@ export class Obj {
             const featureInstance = new FeatureInstance(feature, this);
             this.featureInstances.set(feature.id, featureInstance);
         }
+    }
+}
+
+export class ObjType extends ItemType {
+    
+    constructor(factorType) {
+        super();
+        this.factorType = factorType;
     }
 }
 

@@ -7,7 +7,7 @@ import { CustomFunc } from "./func.js";
 import { TypeType } from "./itemType.js";
 import { Feature } from "./factor.js";
 import { FeatureType } from "./factorType.js";
-import { Obj } from "./obj.js";
+import { Obj, ObjType } from "./obj.js";
 
 export class SpecialExpr extends Expr {
     
@@ -88,12 +88,28 @@ export class AwaitExpr extends ExprSpecialExpr {}
 export class ObjExpr extends ExprSpecialExpr {
     
     evaluate(context) {
-        const feature = this.exprSeq.evaluate(context)[0];
-        return new Obj(feature);
+        const factor = this.exprSeq.evaluate(context)[0];
+        return new Obj(factor);
+    }
+    
+    getConstraintType() {
+        const factorType = this.exprSeq.getConstraintTypes()[0];
+        return new ObjType(factorType);
     }
 }
 
-export class ObjTypeExpr extends ExprSpecialExpr {}
+export class ObjTypeExpr extends ExprSpecialExpr {
+    
+    evaluate(context) {
+        const factorType = this.exprSeq.evaluate(context)[0];
+        return new ObjType(factorType);
+    }
+    
+    getConstraintType() {
+        // TODO: Implement.
+        
+    }
+}
 
 export class NominalTypeExpr extends ExprSpecialExpr {}
 
@@ -138,16 +154,13 @@ export class FeatureValueExpr extends FeatureExpr {
 
 export class FeatureTypeExpr extends FeatureExpr {
     
-    createFeatureType() {
+    evaluate(context) {
         return new FeatureType(this.fieldStmts, this.methodStmts);
     }
     
-    evaluate(context) {
-        return this.createFeatureType();
-    }
-    
     getConstraintType() {
-        return new TypeType(this.createFeatureType());
+        // TODO: Implement.
+        
     }
 }
 
