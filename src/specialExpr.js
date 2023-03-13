@@ -47,6 +47,20 @@ export class SpecialExpr extends Expr {
     }
 }
 
+export class ExprSpecialExpr extends SpecialExpr {
+    
+    init(parser) {
+        this.exprSeq = parser.readExprSeq(true);
+    }
+}
+
+export class AttrsSpecialExpr extends SpecialExpr {
+    
+    init(parser) {
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+    }
+}
+
 export class ListExpr extends SpecialExpr {
     
     init(parser) {
@@ -63,6 +77,10 @@ export class ListTypeExpr extends SpecialExpr {
     }
 }
 
+export class DictExpr extends AttrsSpecialExpr {}
+
+export class DictTypeExpr extends AttrsSpecialExpr {}
+
 export class FuncExpr extends SpecialExpr {
     
     init(parser) {
@@ -76,59 +94,11 @@ export class FuncExpr extends SpecialExpr {
     }
 }
 
-export class ExprSpecialExpr extends SpecialExpr {
-    
-    init(parser) {
-        this.exprSeq = parser.readExprSeq(true);
-    }
-}
-
-export class AwaitExpr extends ExprSpecialExpr {}
-
-export class ObjExpr extends ExprSpecialExpr {
-    
-    evaluate(context) {
-        const factor = this.exprSeq.evaluate(context)[0];
-        return new Obj(factor);
-    }
-    
-    getConstraintType() {
-        const factorType = this.exprSeq.getConstraintTypes()[0];
-        return new ObjType(factorType);
-    }
-}
-
-export class ObjTypeExpr extends ExprSpecialExpr {
-    
-    evaluate(context) {
-        const factorType = this.exprSeq.evaluate(context)[0];
-        return new ObjType(factorType);
-    }
-    
-    getConstraintType() {
-        // TODO: Implement.
-        
-    }
-}
-
-export class NominalTypeExpr extends ExprSpecialExpr {}
-
-export class DiscernExpr extends ExprSpecialExpr {}
-
-export class AttrsSpecialExpr extends SpecialExpr {
-    
-    init(parser) {
-        this.attrStmtSeq = parser.readAttrStmtSeq();
-    }
-}
-
-export class DictExpr extends AttrsSpecialExpr {}
-
-export class DictTypeExpr extends AttrsSpecialExpr {}
-
 export class FuncTypeExpr extends AttrsSpecialExpr {}
 
 export class MethodTypeExpr extends AttrsSpecialExpr {}
+
+export class AwaitExpr extends ExprSpecialExpr {}
 
 export class InterfaceTypeExpr extends AttrsSpecialExpr {}
 
@@ -159,14 +129,40 @@ export class FeatureTypeExpr extends FeatureExpr {
     }
     
     getConstraintType() {
-        // TODO: Implement.
-        
+        return new TypeType(new FeatureType([], []));
     }
 }
 
 export class BundleExpr extends AttrsSpecialExpr {}
 
 export class BundleTypeExpr extends AttrsSpecialExpr {}
+
+export class ObjExpr extends ExprSpecialExpr {
+    
+    evaluate(context) {
+        const factor = this.exprSeq.evaluate(context)[0];
+        return new Obj(factor);
+    }
+    
+    getConstraintType() {
+        const factorType = this.exprSeq.getConstraintTypes()[0];
+        return new ObjType(factorType);
+    }
+}
+
+export class ObjTypeExpr extends ExprSpecialExpr {
+    
+    evaluate(context) {
+        const factorType = this.exprSeq.evaluate(context)[0];
+        return new ObjType(factorType);
+    }
+    
+    getConstraintType() {
+        return new TypeType(new ObjType());
+    }
+}
+
+export class DiscernExpr extends ExprSpecialExpr {}
 
 export const specialConstructorMap = {
     list: ListExpr,
@@ -184,7 +180,6 @@ export const specialConstructorMap = {
     bundleT: BundleTypeExpr,
     obj: ObjExpr,
     objT: ObjTypeExpr,
-    nominalT: NominalTypeExpr,
     discern: DiscernExpr,
 };
 

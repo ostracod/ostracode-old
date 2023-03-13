@@ -196,14 +196,6 @@ objT ($factorType)
 
 Creates an object type whose factor type is `$factorType`.
 
-### Nominal Special:
-
-```
-nominalT ($type)
-```
-
-Creates a subtype of type `$type`. The subtype defines the same data structure as `$type`, but is distinguished through the nominal type system.
-
 ### Discern Special:
 
 ```

@@ -151,12 +151,12 @@ const myNumber <sevenT> = (7)
 const myNumber <sevenT> = (50)
 ```
 
-The example below demonstrates usage of the `nominalT` special:
+The example below demonstrates usage of the `nominate` function:
 
 ```
 // `myNumT` conforms to `numT`, but `numT`
 // does not conform to `myNumT`.
-comp myNumT = <nominalT (numT)>
+comp myNumT = <nominate(numT)>
 
 // Throws an error, because the constraint type of 123 is `numT`.
 const myNum1 <myNumT> = (123)

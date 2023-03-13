@@ -16,7 +16,7 @@ export class Obj {
 
 export class ObjType extends ItemType {
     
-    constructor(factorType) {
+    constructor(factorType = null) {
         super();
         this.factorType = factorType;
     }

@@ -21,7 +21,10 @@ OstraCode includes the following built-in constants:
 OstraCode has the following built-in functions:
 
 * `print($item)` prints item `$item` to standard output.
-* `getEvalType($item)` returns the type of item `$item` known at evaltime. Note that nominal type information may be lost.
+* `getType($item)` returns the type of item `$item` known at evaltime.
+    * If the type of `$item` conforms to `typeT`, `getType` returns the type of the type.
+    * If the type of `$item` conforms to `valueT`, `getType` may return a type which is less specific than the type known at comptime.
+* `nominate($type)` creates a subtype of type `$type`. The subtype defines the same data structure as `$type`, but is distinguished through the nominal type system.
 
 ## Built-In Interfaces
 
