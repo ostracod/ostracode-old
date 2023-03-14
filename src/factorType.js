@@ -31,7 +31,7 @@ export class FeatureTypeMethod extends FeatureTypeMember {
 
 export class FeatureType extends ItemType {
     
-    constructor(fieldStmts, methodStmts, discerningExpr = null) {
+    constructor(fieldStmts, methodStmts, discerner = null) {
         super();
         this.fields = fieldStmts.map((fieldStmt) => {
             const { name } = fieldStmt;
@@ -45,7 +45,7 @@ export class FeatureType extends ItemType {
         this.methods = methodStmts.map((methodStmt) => {
             return new FeatureTypeMethod(methodStmt.name, methodStmt.attrStmtSeq);
         });
-        this.discerningExpr = discerningExpr;
+        this.discerner = discerner;
     }
 }
 

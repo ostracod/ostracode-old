@@ -1,5 +1,6 @@
 
 import { FlowControl } from "./constants.js";
+import * as niceUtils from "./niceUtils.js";
 import { EvalContext } from "./evalContext.js";
 
 export class Func {
@@ -22,7 +23,11 @@ export class CustomFunc extends Func {
     }
     
     evaluate(args) {
-        const context = new EvalContext(this.argVars);
+        const discerners = [];
+        for (const variable of this.argVars) {
+            niceUtils.extendList(discerners, variable.getParentDiscerners());
+        }
+        const context = new EvalContext(this.argVars, discerners);
         for (let index = 0; index < args.length; index++) {
             const item = args[index];
             const variable = this.argVars[index];

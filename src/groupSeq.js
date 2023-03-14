@@ -64,8 +64,16 @@ export class BhvrStmtSeq extends StmtSeq {
         }
     }
     
+    getParentDiscerners() {
+        return [];
+    }
+    
     evaluate(parentContext) {
-        const context = new EvalContext(this.getVars(), parentContext);
+        const discerners = [];
+        for (const stmt of this.groups) {
+            niceUtils.extendList(discerners, stmt.getParentDiscerners());
+        }
+        const context = new EvalContext(this.getVars(), discerners, parentContext);
         for (const stmt of this.groups) {
             const result = stmt.evaluate(context);
             if (result.flowControl !== FlowControl.None) {
@@ -199,6 +207,10 @@ export class CompExprSeq extends ExprSeq {
             throw new UnresolvedItemError();
         }
         return this.itemResolutions.map((resolution) => resolution.item);
+    }
+    
+    getParentDiscerners() {
+        return [];
     }
     
     evaluate(context) {

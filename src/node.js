@@ -1,4 +1,5 @@
 
+import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { CompilerErrorThrower } from "./error.js";
 
@@ -51,6 +52,18 @@ export class Node extends CompilerErrorThrower {
     
     getVars() {
         return Array.from(this.varMap.values());
+    }
+    
+    getDiscerners() {
+        const output = [];
+        for (const child of this.children) {
+            niceUtils.extendList(output, child.getParentDiscerners());
+        }
+        return output;
+    }
+    
+    getParentDiscerners() {
+        return this.getDiscerners();
     }
     
     getDisplayStringDetail() {

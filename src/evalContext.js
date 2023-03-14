@@ -11,13 +11,18 @@ export class VarItem {
 
 export class EvalContext {
     
-    constructor(vars = [], parent = null) {
+    constructor(vars = [], discerners = [], parent = null) {
         // Map from EvalVar to VarItem.
         this.varItemMap = new Map();
         for (const variable of vars) {
             if (variable instanceof EvalVar) {
                 this.varItemMap.set(variable, new VarItem());
             }
+        }
+        // Map from discerning Expr to feature ID.
+        this.featureIdMap = new Map();
+        for (const discerner of discerners) {
+            this.featureIdMap.set(discerner, undefined);
         }
         this.parent = parent;
     }

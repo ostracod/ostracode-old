@@ -18,6 +18,11 @@ export class Var {
             return new ItemType();
         }
     }
+    
+    getParentDiscerners() {
+        const { initItemExprSeq } = this.statement;
+        return (initItemExprSeq === null) ? [] : initItemExprSeq.getParentDiscerners();
+    }
 }
 
 export class CompVar extends Var {

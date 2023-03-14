@@ -45,6 +45,18 @@ export class SpecialExpr extends Expr {
         const stmt = this.getAttrStmt(attrStmtClass);
         return (stmt === null) ? [] : stmt.getChildVars();
     }
+    
+    isDiscerner() {
+        return false;
+    }
+    
+    getDiscerners() {
+        const output = super.getDiscerners();
+        if (this.isDiscerner()) {
+            output.push(this);
+        }
+        return output;
+    }
 }
 
 export class ExprSpecialExpr extends SpecialExpr {
@@ -120,6 +132,10 @@ export class FeatureValueExpr extends FeatureExpr {
     getConstraintType() {
         return new FeatureType(this.fieldStmts, this.methodStmts, this);
     }
+    
+    isDiscerner() {
+        return true;
+    }
 }
 
 export class FeatureTypeExpr extends FeatureExpr {
@@ -162,7 +178,12 @@ export class ObjTypeExpr extends ExprSpecialExpr {
     }
 }
 
-export class DiscernExpr extends ExprSpecialExpr {}
+export class DiscernExpr extends ExprSpecialExpr {
+    
+    isDiscerner() {
+        return true;
+    }
+}
 
 export const specialConstructorMap = {
     list: ListExpr,
