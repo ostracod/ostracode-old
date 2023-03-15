@@ -31,6 +31,14 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
+    getParent(nodeClass) {
+        let node = this.parent;
+        while (node !== null && !(node instanceof nodeClass)) {
+            node = node.parent;
+        }
+        return node;
+    }
+    
     addVar(variable) {
         this.varMap.set(variable.name, variable);
     }
@@ -54,10 +62,16 @@ export class Node extends CompilerErrorThrower {
         return Array.from(this.varMap.values());
     }
     
+    shouldUseDiscerners(child) {
+        return true;
+    }
+    
     getDiscerners() {
         const output = [];
         for (const child of this.children) {
-            niceUtils.extendList(output, child.getParentDiscerners());
+            if (this.shouldUseDiscerners(child)) {
+                niceUtils.extendList(output, child.getParentDiscerners());
+            }
         }
         return output;
     }

@@ -6,6 +6,7 @@ import { ResolvedGroup } from "./group.js";
 import { GroupSeq } from "./groupSeq.js";
 import { StmtParser } from "./groupParser.js";
 import { CompVar, EvalVar } from "./var.js";
+import { SpecialExpr, FeatureExpr } from "./specialExpr.js";
 
 const initItemName = "initialization item";
 
@@ -422,6 +423,10 @@ export class ArgStmt extends ChildAttrStmt {
             this.defaultItemExprSeq = parser.readExprSeq("default item");
         }
     }
+    
+    shouldUseDiscerners(child) {
+        return (child !== this.defaultItemExprSeq);
+    }
 }
 
 export class FieldTypeStmt extends ExprAttrStmt {
@@ -455,6 +460,11 @@ export class FieldStmt extends ChildAttrStmt {
             parser.readEqualSign();
             this.initItemExprSeq = parser.readExprSeq("init item");
         }
+    }
+    
+    shouldUseDiscerners(child) {
+        return !(child === this.initItemExprSeq
+            && this.getParent(SpecialExpr) instanceof FeatureExpr);
     }
 }
 
