@@ -1,4 +1,6 @@
 
+import { createTypeId } from "./itemType.js";
+
 export class Factor {
     // Concrete subclasses of Factor must implement these methods:
     // getFeatures
@@ -36,13 +38,10 @@ export class FeatureMethod extends FeatureMember {
     }
 }
 
-let nextFeatureId = 0;
-
 export class Feature {
     
     constructor(fieldStmts, methodStmts, context) {
-        this.id = nextFeatureId;
-        nextFeatureId += 1;
+        this.typeId = createTypeId();
         this.fields = fieldStmts.map((fieldStmt) => {
             const { name } = fieldStmt;
             if (name === null) {

@@ -126,7 +126,9 @@ export class FeatureExpr extends AttrsSpecialExpr {
 export class FeatureValueExpr extends FeatureExpr {
     
     evaluate(context) {
-        return new Feature(this.fieldStmts, this.methodStmts, context);
+        const output = new Feature(this.fieldStmts, this.methodStmts, context);
+        context.stowTypeId(this, output.typeId);
+        return output;
     }
     
     getConstraintType() {
@@ -179,6 +181,12 @@ export class ObjTypeExpr extends ExprSpecialExpr {
 }
 
 export class DiscernExpr extends ExprSpecialExpr {
+    
+    evaluate(context) {
+        const output = this.exprSeq.evaluate(context)[0];
+        context.stowTypeId(this, output.typeId);
+        return output;
+    }
     
     isDiscerner() {
         return true;

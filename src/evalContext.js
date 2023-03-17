@@ -19,10 +19,10 @@ export class EvalContext {
                 this.varItemMap.set(variable, new VarItem());
             }
         }
-        // Map from discerning Expr to feature ID.
-        this.featureIdMap = new Map();
+        // Map from discerning Expr to type ID.
+        this.typeIdMap = new Map();
         for (const discerner of discerners) {
-            this.featureIdMap.set(discerner, undefined);
+            this.typeIdMap.set(discerner, undefined);
         }
         this.parent = parent;
     }
@@ -52,6 +52,12 @@ export class EvalContext {
             this.getVarItem(variable).item = item;
         } else {
             throw new Error(`Cannot assign value to "${variable.name}".`);
+        }
+    }
+    
+    stowTypeId(discerner, typeId) {
+        if (this.typeIdMap.has(discerner)) {
+            this.typeIdMap.set(discerner, typeId);
         }
     }
 }

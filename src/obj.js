@@ -5,11 +5,11 @@ import { ItemType } from "./itemType.js";
 export class Obj {
     
     constructor(factor) {
-        // Map from feature ID to FeatureInstance.
+        // Map from type ID to FeatureInstance.
         this.featureInstances = new Map();
         for (const feature of factor.getFeatures()) {
             const featureInstance = new FeatureInstance(feature, this);
-            this.featureInstances.set(feature.id, featureInstance);
+            this.featureInstances.set(feature.typeId, featureInstance);
         }
     }
 }

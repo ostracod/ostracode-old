@@ -1,4 +1,12 @@
 
+let nextTypeId = 0;
+
+export const createTypeId = () => {
+    const output = nextTypeId;
+    nextTypeId += 1;
+    return output;
+}
+
 export class ItemType {
     
 }
