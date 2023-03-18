@@ -1,4 +1,5 @@
 
+import { CompilerError } from "./error.js";
 import { createTypeId } from "./itemType.js";
 
 export class Factor {
@@ -25,7 +26,7 @@ export class FeatureField extends FeatureMember {
         if (this.initItemExpr === null) {
             return undefined;
         }
-        return this.initItemExprSeq.evaluate(this.context)[0];
+        return this.initItemExprSeq.evaluateToItem(this.context);
     }
 }
 
@@ -75,6 +76,20 @@ export class FeatureInstance {
         for (const field of this.feature.fields) {
             this.fields.set(field.name, field.getInitItem());
         }
+    }
+    
+    getMemberItem(name) {
+        if (this.fields.has(name)) {
+            return this.fields.get(name);
+        }
+        throw new CompilerError("Retrieving object methods is not yet implemented.");
+    }
+    
+    setMemberItem(name, item) {
+        if (this.fields.has(name)) {
+            return this.fields.set(name, item);
+        }
+        throw new CompilerError(`Unknown field "${name}".`);
     }
 }
 

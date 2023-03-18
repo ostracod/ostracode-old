@@ -130,8 +130,8 @@ export class EvalVarStmt extends VarStmt {
     
     evaluate(context) {
         if (this.initItemExprSeq !== null) {
-            const varItem = context.getVarItem(this.variable);
-            varItem.item = this.initItemExprSeq.evaluate(context)[0];
+            const itemRef = context.getRefByVar(this.variable);
+            itemRef.write(this.initItemExprSeq.evaluateToItem(context));
         }
         return { flowControl: FlowControl.None };
     }
@@ -237,7 +237,7 @@ export class ReturnStmt extends BhvrStmt {
         if (this.exprSeq === null) {
             returnItem = undefined;
         } else {
-            returnItem = this.exprSeq.evaluate(context)[0];
+            returnItem = this.exprSeq.evaluateToItem(context);
         }
         return { flowControl: FlowControl.Return, returnItem, stmt: this };
     }

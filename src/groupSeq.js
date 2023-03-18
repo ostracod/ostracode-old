@@ -6,6 +6,7 @@ import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
 import { EvalContext } from "./evalContext.js";
+import { ResultRef } from "./itemRef.js";
 
 export class GroupSeq extends Node {
     
@@ -124,6 +125,14 @@ export class ExprSeq extends GroupSeq {
         // TODO: Use `hasFactorType`.
         return this.getConstraintTypesHelper();
     }
+    
+    evaluateToItems(context) {
+        return this.evaluate(context).map((itemRef) => itemRef.read());
+    }
+    
+    evaluateToItem(context) {
+        return this.evaluateToItems(context)[0];
+    }
 }
 
 // EvalExprSeq = Evaltime expression sequence
@@ -154,7 +163,7 @@ export class CompExprSeq extends ExprSeq {
     resolveCompItem(expr) {
         if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
             const context = new EvalContext();
-            return expr.evaluate(context);
+            return expr.evaluateToItem(context);
         }
         if (this.exprSeqSelector === ExprSeqSelector.ConstraintTypes) {
             return expr.getConstraintType();
@@ -214,7 +223,7 @@ export class CompExprSeq extends ExprSeq {
     }
     
     evaluate(context) {
-        return this.getCompItems();
+        return this.getCompItems().map((item) => new ResultRef(item));
     }
 }
 

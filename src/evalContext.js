@@ -1,6 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import { CompVar, EvalVar } from "./var.js";
+import { ResultRef, VarRef } from "./itemRef.js";
 
 export class VarItem {
     
@@ -27,32 +28,18 @@ export class EvalContext {
         this.parent = parent;
     }
     
-    getVarItem(evalVar) {
-        const varItem = this.varItemMap.get(evalVar);
+    getRefByVar(variable) {
+        if (variable instanceof CompVar) {
+            return new ResultRef(variable.getCompItem());
+        }
+        const varItem = this.varItemMap.get(variable);
         if (typeof varItem !== "undefined") {
-            return varItem;
+            return new VarRef(varItem);
         }
         if (this.parent === null) {
-            throw new CompilerError(`Cannot read variable "${variable.name}" in this context.`);
+            throw new CompilerError(`Cannot access variable "${variable.name}" in this context.`);
         }
-        return this.parent.getVarItem(evalVar);
-    }
-    
-    getItem(variable) {
-        if (variable instanceof CompVar) {
-            return variable.getCompItem();
-        } else if (variable instanceof EvalVar) {
-            return this.getVarItem(variable).item;
-        }
-        throw new Error("Unexpected variable type.");
-    }
-    
-    setItem(variable, item) {
-        if (variable instanceof EvalVar) {
-            this.getVarItem(variable).item = item;
-        } else {
-            throw new Error(`Cannot assign value to "${variable.name}".`);
-        }
+        return this.parent.getRefByVar(variable);
     }
     
     stowTypeId(discerner, typeId) {

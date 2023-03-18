@@ -1,6 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import { ItemType } from "./itemType.js";
+import { FeatureMemberRef } from "./itemRef.js";
 
 export class FactorType extends ItemType {
     // Concrete subclasses of FactorType must implement these methods:
@@ -52,11 +53,8 @@ export class FeatureType extends ItemType {
     
     getObjMember(obj, name, context) {
         const typeId = context.getTypeId(this.discerner);
-        const { fields, feature } = obj.featureInstances.get(typeId);
-        if (fields.has(name)) {
-            return fields.get(name);
-        }
-        throw new CompilerError("Retrieving object methods is not yet implemented.");
+        const featureInstance = obj.featureInstances.get(typeId);
+        return new FeatureMemberRef(featureInstance, name);
     }
 }
 

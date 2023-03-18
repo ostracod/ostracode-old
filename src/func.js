@@ -32,7 +32,7 @@ export class CustomFunc extends Func {
             const item = args[index];
             const variable = this.argVars[index];
             // TODO: Populate default arg items.
-            context.setItem(variable, item);
+            context.getRefByVar(variable).write(item);
         }
         const result = this.bhvrStmtSeq.evaluate(context);
         if (result.flowControl === FlowControl.Return) {

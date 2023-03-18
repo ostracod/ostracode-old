@@ -2,6 +2,7 @@
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
+import { ResultRef, VarRef } from "./itemRef.js";
 import { ObjType } from "./obj.js"
 import { builtInItems } from "./builtIn.js";
 
@@ -15,6 +16,10 @@ export class Expr extends ResolvedGroup {
     
     evaluate(context) {
         this.throwError("Evaluation of this expression type is not yet implemented.");
+    }
+    
+    evaluateToItem(context) {
+        return this.evaluate(context).read();
     }
 }
 
@@ -45,7 +50,7 @@ export class NumLiteralExpr extends LiteralExpr {
     }
     
     evaluate(context) {
-        return this.value;
+        return new ResultRef(this.value);
     }
 }
 
@@ -65,7 +70,7 @@ export class StrLiteralExpr extends LiteralExpr {
     }
     
     evaluate(context) {
-        return this.text;
+        return new ResultRef(this.text);
     }
 }
 
@@ -87,18 +92,17 @@ export class IdentifierExpr extends SingleComponentExpr {
             if (typeof item === "undefined") {
                 this.throwError(`Cannot find variable with name "${this.name}".`);
             }
-            return item;
+            return new ResultRef(item);
         }
-        let output;
+        let itemRef;
         try {
-            output = context.getItem(variable);
+            return context.getRefByVar(variable);
         } catch (error) {
             if (error instanceof CompilerError) {
                 error.lineNumber = this.getLineNumber();
             }
             throw error;
         }
-        return output;
     }
     
     getConstraintType() {
@@ -153,7 +157,7 @@ export class IdentifierAccessExpr extends Expr {
     }
     
     evaluate(context) {
-        const item = this.operand.evaluate(context);
+        const item = this.operand.evaluateToItem(context);
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
             return type.factorType.getObjMember(item, this.name, context);
@@ -180,9 +184,9 @@ export class ArgsExpr extends Expr {
     }
     
     evaluate(context) {
-        const func = this.operand.evaluate(context);
-        const args = this.argExprSeq.evaluate(context);
-        return func.evaluate(args);
+        const func = this.operand.evaluateToItem(context);
+        const args = this.argExprSeq.evaluateToItems(context);
+        return new ResultRef(func.evaluate(args));
     }
 }
 
