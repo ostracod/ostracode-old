@@ -142,6 +142,12 @@ export class BinaryExpr extends OperatorExpr {
         this.operand1 = this.addChild(operand1);
         this.operand2 = this.addChild(operand2);
     }
+    
+    evaluate(context) {
+        const itemRef1 = this.operand1.evaluate(context);
+        const itemRef2 = this.operand2.evaluate(context);
+        return this.operator.perform(itemRef1, itemRef2);
+    }
 }
 
 export class IdentifierAccessExpr extends Expr {

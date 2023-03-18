@@ -1,4 +1,7 @@
 
+import { CompilerError } from "./error.js";
+import { ResultRef } from "./itemRef.js";
+
 export class Operator {
     
     constructor(text) {
@@ -20,11 +23,30 @@ export class UnaryOperator extends Operator {
 export const binaryOperatorMap = new Map();
 
 export class BinaryOperator extends Operator {
+    // Concrete subclasses of BinaryOperator must implement these methods:
+    // perform
     
     constructor(text, precedence) {
         super(text);
         this.precedence = precedence;
         binaryOperatorMap.set(this.text, this);
+    }
+    
+    perform(itemRef1, itemRef2) {
+        throw new CompilerError(`"${this.text}" operator is not yet implemented.`);
+    }
+}
+
+export class AssignOperator extends BinaryOperator {
+    
+    constructor() {
+        super("=", 14);
+    }
+    
+    perform(itemRef1, itemRef2) {
+        const item = itemRef2.read();
+        itemRef1.write(item);
+        return new ResultRef(item);
     }
 }
 
@@ -56,7 +78,7 @@ new BinaryOperator("^^", 12);
 new BinaryOperator("@", 1);
 new BinaryOperator(":", 0);
 new BinaryOperator("::", 0);
-new BinaryOperator("=", 14);
+new AssignOperator();
 new BinaryOperator("+=", 14);
 new BinaryOperator("-=", 14);
 new BinaryOperator("*=", 14);
