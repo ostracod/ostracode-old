@@ -20,7 +20,7 @@ export class PreStmt extends PreGroup {
             }
             return new stmtConstructor(this.components);
         }
-        this.throwError(`Unrecognized statement structure.`);
+        this.throwError("Unrecognized statement structure.");
     }
 }
 

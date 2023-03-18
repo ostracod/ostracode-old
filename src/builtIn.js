@@ -2,7 +2,7 @@
 import { ItemType, TypeType, ValueType, MissingType, UndefType, NullType, BoolType, NumType, StrType } from "./itemType.js";
 import { BuiltInFunc } from "./func.js";
 
-class PrintFunc {
+class PrintFunc extends BuiltInFunc {
     
     evaluate(args) {
         // TODO: Support ToStringT interface.

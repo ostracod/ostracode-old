@@ -1,5 +1,4 @@
 
-import { CompilerError } from "./error.js";
 import { ItemType } from "./itemType.js";
 import { FeatureMemberRef } from "./itemRef.js";
 
@@ -45,9 +44,9 @@ export class FeatureType extends ItemType {
                 name, fieldStmt.typeExprSeq, fieldStmt.initItemExprSeq,
             );
         });
-        this.methods = methodStmts.map((methodStmt) => {
-            return new FeatureTypeMethod(methodStmt.name, methodStmt.attrStmtSeq);
-        });
+        this.methods = methodStmts.map((methodStmt) => (
+            new FeatureTypeMethod(methodStmt.name, methodStmt.attrStmtSeq)
+        ));
         this.discerner = discerner;
     }
     

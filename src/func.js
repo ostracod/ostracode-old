@@ -1,6 +1,5 @@
 
 import { FlowControl } from "./constants.js";
-import * as niceUtils from "./niceUtils.js";
 import { EvalContext } from "./evalContext.js";
 
 export class Func {

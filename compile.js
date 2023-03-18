@@ -35,11 +35,11 @@ class LabelDefinition extends OptionDefinition {
 const optionDefinitions = [
     new FlagDefinition(
         "help", "h",
-        "Print compiler usage instructions."
+        "Print compiler usage instructions.",
     ),
     new FlagDefinition(
         "init", "i",
-        "Create package.json file."
+        "Create package.json file.",
     ),
     new LabelDefinition(
         "rule", "r", "NAME",
@@ -89,7 +89,7 @@ const main = () => {
                 flags.add(name);
             } else if (definition instanceof LabelDefinition) {
                 if (index >= process.argv.length) {
-                    throw new UsageError(`Expected argument after "${term}".`)
+                    throw new UsageError(`Expected argument after "${term}".`);
                 }
                 const arg = process.argv[index];
                 index += 1;
@@ -112,10 +112,10 @@ const main = () => {
         return;
     }
     if (unlabeledArgs.length < 1) {
-        throw new UsageError(`Expected package path.`);
+        throw new UsageError("Expected package path.");
     }
     if (unlabeledArgs.length > 1) {
-        throw new UsageError(`Expected exactly one package path.`);
+        throw new UsageError("Expected exactly one package path.");
     }
     const [packagePath] = unlabeledArgs;
     const compiler = new Compiler(packagePath);

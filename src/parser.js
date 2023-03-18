@@ -136,7 +136,7 @@ export class TokenParser {
             }
         }
         return null;
-    };
+    }
     
     seekChar(targetCharCode) {
         while (this.index < this.content.length) {
@@ -241,7 +241,7 @@ export class TokenParser {
         if (isFirstWordChar(firstChar)) {
             return this.parseWordToken();
         }
-        const lineNumber = this.lineNumber;
+        const { lineNumber } = this;
         for (const dict of tokenConstructors) {
             text = this.readText(dict.textList);
             if (text !== null) {
@@ -295,7 +295,7 @@ export class PreGroupParser {
     parsePreGroupSeq() {
         const openBracketToken = this.readToken();
         const {
-            groupConstructor, closeBracketText, createSeq
+            groupConstructor, closeBracketText, createSeq,
         } = getSeqBuilder(openBracketToken);
         const preGroups = this.parsePreGroups(groupConstructor);
         const closeBracketToken = this.readToken();
@@ -314,7 +314,7 @@ export class PreGroupParser {
         if (token instanceof OpenBracketToken) {
             return this.parsePreGroupSeq();
         }
-        this.index += 1
+        this.index += 1;
         return token;
     }
     

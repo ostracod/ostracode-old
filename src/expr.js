@@ -2,8 +2,8 @@
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
-import { ResultRef, VarRef } from "./itemRef.js";
-import { ObjType } from "./obj.js"
+import { ResultRef } from "./itemRef.js";
+import { ObjType } from "./obj.js";
 import { builtInItems } from "./builtIn.js";
 
 export class Expr extends ResolvedGroup {
@@ -94,7 +94,6 @@ export class IdentifierExpr extends SingleComponentExpr {
             }
             return new ResultRef(item);
         }
-        let itemRef;
         try {
             return context.getRefByVar(variable);
         } catch (error) {

@@ -4,7 +4,6 @@ import { CompilerError, UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
 import { ResolvedGroup } from "./group.js";
-import { GroupSeq } from "./groupSeq.js";
 import { StmtParser } from "./groupParser.js";
 import { CompVar, EvalVar } from "./var.js";
 import { SpecialExpr, FeatureExpr } from "./specialExpr.js";

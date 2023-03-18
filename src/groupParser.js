@@ -120,7 +120,7 @@ export class StmtParser extends GroupParser {
     }
     
     readEqualSign() {
-        this.readTokenText(OperatorToken, `equal sign`, ["="]);
+        this.readTokenText(OperatorToken, "equal sign", ["="]);
     }
     
     readKeyword(matchTextList, validTextList = [], mayReachEnd = false) {
@@ -318,7 +318,7 @@ export class SpecialParser {
     assertEnd() {
         if (!this.hasReachedEnd()) {
             const groupSeq = this.peekGroupSeq();
-            groupSeq.throwError(`Expected end of special invocation.`);
+            groupSeq.throwError("Expected end of special invocation.");
         }
     }
 }

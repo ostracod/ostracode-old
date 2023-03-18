@@ -1,5 +1,11 @@
 {
     "name": "ostracode",
     "version": "1.0.0",
-    "type": "module"
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --ext .js"
+    },
+    "devDependencies": {
+        "eslint": "^8.4.1"
+    }
 }
