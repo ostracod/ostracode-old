@@ -1,6 +1,9 @@
 
 import { CompilerError } from "./error.js";
+import * as nodeUtils from "./nodeUtils.js";
 import { createTypeId } from "./itemType.js";
+import { ArgsStmt } from "./stmt.js";
+import { CustomMethod } from "./func.js";
 
 export class Factor {
     // Concrete subclasses of Factor must implement these methods:
@@ -37,6 +40,11 @@ export class FeatureMethod extends FeatureMember {
         this.attrStmtSeq = attrStmtSeq;
         this.bhvrStmtSeq = bhvrStmtSeq;
     }
+    
+    createMethod(item) {
+        const argVars = nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
+        return new CustomMethod(argVars, this.bhvrStmtSeq, this.context, item);
+    }
 }
 
 export class Feature {
@@ -50,15 +58,18 @@ export class Feature {
             }
             return new FeatureField(name, context, fieldStmt.initItemExprSeq);
         });
-        this.methods = methodStmts.map((methodStmt) => {
+        // Map from name to FeatureMethod.
+        this.methods = new Map();
+        for (const methodStmt of methodStmts) {
             const { bhvrStmtSeq } = methodStmt;
             if (bhvrStmtSeq === null) {
                 methodStmt.throwError("Feature method must provide behavior statement sequence.");
             }
-            return new FeatureMethod(
+            const featureMethod = new FeatureMethod(
                 methodStmt.name, context, methodStmt.attrStmtSeq, bhvrStmtSeq,
             );
-        });
+            this.methods.set(featureMethod.name, featureMethod);
+        }
     }
     
     getFeatures() {
@@ -82,7 +93,11 @@ export class FeatureInstance {
         if (this.fields.has(name)) {
             return this.fields.get(name);
         }
-        throw new CompilerError("Retrieving object methods is not yet implemented.");
+        const featureMethod = this.feature.methods.get(name);
+        if (typeof featureMethod === "undefined") {
+            throw new CompilerError(`Unknown field "${name}".`);
+        }
+        return featureMethod.createMethod(this.obj);
     }
     
     setMemberItem(name, item) {

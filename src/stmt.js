@@ -2,6 +2,7 @@
 import { FlowControl } from "./constants.js";
 import { CompilerError, UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
+import * as nodeUtils from "./nodeUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { GroupSeq } from "./groupSeq.js";
 import { StmtParser } from "./groupParser.js";
@@ -38,11 +39,7 @@ export class Stmt extends ResolvedGroup {
     }
     
     getAttrStmt(attrStmtClass) {
-        if (this.attrStmtSeq === null) {
-            return null;
-        } else {
-            return this.attrStmtSeq.getAttrStmt(attrStmtClass);
-        }
+        return nodeUtils.getAttrStmt(this.attrStmtSeq, attrStmtClass);
     }
     
     resolveChild(preStmt) {
@@ -485,6 +482,11 @@ export class MethodStmt extends ChildAttrStmt {
         this.name = parser.readIdentifierText();
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.bhvrStmtSeq = parser.readBhvrStmtSeq(true);
+    }
+    
+    resolveVars() {
+        const argVars = nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
+        this.addVars(argVars);
     }
 }
 

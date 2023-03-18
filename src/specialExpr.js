@@ -1,4 +1,5 @@
 
+import * as nodeUtils from "./nodeUtils.js";
 import { AttrStmtSeq } from "./groupSeq.js";
 import { ArgsStmt, TypeArgsStmt, FieldsStmt, MethodsStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
@@ -28,25 +29,24 @@ export class SpecialExpr extends Expr {
         this.addVars(typeArgVars);
     }
     
-    getAttrStmt(attrStmtClass) {
-        let attrStmtSeq = null;
+    getAttrStmtSeq() {
         for (const groupSeq of this.children) {
             if (groupSeq instanceof AttrStmtSeq) {
-                attrStmtSeq = groupSeq;
-                break;
+                return groupSeq;
             }
         }
-        return (attrStmtSeq === null) ? null : attrStmtSeq.getAttrStmt(attrStmtClass);
+        return null;
     }
     
     getAttrStmtChildren(attrStmtClass) {
-        const stmt = this.getAttrStmt(attrStmtClass);
+        const stmtSeq = this.getAttrStmtSeq();
+        const stmt = nodeUtils.getAttrStmt(stmtSeq, attrStmtClass);
         return (stmt === null) ? [] : stmt.getChildStmts();
     }
     
     getAttrStmtVars(attrStmtClass) {
-        const stmt = this.getAttrStmt(attrStmtClass);
-        return (stmt === null) ? [] : stmt.getChildVars();
+        const stmtSeq = this.getAttrStmtSeq();
+        return nodeUtils.getChildVars(stmtSeq, attrStmtClass);
     }
     
     isDiscerner() {

@@ -22,12 +22,12 @@ export class CustomFunc extends Func {
         
     }
     
+    createParentContext() {
+        return null;
+    }
+    
     evaluate(args) {
-        const discerners = [];
-        for (const variable of this.argVars) {
-            niceUtils.extendList(discerners, variable.getParentDiscerners());
-        }
-        const context = new EvalContext(this.argVars, discerners);
+        const context = new EvalContext(this.argVars, [], this.createParentContext());
         for (let index = 0; index < args.length; index++) {
             const item = args[index];
             const variable = this.argVars[index];
@@ -40,6 +40,19 @@ export class CustomFunc extends Func {
         } else if (result.flowControl !== FlowControl.None) {
             result.stmt.throwError("Invalid flow control statement in function.");
         }
+    }
+}
+
+export class CustomMethod extends CustomFunc {
+    
+    constructor(argVars, bhvrStmtSeq, parentContext, parentItem) {
+        super(argVars, bhvrStmtSeq, parentContext);
+        this.parentItem = parentItem;
+    }
+    
+    createParentContext() {
+        // TODO: Implement.
+        return null;
     }
 }
 
