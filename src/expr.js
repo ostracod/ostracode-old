@@ -2,6 +2,7 @@
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
+import { ObjType } from "./obj.js"
 import { builtInItems } from "./builtIn.js";
 
 export class Expr extends ResolvedGroup {
@@ -149,6 +150,16 @@ export class IdentifierAccessExpr extends Expr {
     
     getDisplayStringDetail() {
         return this.name;
+    }
+    
+    evaluate(context) {
+        const item = this.operand.evaluate(context);
+        const type = this.operand.getConstraintType();
+        if (type instanceof ObjType) {
+            return type.factorType.getObjMember(item, this.name, context);
+        } else {
+            this.throwError("Item member access is not yet implemented.");
+        }
     }
 }
 

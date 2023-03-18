@@ -60,6 +60,10 @@ export class EvalContext {
             this.typeIdMap.set(discerner, typeId);
         }
     }
+    
+    getTypeId(discerner) {
+        return this.typeIdMap.get(discerner);
+    }
 }
 
 
