@@ -4,7 +4,6 @@ import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
 import { ObjType } from "./obj.js";
-import { builtInItems } from "./builtIn.js";
 
 export class Expr extends ResolvedGroup {
     // Concrete subclasses of Expr must implement these methods:
@@ -88,11 +87,7 @@ export class IdentifierExpr extends SingleComponentExpr {
     evaluate(context) {
         const variable = this.getVar(this.name);
         if (variable === null) {
-            const item = builtInItems[this.name];
-            if (typeof item === "undefined") {
-                this.throwError(`Cannot find variable with name "${this.name}".`);
-            }
-            return new ResultRef(item);
+            this.throwError(`Cannot find variable with name "${this.name}".`);
         }
         try {
             return context.getRefByVar(variable);
@@ -107,7 +102,6 @@ export class IdentifierExpr extends SingleComponentExpr {
     getConstraintType() {
         const variable = this.getVar(this.name);
         if (variable === null) {
-            // TODO: Retrieve type of built-in item.
             this.throwError(`Cannot determine constraint type of "${this.name}".`);
         }
         return variable.getConstraintType();

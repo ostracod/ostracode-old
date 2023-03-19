@@ -6,6 +6,7 @@ import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
+import { BuiltInNode } from "./builtIn.js";
 
 const ostraCodeExtension = ".ostc";
 const javaScriptExtension = ".js";
@@ -35,6 +36,7 @@ export class Compiler {
         this.dependencies = new Map();
         // Map from constant name to value.
         this.constants = new Map();
+        this.builtInNode = new BuiltInNode();
         this.ostraCodeFiles = [];
         // Map from src path to list of OstraCodeFile.
         this.srcPathMap = new Map();
@@ -48,6 +50,7 @@ export class Compiler {
         const oldCodeFile = this.buildPathMap.get(destPath);
         if (typeof oldCodeFile === "undefined") {
             this.ostraCodeFiles.push(codeFile);
+            this.builtInNode.addChild(codeFile);
             let codeFiles = this.srcPathMap.get(srcPath);
             if (typeof codeFiles === "undefined") {
                 codeFiles = [];

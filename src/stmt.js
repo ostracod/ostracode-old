@@ -5,8 +5,9 @@ import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
-import { CompVar, EvalVar } from "./var.js";
+import { StmtCompVar, StmtEvalVar } from "./var.js";
 import { SpecialExpr, FeatureExpr } from "./specialExpr.js";
+import { ItemType } from "./itemType.js";
 
 const initItemName = "initialization item";
 
@@ -90,6 +91,17 @@ export class VarStmt extends BhvrStmt {
     getParentVars() {
         return [this.variable];
     }
+    
+    getConstraintType() {
+        if (this.typeExprSeq !== null) {
+            return this.typeExprSeq.getCompItems()[0];
+        } else if (this.initItemExprSeq !== null) {
+            return this.initItemExprSeq.getConstraintTypes()[0];
+        } else {
+            return new ItemType();
+        }
+    }
+    
 }
 
 export class CompVarStmt extends VarStmt {
@@ -99,7 +111,7 @@ export class CompVarStmt extends VarStmt {
     }
     
     getVarConstructor() {
-        return CompVar;
+        return StmtCompVar;
     }
     
     getCompItem() {
@@ -121,7 +133,7 @@ export class CompVarStmt extends VarStmt {
 export class EvalVarStmt extends VarStmt {
     
     getVarConstructor() {
-        return EvalVar;
+        return StmtEvalVar;
     }
     
     evaluate(context) {
@@ -203,7 +215,7 @@ export class ForStmt extends BhvrStmt {
     
     init(parser) {
         this.varName = parser.readIdentifierText();
-        this.variable = new EvalVar(this.varName, this);
+        this.variable = new StmtEvalVar(this.varName, this);
         parser.readKeyword(["in"]);
         this.iterableExprSeq = parser.readExprSeq("iterable");
         this.stmtSeq = parser.readBhvrStmtSeq();
@@ -250,7 +262,7 @@ export class TryStmt extends BhvrStmt {
             this.catchStmtSeq = null;
         } else {
             this.varName = parser.readIdentifierText();
-            this.variable = new EvalVar(this.varName, this);
+            this.variable = new StmtEvalVar(this.varName, this);
             this.catchStmtSeq = parser.readBhvrStmtSeq();
         }
         const finallyKeyword = parser.readKeyword(["finally"], [], true);
@@ -409,7 +421,7 @@ export class ArgStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.variable = new EvalVar(this.name, this);
+        this.variable = new StmtEvalVar(this.name, this);
         this.typeExprSeq = parser.readExprSeq();
         this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
@@ -584,7 +596,7 @@ export class AsStmt extends AttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.variable = new EvalVar(this.name, this);
+        this.variable = new StmtEvalVar(this.name, this);
     }
 }
 
@@ -599,7 +611,7 @@ export class MemberStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.variable = new EvalVar(this.aliasName, this);
+        this.variable = new StmtEvalVar(this.aliasName, this);
         this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
         if (parser.hasReachedEnd()) {
             this.aliasName = this.name;

@@ -1,34 +1,67 @@
 
-import { ItemType } from "./itemType.js";
-
 export class Var {
+    // Concrete subclasses of Var must implement these methods:
+    // getConstraintType
     
-    constructor(name, statement) {
+    constructor(name) {
         this.name = name;
-        this.statement = statement;
-    }
-    
-    getConstraintType() {
-        const { typeExprSeq, initItemExprSeq } = this.statement;
-        if (typeExprSeq !== null) {
-            return typeExprSeq.getCompItems()[0];
-        } else if (initItemExprSeq !== null) {
-            return initItemExprSeq.getConstraintTypes()[0];
-        } else {
-            return new ItemType();
-        }
     }
 }
 
 export class CompVar extends Var {
+    // Concrete subclasses of CompVar must implement these methods:
+    // getCompItem
+    
+}
+
+export class BuiltInCompVar extends CompVar {
+    
+    constructor(name, item, constraintType) {
+        super(name);
+        this.item = item;
+        this.constraintType = constraintType;
+    }
+    
+    getConstraintType() {
+        return this.constraintType;
+    }
     
     getCompItem() {
-        return this.statement.getCompItem();
+        return this.item;
+    }
+}
+
+export class StmtCompVar extends CompVar {
+    
+    constructor(name, stmt) {
+        super(name);
+        this.stmt = stmt;
+    }
+    
+    getConstraintType() {
+        return this.stmt.getConstraintType();
+    }
+    
+    getCompItem() {
+        return this.stmt.getCompItem();
     }
 }
 
 export class EvalVar extends Var {
     
+}
+
+// Really wishing I had multiple inheritance right now...
+export class StmtEvalVar extends EvalVar {
+    
+    constructor(name, stmt) {
+        super(name);
+        this.stmt = stmt;
+    }
+    
+    getConstraintType() {
+        return this.stmt.getConstraintType();
+    }
 }
 
 
