@@ -46,6 +46,9 @@ export class EvalContext {
         if (this.typeIdMap.has(discerner)) {
             this.typeIdMap.set(discerner, typeId);
         }
+        if (this.parent !== null) {
+            this.parent.stowTypeId(discerner, typeId);
+        }
     }
     
     getTypeId(discerner) {

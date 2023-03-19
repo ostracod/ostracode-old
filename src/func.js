@@ -48,6 +48,9 @@ export class CustomMethod extends CustomFunc {
     
     constructor(methodStmt, parentContext, featureInstance) {
         const argVars = nodeUtils.getChildVars(methodStmt.attrStmtSeq, ArgsStmt);
+        if (methodStmt.bhvrStmtSeq === null) {
+            methodStmt.throwError("Feature method must provide behavior statement sequence.");
+        }
         super(argVars, methodStmt.bhvrStmtSeq, parentContext);
         this.methodStmt = methodStmt;
         this.featureInstance = featureInstance;

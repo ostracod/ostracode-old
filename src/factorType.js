@@ -1,4 +1,5 @@
 
+import { CompilerError } from "./error.js";
 import { ItemType } from "./itemType.js";
 import { FeatureMemberRef } from "./itemRef.js";
 
@@ -51,6 +52,9 @@ export class FeatureType extends FactorType {
     }
     
     getObjMember(obj, name, context) {
+        if (this.discerner === null) {
+            throw new CompilerError("Cannot retrieve member of feature without discerned type.");
+        }
         const typeId = context.getTypeId(this.discerner);
         const featureInstance = obj.featureInstances.get(typeId);
         return new FeatureMemberRef(featureInstance, name);

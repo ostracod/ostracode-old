@@ -48,7 +48,7 @@ export class OstraCodeFile extends Node {
         const parser = new PreGroupParser(this.tokens);
         const bhvrPreStmts = parser.parsePreGroups(BhvrPreStmt);
         this.bhvrStmtSeq = new BhvrStmtSeq(bhvrPreStmts);
-        this.bhvrStmtSeq.lineNumber = 1;
+        this.bhvrStmtSeq.lineNum = 1;
         this.setChildren([this.bhvrStmtSeq]);
     }
     

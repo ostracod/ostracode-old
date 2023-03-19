@@ -30,7 +30,12 @@ export class SingleComponentExpr extends Expr {
 }
 
 export class LiteralExpr extends SingleComponentExpr {
+    // Concrete subclasses of LiteralExpr must implement these methods:
+    // getItem
     
+    evaluate(context) {
+        return new ResultRef(this.getItem());
+    }
 }
 
 export class NumLiteralExpr extends LiteralExpr {
@@ -48,8 +53,8 @@ export class NumLiteralExpr extends LiteralExpr {
         return new NumType();
     }
     
-    evaluate(context) {
-        return new ResultRef(this.value);
+    getItem() {
+        return this.value;
     }
 }
 
@@ -68,8 +73,8 @@ export class StrLiteralExpr extends LiteralExpr {
         return new StrType();
     }
     
-    evaluate(context) {
-        return new ResultRef(this.text);
+    getItem() {
+        return this.text;
     }
 }
 
@@ -84,27 +89,27 @@ export class IdentifierExpr extends SingleComponentExpr {
         return this.name;
     }
     
-    evaluate(context) {
+    getNonNullVar() {
         const variable = this.getVar(this.name);
         if (variable === null) {
             this.throwError(`Cannot find variable with name "${this.name}".`);
         }
+        return variable;
+    }
+    
+    evaluate(context) {
         try {
-            return context.getRefByVar(variable);
+            return context.getRefByVar(this.getNonNullVar());
         } catch (error) {
             if (error instanceof CompilerError) {
-                error.lineNumber = this.getLineNumber();
+                error.lineNum = this.getLineNum();
             }
             throw error;
         }
     }
     
     getConstraintType() {
-        const variable = this.getVar(this.name);
-        if (variable === null) {
-            this.throwError(`Cannot determine constraint type of "${this.name}".`);
-        }
-        return variable.getConstraintType();
+        return this.getNonNullVar().getConstraintType();
     }
 }
 
@@ -183,6 +188,7 @@ export class ArgsExpr extends Expr {
     }
     
     evaluate(context) {
+        // TODO: Handle item qualification.
         const func = this.operand.evaluateToItem(context);
         const args = this.argExprSeq.evaluateToItems(context);
         return new ResultRef(func.evaluate(args));

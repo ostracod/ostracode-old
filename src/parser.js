@@ -19,7 +19,7 @@ const isHexDigit = (charCode) => (isDecDigit(charCode)
     || (charCode >= 65 && charCode <= 70)
     || (charCode >= 97 && charCode <= 102));
 
-const isDecNumberChar = (charCode) => (isDecDigit(charCode) || charCode === 46);
+const isDecNumChar = (charCode) => (isDecDigit(charCode) || charCode === 46);
 
 const isFirstWordChar = (charCode) => (
     (charCode >= 65 && charCode <= 90)
@@ -70,7 +70,7 @@ const getSeqBuilder = (openBracketToken) => {
     }
     const createSeq = (preGroups) => {
         const output = createHelper(preGroups);
-        output.lineNumber = openBracketToken.lineNumber;
+        output.lineNum = openBracketToken.lineNum;
         return output;
     };
     return { groupConstructor, closeBracketText, createSeq };
@@ -81,7 +81,7 @@ export class TokenParser {
     constructor(content) {
         this.content = content;
         this.index = 0;
-        this.lineNumber = 1;
+        this.lineNum = 1;
     }
     
     peekChar(offset = 0) {
@@ -97,7 +97,7 @@ export class TokenParser {
         for (let count = 0; count < amount; count += 1) {
             const charCode = this.peekChar();
             if (charCode === 10) {
-                this.lineNumber += 1;
+                this.lineNum += 1;
             }
             this.index += 1;
         }
@@ -158,11 +158,11 @@ export class TokenParser {
             this.advanceIndex();
         }
         const text = this.content.substring(startIndex, this.index);
-        return new tokenConstructor(text, this.lineNumber);
+        return new tokenConstructor(text, this.lineNum);
     }
     
     parseDecNumToken() {
-        return this.parseTokenHelper(isDecNumberChar, DecNumToken);
+        return this.parseTokenHelper(isDecNumChar, DecNumToken);
     }
     
     parseHexNumToken() {
@@ -191,7 +191,7 @@ export class TokenParser {
             }
             chars.push(String.fromCharCode(charCode));
         }
-        return new StrToken(chars.join(""), this.lineNumber);
+        return new StrToken(chars.join(""), this.lineNum);
     }
     
     parseCharToken() {
@@ -204,7 +204,7 @@ export class TokenParser {
         if (apostropheChar !== 39) {
             throw new CompilerError("Expected apostrophe.");
         }
-        return new CharToken(String.fromCharCode(charCode), this.lineNumber);
+        return new CharToken(String.fromCharCode(charCode), this.lineNum);
     }
     
     parseToken() {
@@ -241,11 +241,11 @@ export class TokenParser {
         if (isFirstWordChar(firstChar)) {
             return this.parseWordToken();
         }
-        const { lineNumber } = this;
+        const { lineNum } = this;
         for (const dict of tokenConstructors) {
             text = this.readText(dict.textList);
             if (text !== null) {
-                return new dict.constructor(text, lineNumber);
+                return new dict.constructor(text, lineNum);
             }
         }
         throw new CompilerError(`Unexpected character '${String.fromCharCode(firstChar)}'.`);
@@ -259,7 +259,7 @@ export class TokenParser {
                 token = this.parseToken();
             } catch (error) {
                 if (error instanceof CompilerError) {
-                    error.lineNumber = this.lineNumber;
+                    error.lineNum = this.lineNum;
                 }
                 throw error;
             }

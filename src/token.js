@@ -3,14 +3,14 @@ import { Node } from "./node.js";
 
 export class Token extends Node {
     
-    constructor(text, lineNumber) {
+    constructor(text, lineNum) {
         super();
         this.text = text;
-        this.lineNumber = lineNumber;
+        this.lineNum = lineNum;
     }
     
-    getLineNumber() {
-        return this.lineNumber;
+    getLineNum() {
+        return this.lineNum;
     }
 }
 

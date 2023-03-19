@@ -23,8 +23,8 @@ export class Stmt extends ResolvedGroup {
         try {
             this.init(parser);
         } catch (error) {
-            if (error instanceof CompilerError && error.lineNumber === null) {
-                error.lineNumber = this.getLineNumber();
+            if (error instanceof CompilerError && error.lineNum === null) {
+                error.lineNum = this.getLineNum();
             }
             throw error;
         }
@@ -503,10 +503,10 @@ export class MethodStmt extends ChildAttrStmt {
     
     resolveVars() {
         const argVars = nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
+        this.addVars(argVars);
         const featureType = this.getFeatureExpr().getConstraintType();
         const objType = new ObjType(featureType);
         this.selfVar = new BuiltInEvalVar("self", objType);
-        this.addVars(argVars);
         this.addVar(this.selfVar);
     }
 }

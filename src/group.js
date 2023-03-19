@@ -8,8 +8,8 @@ export class Group extends Node {
         this.components = components;
     }
     
-    getLineNumber() {
-        return this.components[0].getLineNumber();
+    getLineNum() {
+        return this.components[0].getLineNum();
     }
 }
 

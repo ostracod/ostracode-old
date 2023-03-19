@@ -36,9 +36,6 @@ export class FeatureMethod extends FeatureMember {
     constructor(methodStmt, context) {
         super(methodStmt.name, context);
         this.methodStmt = methodStmt;
-        if (this.methodStmt.bhvrStmtSeq === null) {
-            this.methodStmt.throwError("Feature method must provide behavior statement sequence.");
-        }
     }
     
     createMethod(featureInstance) {
@@ -89,7 +86,7 @@ export class FeatureInstance {
         }
         const featureMethod = this.feature.methods.get(name);
         if (typeof featureMethod === "undefined") {
-            throw new CompilerError(`Unknown field "${name}".`);
+            throw new CompilerError(`Unknown member "${name}".`);
         }
         return featureMethod.createMethod(this);
     }

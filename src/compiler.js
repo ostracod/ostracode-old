@@ -79,8 +79,7 @@ export class Compiler {
                     return;
                 }
                 const javaScriptPath = path.substring(
-                    0,
-                    path.length - ostraCodeExtension.length,
+                    0, path.length - ostraCodeExtension.length,
                 ) + javaScriptExtension;
                 this.addOstraCodeFile(new OstraCodeFile(
                     pathUtils.join(srcPath, path),

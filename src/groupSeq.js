@@ -13,7 +13,7 @@ export class GroupSeq extends Node {
     constructor(groups) {
         super();
         this.setGroups(groups);
-        this.lineNumber = null;
+        this.lineNum = null;
     }
     
     setGroups(groups) {
@@ -21,8 +21,8 @@ export class GroupSeq extends Node {
         this.setChildren(this.groups);
     }
     
-    getLineNumber() {
-        return this.lineNumber;
+    getLineNum() {
+        return this.lineNum;
     }
     
     resolveStmts() {
@@ -70,11 +70,7 @@ export class BhvrStmtSeq extends StmtSeq {
     }
     
     evaluate(parentContext) {
-        const discerners = [];
-        for (const stmt of this.groups) {
-            niceUtils.extendList(discerners, stmt.getParentDiscerners());
-        }
-        const context = new EvalContext(this.getVars(), discerners, parentContext);
+        const context = new EvalContext(this.getVars(), this.getDiscerners(), parentContext);
         for (const stmt of this.groups) {
             const result = stmt.evaluate(context);
             if (result.flowControl !== FlowControl.None) {
@@ -153,10 +149,7 @@ export class CompExprSeq extends ExprSeq {
         this.exprSeqSelector = exprSeqSelector;
         this.itemResolutions = [];
         while (this.itemResolutions.length < this.groups.length) {
-            this.itemResolutions.push({
-                hasResolved: false,
-                item: 0,
-            });
+            this.itemResolutions.push({ hasResolved: false, item: 0 });
         }
     }
     
