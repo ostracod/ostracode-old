@@ -31,7 +31,7 @@ export class FeatureTypeMethod extends FeatureTypeMember {
     }
 }
 
-export class FeatureType extends ItemType {
+export class FeatureType extends FactorType {
     
     constructor(fieldStmts, methodStmts, discerner = null) {
         super();

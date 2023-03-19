@@ -18,7 +18,7 @@ export class ResultRef extends ItemRef {
     }
     
     write(item) {
-        throw new CompilerError("Cannot read item from this type of expression.");
+        throw new CompilerError("Cannot write item to this type of expression.");
     }
 }
 

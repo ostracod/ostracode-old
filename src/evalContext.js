@@ -49,7 +49,8 @@ export class EvalContext {
     }
     
     getTypeId(discerner) {
-        return this.typeIdMap.get(discerner);
+        const typeId = this.typeIdMap.get(discerner);
+        return (typeof typeId === "undefined") ? this.parent.getTypeId(discerner) : typeId;
     }
 }
 

@@ -1,8 +1,6 @@
 
 import { CompilerError } from "./error.js";
-import * as nodeUtils from "./nodeUtils.js";
 import { createTypeId } from "./itemType.js";
-import { ArgsStmt } from "./stmt.js";
 import { CustomMethod } from "./func.js";
 
 export class Factor {
@@ -35,21 +33,23 @@ export class FeatureField extends FeatureMember {
 
 export class FeatureMethod extends FeatureMember {
     
-    constructor(name, context, attrStmtSeq, bhvrStmtSeq) {
-        super(name, context);
-        this.attrStmtSeq = attrStmtSeq;
-        this.bhvrStmtSeq = bhvrStmtSeq;
+    constructor(methodStmt, context) {
+        super(methodStmt.name, context);
+        this.methodStmt = methodStmt;
+        if (this.methodStmt.bhvrStmtSeq === null) {
+            this.methodStmt.throwError("Feature method must provide behavior statement sequence.");
+        }
     }
     
-    createMethod(item) {
-        const argVars = nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
-        return new CustomMethod(argVars, this.bhvrStmtSeq, this.context, item);
+    createMethod(featureInstance) {
+        return new CustomMethod(this.methodStmt, this.context, featureInstance);
     }
 }
 
-export class Feature {
+export class Feature extends Factor {
     
     constructor(fieldStmts, methodStmts, context) {
+        super();
         this.typeId = createTypeId();
         this.fields = fieldStmts.map((fieldStmt) => {
             const { name } = fieldStmt;
@@ -61,13 +61,7 @@ export class Feature {
         // Map from name to FeatureMethod.
         this.methods = new Map();
         for (const methodStmt of methodStmts) {
-            const { bhvrStmtSeq } = methodStmt;
-            if (bhvrStmtSeq === null) {
-                methodStmt.throwError("Feature method must provide behavior statement sequence.");
-            }
-            const featureMethod = new FeatureMethod(
-                methodStmt.name, context, methodStmt.attrStmtSeq, bhvrStmtSeq,
-            );
+            const featureMethod = new FeatureMethod(methodStmt, context);
             this.methods.set(featureMethod.name, featureMethod);
         }
     }
@@ -97,7 +91,7 @@ export class FeatureInstance {
         if (typeof featureMethod === "undefined") {
             throw new CompilerError(`Unknown field "${name}".`);
         }
-        return featureMethod.createMethod(this.obj);
+        return featureMethod.createMethod(this);
     }
     
     setMemberItem(name, item) {

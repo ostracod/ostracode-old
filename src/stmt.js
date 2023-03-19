@@ -5,9 +5,10 @@ import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
-import { StmtCompVar, StmtEvalVar } from "./var.js";
+import { StmtCompVar, StmtEvalVar, BuiltInEvalVar } from "./var.js";
 import { SpecialExpr, FeatureExpr } from "./specialExpr.js";
 import { ItemType } from "./itemType.js";
+import { ObjType } from "./obj.js";
 
 const initItemName = "initialization item";
 
@@ -493,11 +494,20 @@ export class MethodStmt extends ChildAttrStmt {
         this.name = parser.readIdentifierText();
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.bhvrStmtSeq = parser.readBhvrStmtSeq(true);
+        this.selfVar = null;
+    }
+    
+    getFeatureExpr() {
+        return this.getParent(FeatureExpr);
     }
     
     resolveVars() {
         const argVars = nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
+        const featureType = this.getFeatureExpr().getConstraintType();
+        const objType = new ObjType(featureType);
+        this.selfVar = new BuiltInEvalVar("self", objType);
         this.addVars(argVars);
+        this.addVar(this.selfVar);
     }
 }
 

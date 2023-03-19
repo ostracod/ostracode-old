@@ -1,6 +1,8 @@
 
 import { FlowControl } from "./constants.js";
+import * as nodeUtils from "./nodeUtils.js";
 import { EvalContext } from "./evalContext.js";
+import { ArgsStmt } from "./stmt.js";
 
 export class Func {
     // Concrete subclasses of Func must implement these methods:
@@ -44,14 +46,20 @@ export class CustomFunc extends Func {
 
 export class CustomMethod extends CustomFunc {
     
-    constructor(argVars, bhvrStmtSeq, parentContext, parentItem) {
-        super(argVars, bhvrStmtSeq, parentContext);
-        this.parentItem = parentItem;
+    constructor(methodStmt, parentContext, featureInstance) {
+        const argVars = nodeUtils.getChildVars(methodStmt.attrStmtSeq, ArgsStmt);
+        super(argVars, methodStmt.bhvrStmtSeq, parentContext);
+        this.methodStmt = methodStmt;
+        this.featureInstance = featureInstance;
     }
     
     createParentContext() {
-        // TODO: Implement.
-        return null;
+        const { selfVar } = this.methodStmt;
+        const featureExpr = this.methodStmt.getFeatureExpr();
+        const output = new EvalContext([selfVar], [featureExpr]);
+        output.getRefByVar(selfVar).write(this.featureInstance.obj);
+        output.stowTypeId(featureExpr, this.featureInstance.feature.typeId);
+        return output;
     }
 }
 

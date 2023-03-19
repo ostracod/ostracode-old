@@ -51,6 +51,18 @@ export class EvalVar extends Var {
     
 }
 
+export class BuiltInEvalVar extends EvalVar {
+    
+    constructor(name, constraintType) {
+        super(name);
+        this.constraintType = constraintType;
+    }
+    
+    getConstraintType() {
+        return this.constraintType;
+    }
+}
+
 // Really wishing I had multiple inheritance right now...
 export class StmtEvalVar extends EvalVar {
     
