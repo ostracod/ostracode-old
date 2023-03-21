@@ -49,18 +49,6 @@ export class SpecialExpr extends Expr {
         return nodeUtils.getChildVars(stmtSeq, attrStmtClass);
     }
     
-    isDiscerner() {
-        return false;
-    }
-    
-    getDiscerners() {
-        const output = super.getDiscerners();
-        if (this.isDiscerner()) {
-            output.push(this);
-        }
-        return output;
-    }
-    
     evaluate(context) {
         return new ResultRef(this.evaluateHelper(context));
     }

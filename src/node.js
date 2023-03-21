@@ -11,6 +11,8 @@ export class Node extends CompilerErrorThrower {
         this.children = [];
         // Map from variable name to Var.
         this.varMap = new Map();
+        // List of Expr which discern feature types.
+        this.discerners = [];
     }
     
     addChild(child) {
@@ -62,24 +64,6 @@ export class Node extends CompilerErrorThrower {
         return Array.from(this.varMap.values());
     }
     
-    shouldUseDiscerners(child) {
-        return true;
-    }
-    
-    getDiscerners() {
-        const output = [];
-        for (const child of this.children) {
-            if (this.shouldUseDiscerners(child)) {
-                niceUtils.extendList(output, child.getParentDiscerners());
-            }
-        }
-        return output;
-    }
-    
-    getParentDiscerners() {
-        return this.getDiscerners();
-    }
-    
     getDisplayStringDetail() {
         return null;
     }
@@ -96,6 +80,46 @@ export class Node extends CompilerErrorThrower {
             textList.push(child.getDisplayString(nextIndentation));
         }
         return textList.join("\n");
+    }
+    
+    isDiscerner() {
+        return false;
+    }
+    
+    shouldStoreDiscernersHelper() {
+        return false;
+    }
+    
+    overrideChildDiscerners(child) {
+        return false;
+    }
+    
+    shouldStoreDiscerners() {
+        if (this.shouldStoreDiscernersHelper()) {
+            return true;
+        }
+        if (this.parent === null) {
+            return false;
+        }
+        return (this.parent.overrideChildDiscerners(this));
+    }
+    
+    resolveDiscerners() {
+        const discerners = [];
+        if (this.isDiscerner()) {
+            discerners.push(this);
+        }
+        for (const child of this.children) {
+            const childDiscerners = child.resolveDiscerners();
+            niceUtils.extendList(discerners, childDiscerners);
+        }
+        if (this.shouldStoreDiscerners()) {
+            this.discerners = discerners;
+            return [];
+        } else {
+            this.discerners = [];
+            return discerners;
+        }
     }
     
     resolveCompItems() {

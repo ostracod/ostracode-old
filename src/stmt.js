@@ -433,8 +433,8 @@ export class ArgStmt extends ChildAttrStmt {
         }
     }
     
-    shouldUseDiscerners(child) {
-        return (child !== this.defaultItemExprSeq);
+    overrideChildDiscerners(child) {
+        return (child === this.defaultItemExprSeq);
     }
 }
 
@@ -471,8 +471,8 @@ export class FieldStmt extends ChildAttrStmt {
         }
     }
     
-    shouldUseDiscerners(child) {
-        return !(child === this.initItemExprSeq
+    overrideChildDiscerners(child) {
+        return (child === this.initItemExprSeq
             && this.getParent(SpecialExpr) instanceof FeatureExpr);
     }
 }

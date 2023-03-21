@@ -45,8 +45,7 @@ export class EvalContext {
     stowTypeId(discerner, typeId) {
         if (this.typeIdMap.has(discerner)) {
             this.typeIdMap.set(discerner, typeId);
-        }
-        if (this.parent !== null) {
+        } else if (this.parent !== null) {
             this.parent.stowTypeId(discerner, typeId);
         }
     }

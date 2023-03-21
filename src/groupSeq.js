@@ -65,12 +65,12 @@ export class BhvrStmtSeq extends StmtSeq {
         }
     }
     
-    getParentDiscerners() {
-        return [];
+    shouldStoreDiscernersHelper() {
+        return true;
     }
     
     evaluate(parentContext) {
-        const context = new EvalContext(this.getVars(), this.getDiscerners(), parentContext);
+        const context = new EvalContext(this.getVars(), this.discerners, parentContext);
         for (const stmt of this.groups) {
             const result = stmt.evaluate(context);
             if (result.flowControl !== FlowControl.None) {
@@ -211,8 +211,8 @@ export class CompExprSeq extends ExprSeq {
         return this.itemResolutions.map((resolution) => resolution.item);
     }
     
-    getParentDiscerners() {
-        return [];
+    shouldStoreDiscernersHelper() {
+        return true;
     }
     
     evaluate(context) {
