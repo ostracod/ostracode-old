@@ -21,6 +21,10 @@ class PrintFunc extends BuiltInFunc {
         // TODO: Support ToStringT interface.
         console.log(args[0]);
     }
+    
+    convertToJs() {
+        return "console.log";
+    }
 }
 
 createBuiltInVar("undef", undefined, new UndefType());

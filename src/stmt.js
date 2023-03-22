@@ -168,6 +168,10 @@ export class ExprStmt extends BhvrStmt {
         this.exprSeq.evaluate(context);
         return { flowControl: FlowControl.None };
     }
+    
+    convertToJs() {
+        return this.exprSeq.convertToJs() + ";";
+    }
 }
 
 export class ScopeStmt extends BhvrStmt {

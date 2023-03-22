@@ -1,4 +1,6 @@
 
+import * as compUtils from "./compUtils.js";
+
 export class Var {
     // Concrete subclasses of Var must implement these methods:
     // getConstraintType
@@ -28,6 +30,10 @@ export class BuiltInCompVar extends CompVar {
     
     getCompItem() {
         return this.item;
+    }
+    
+    convertToRefJs() {
+        return compUtils.convertItemToJs(this.item);
     }
 }
 

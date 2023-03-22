@@ -1,5 +1,6 @@
 
 import * as fs from "fs";
+import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";
@@ -69,6 +70,12 @@ export class OstraCodeFile extends Node {
             output = super.resolveCompItems();
         });
         return output;
+    }
+    
+    createJsFile() {
+        niceUtils.ensureDirectoryExists(pathUtils.dirname(this.destPath));
+        const jsCode = this.bhvrStmtSeq.convertToJs();
+        fs.writeFileSync(this.destPath, jsCode + "\n");
     }
 }
 

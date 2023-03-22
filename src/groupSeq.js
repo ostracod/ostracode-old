@@ -79,6 +79,11 @@ export class BhvrStmtSeq extends StmtSeq {
         }
         return { flowControl: FlowControl.None };
     }
+    
+    convertToJs() {
+        const codeList = this.groups.map((stmt) => stmt.convertToJs());
+        return "{\n" + codeList.join("\n") + "\n}";
+    }
 }
 
 // AttrStmtSeq = Attribute statement sequence
@@ -137,6 +142,14 @@ export class EvalExprSeq extends ExprSeq {
     
     evaluate(context) {
         return this.groups.map((group) => group.evaluate(context));
+    }
+    
+    convertToJsList() {
+        return this.groups.map((group) => group.convertToJs());
+    }
+    
+    convertToJs() {
+        return this.convertToJsList()[0];
     }
 }
 

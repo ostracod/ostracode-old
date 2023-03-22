@@ -1,4 +1,5 @@
 
+import * as compUtils from "./compUtils.js";
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
@@ -35,6 +36,10 @@ export class LiteralExpr extends SingleComponentExpr {
     
     evaluate(context) {
         return new ResultRef(this.getItem());
+    }
+    
+    convertToJs() {
+        return compUtils.convertItemToJs(this.getItem());
     }
 }
 
@@ -110,6 +115,10 @@ export class IdentifierExpr extends SingleComponentExpr {
     
     getConstraintType() {
         return this.getNonNullVar().getConstraintType();
+    }
+    
+    convertToJs() {
+        return this.getNonNullVar().convertToRefJs();
     }
 }
 
@@ -192,6 +201,11 @@ export class ArgsExpr extends Expr {
         const func = this.operand.evaluateToItem(context);
         const args = this.argExprSeq.evaluateToItems(context);
         return new ResultRef(func.evaluate(args));
+    }
+    
+    convertToJs() {
+        const codeList = this.argExprSeq.convertToJsList();
+        return "(" + this.operand.convertToJs() + "(" + codeList.join(", ") + "))";
     }
 }
 

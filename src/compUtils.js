@@ -1,5 +1,7 @@
 
 import * as niceUtils from "./niceUtils.js";
+import { CompilerError } from "./error.js";
+import { Func } from "./func.js";
 
 export const resolveCompItems = (resolvables) => {
     let resolvedCount = 0;
@@ -23,6 +25,17 @@ export const resolveAllCompItems = (resolvables) => {
             unresolvedExprs[0].throwError("Could not resolve expression to item.");
         }
         lastResolvedCount = resolvedCount;
+    }
+};
+
+export const convertItemToJs = (item) => {
+    if (typeof item === "string") {
+        // TODO: Escape string characters.
+        return `"${item}"`;
+    } else if (item instanceof Func) {
+        return item.convertToJs();
+    } else {
+        throw new CompilerError("Conversion to JS is not yet implemented for this type of item.");
     }
 };
 

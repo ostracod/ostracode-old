@@ -239,6 +239,9 @@ export class Compiler {
             console.log(codeFile.getDisplayString());
         }
         compUtils.resolveAllCompItems(this.ostraCodeFiles);
+        for (const codeFile of this.ostraCodeFiles) {
+            codeFile.createJsFile();
+        }
     }
 }
 

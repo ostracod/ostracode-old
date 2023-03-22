@@ -28,6 +28,13 @@ export const walkFiles = (path, handle) => {
     walkFilesHelper(path, ".", handle);
 };
 
+export const ensureDirectoryExists = (path) => {
+    if (!fs.existsSync(path)) {
+        ensureDirectoryExists(pathUtils.dirname(path));
+        fs.mkdirSync(path);
+    }
+};
+
 export const nameSetsAreEqual = (names1, names2) => {
     if (names1.size !== names2.size) {
         return false;
