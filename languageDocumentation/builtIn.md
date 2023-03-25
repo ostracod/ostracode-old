@@ -210,7 +210,7 @@ OstraCode has the following built-in factors:
     funcT [args [
         resolve (funcT [args [result ($resultType)]])
         reject (funcT [args [error]])
-    ]
+    ]]
     ```
 
 ## Built-In Modules

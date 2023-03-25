@@ -112,7 +112,7 @@ export class FuncExpr extends SpecialExpr {
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs()})`
+        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs()})`;
     }
 }
 
@@ -147,6 +147,17 @@ export class FeatureValueExpr extends FeatureExpr {
     
     isDiscerner() {
         return true;
+    }
+    
+    convertToJs() {
+        const fieldCodeList = this.fieldStmts.map((stmt) => stmt.convertToJs());
+        const methodCodeList = this.methodStmts.map((stmt) => stmt.convertToJs());
+        return `(class extends classes.Feature {
+constructor() {
+${fieldCodeList.join("\n")}
+}
+${methodCodeList.join("\n")}
+})`;
     }
 }
 

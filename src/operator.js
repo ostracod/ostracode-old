@@ -37,7 +37,7 @@ export class BinaryOperator extends Operator {
     }
     
     convertToJs(expr1, expr2) {
-        return `(${expr1.convertToJs()} ${this.text} ${expr2.convertToJs()})`
+        return `(${expr1.convertToJs()} ${this.text} ${expr2.convertToJs()})`;
     }
 }
 

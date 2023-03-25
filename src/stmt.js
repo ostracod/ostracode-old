@@ -507,6 +507,16 @@ export class FieldStmt extends ChildAttrStmt {
         return (child === this.initItemExprSeq
             && this.getParent(SpecialExpr) instanceof FeatureExpr);
     }
+    
+    convertToJs() {
+        let initItemCode;
+        if (this.initItemExprSeq === null) {
+            initItemCode = "undefined";
+        } else {
+            initItemCode = this.initItemExprSeq.convertToJs();
+        }
+        return `this.${this.name} = ${initItemCode};`;
+    }
 }
 
 export class OptionalStmt extends AttrStmt {
@@ -533,13 +543,24 @@ export class MethodStmt extends ChildAttrStmt {
         return this.getParent(FeatureExpr);
     }
     
+    getArgVars() {
+        return nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
+    }
+    
     resolveVars() {
-        const argVars = nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
-        this.addVars(argVars);
+        this.addVars(this.getArgVars());
         const featureType = this.getFeatureExpr().getConstraintType();
         const objType = new ObjType(featureType);
         this.selfVar = new BuiltInEvalVar("self", objType);
         this.addVar(this.selfVar);
+    }
+    
+    convertToJs() {
+        // TODO: Assign default items.
+        const argIdentifiers = this.getArgVars().map((variable) => (
+            variable.getJsIdentifier()
+        ));
+        return `${this.name}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs()}`;
     }
 }
 
