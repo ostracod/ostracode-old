@@ -153,7 +153,9 @@ export class FeatureValueExpr extends FeatureExpr {
         const fieldCodeList = this.fieldStmts.map((stmt) => stmt.convertToJs());
         const methodCodeList = this.methodStmts.map((stmt) => stmt.convertToJs());
         return `(class extends classes.Feature {
-constructor() {
+static typeId = Symbol("typeId");
+constructor(obj) {
+super(obj);
 ${fieldCodeList.join("\n")}
 }
 ${methodCodeList.join("\n")}
@@ -185,6 +187,10 @@ export class ObjExpr extends ExprSpecialExpr {
     getConstraintType() {
         const factorType = this.exprSeq.getConstraintTypes()[0];
         return new ObjType(factorType);
+    }
+    
+    convertToJs() {
+        return `(new classes.Obj(${this.exprSeq.convertToJs()}))`;
     }
 }
 

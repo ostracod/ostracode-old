@@ -3,6 +3,7 @@ import { FlowControl } from "./constants.js";
 import { CompilerError, UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
+import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
 import { StmtCompVar, StmtEvalVar, BuiltInEvalVar } from "./var.js";
@@ -508,6 +509,10 @@ export class FieldStmt extends ChildAttrStmt {
             && this.getParent(SpecialExpr) instanceof FeatureExpr);
     }
     
+    getJsIdentifier() {
+        return compUtils.getJsIdentifier(this.name);
+    }
+    
     convertToJs() {
         let initItemCode;
         if (this.initItemExprSeq === null) {
@@ -515,7 +520,7 @@ export class FieldStmt extends ChildAttrStmt {
         } else {
             initItemCode = this.initItemExprSeq.convertToJs();
         }
-        return `this.${this.name} = ${initItemCode};`;
+        return `this.${this.getJsIdentifier()} = ${initItemCode};`;
     }
 }
 
@@ -555,12 +560,16 @@ export class MethodStmt extends ChildAttrStmt {
         this.addVar(this.selfVar);
     }
     
+    getJsIdentifier() {
+        return compUtils.getJsIdentifier(this.name);
+    }
+    
     convertToJs() {
         // TODO: Assign default items.
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `${this.name}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs()}`;
+        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs()}`;
     }
 }
 

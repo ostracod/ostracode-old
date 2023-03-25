@@ -10,7 +10,7 @@ export class Var {
     }
     
     getJsIdentifier() {
-        return "$_" + this.name.replace("$", "$$$$");
+        return compUtils.getJsIdentifier(this.name);
     }
 }
 

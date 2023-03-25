@@ -43,4 +43,8 @@ export const convertItemToJs = (item) => {
     }
 };
 
+export const getJsIdentifier = (name, prefix = "_") => (
+    "$" + prefix + name.replace("$", "$$$$")
+);
+
 
