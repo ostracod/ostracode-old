@@ -24,7 +24,7 @@ export const binaryOperatorMap = new Map();
 
 export class BinaryOperator extends Operator {
     // Concrete subclasses of BinaryOperator must implement these methods:
-    // perform
+    // perform, convertToJs
     
     constructor(text, precedence) {
         super(text);
@@ -34,6 +34,10 @@ export class BinaryOperator extends Operator {
     
     perform(itemRef1, itemRef2) {
         throw new CompilerError(`"${this.text}" operator is not yet implemented.`);
+    }
+    
+    convertToJs(expr1, expr2) {
+        return `(${expr1.convertToJs()} ${this.text} ${expr2.convertToJs()})`
     }
 }
 

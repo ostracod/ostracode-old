@@ -144,14 +144,30 @@ export class EvalVarStmt extends VarStmt {
         }
         return { flowControl: FlowControl.None };
     }
+    
+    convertToJs() {
+        const codeList = [this.getJsKeyword() + " " + this.variable.getJsIdentifier()];
+        if (this.initItemExprSeq !== null) {
+            codeList.push(" = ");
+            codeList.push(this.initItemExprSeq.convertToJs());
+        }
+        codeList.push(";");
+        return codeList.join("");
+    }
 }
 
 export class ImmutEvalVarStmt extends EvalVarStmt {
     
+    getJsKeyword() {
+        return "const";
+    }
 }
 
 export class MutEvalVarStmt extends EvalVarStmt {
     
+    getJsKeyword() {
+        return "let";
+    }
 }
 
 export class ExprStmt extends BhvrStmt {

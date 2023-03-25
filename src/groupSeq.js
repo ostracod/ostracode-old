@@ -80,9 +80,12 @@ export class BhvrStmtSeq extends StmtSeq {
         return { flowControl: FlowControl.None };
     }
     
+    convertToJsList() {
+        return this.groups.map((stmt) => stmt.convertToJs());
+    }
+    
     convertToJs() {
-        const codeList = this.groups.map((stmt) => stmt.convertToJs());
-        return "{\n" + codeList.join("\n") + "\n}";
+        return "{\n" + this.convertToJsList().join("\n") + "\n}";
     }
 }
 

@@ -29,9 +29,13 @@ export const resolveAllCompItems = (resolvables) => {
 };
 
 export const convertItemToJs = (item) => {
-    if (typeof item === "string") {
+    const type = typeof item;
+    if (type === "string") {
         // TODO: Escape string characters.
         return `"${item}"`;
+    } else if (type === "number" || type === "boolean" || type === "null"
+            || type === "undefined") {
+        return `${item}`;
     } else if (item instanceof Func) {
         return item.convertToJs();
     } else {

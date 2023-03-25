@@ -155,6 +155,10 @@ export class BinaryExpr extends OperatorExpr {
         const itemRef2 = this.operand2.evaluate(context);
         return this.operator.perform(itemRef1, itemRef2);
     }
+    
+    convertToJs() {
+        return this.operator.convertToJs(this.operand1, this.operand2);
+    }
 }
 
 export class IdentifierAccessExpr extends Expr {

@@ -8,6 +8,10 @@ export class Var {
     constructor(name) {
         this.name = name;
     }
+    
+    getJsIdentifier() {
+        return "$_" + this.name.replace("$", "$$$$");
+    }
 }
 
 export class CompVar extends Var {
@@ -79,6 +83,10 @@ export class StmtEvalVar extends EvalVar {
     
     getConstraintType() {
         return this.stmt.getConstraintType();
+    }
+    
+    convertToRefJs() {
+        return this.getJsIdentifier();
     }
 }
 
