@@ -203,6 +203,10 @@ export class ScopeStmt extends BhvrStmt {
     evaluate(context) {
         return this.stmtSeq.evaluate(context);
     }
+    
+    convertToJs() {
+        return this.stmtSeq.convertToJs();
+    }
 }
 
 export class IfStmt extends BhvrStmt {
@@ -269,6 +273,14 @@ export class ReturnStmt extends BhvrStmt {
             returnItem = this.exprSeq.evaluateToItem(context);
         }
         return { flowControl: FlowControl.Return, returnItem, stmt: this };
+    }
+    
+    convertToJs() {
+        if (this.exprSeq === null) {
+            return "return;";
+        } else {
+            return `return ${this.exprSeq.convertToJs()};`;
+        }
     }
 }
 

@@ -99,9 +99,20 @@ export class FuncExpr extends SpecialExpr {
         this.bhvrStmtSeq = parser.readBhvrStmtSeq();
     }
     
+    getArgVars() {
+        return this.getAttrStmtVars(ArgsStmt);
+    }
+    
     evaluateHelper(context) {
-        const argVars = this.getAttrStmtVars(ArgsStmt);
-        return new CustomFunc(argVars, this.bhvrStmtSeq, context);
+        return new CustomFunc(this.getArgVars(), this.bhvrStmtSeq, context);
+    }
+    
+    convertToJs() {
+        // TODO: Assign default items.
+        const argIdentifiers = this.getArgVars().map((variable) => (
+            variable.getJsIdentifier()
+        ));
+        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs()})`
     }
 }
 
