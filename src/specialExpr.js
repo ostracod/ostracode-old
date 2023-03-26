@@ -152,14 +152,18 @@ export class FeatureValueExpr extends FeatureExpr {
     convertToJs() {
         const fieldCodeList = this.fieldStmts.map((stmt) => stmt.convertToJs());
         const methodCodeList = this.methodStmts.map((stmt) => stmt.convertToJs());
-        return `(class extends classes.Feature {
+        return `(() => {
+const feature = class extends classes.Feature {
 static typeId = Symbol("typeId");
 constructor(obj) {
 super(obj);
 ${fieldCodeList.join("\n")}
 }
 ${methodCodeList.join("\n")}
-})`;
+};
+${this.getDiscernerJsIdentifier()} = feature.typeId;
+return feature;
+})()`;
     }
 }
 

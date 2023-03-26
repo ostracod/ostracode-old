@@ -3,10 +3,14 @@ import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { CompilerErrorThrower } from "./error.js";
 
+let nextNodeId = 0;
+
 export class Node extends CompilerErrorThrower {
     
     constructor() {
         super();
+        this.id = nextNodeId;
+        nextNodeId += 1;
         this.parent = null;
         this.children = [];
         // Map from variable name to Var.
@@ -120,6 +124,10 @@ export class Node extends CompilerErrorThrower {
             this.discerners = [];
             return discerners;
         }
+    }
+    
+    getDiscernerJsIdentifier() {
+        return compUtils.getJsIdentifier(`${this.id}`, "D");
     }
     
     resolveCompItems() {

@@ -81,7 +81,14 @@ export class BhvrStmtSeq extends StmtSeq {
     }
     
     convertToJsList() {
-        return this.groups.map((stmt) => stmt.convertToJs());
+        const output = [];
+        for (const discerner of this.discerners) {
+            output.push(`let ${discerner.getDiscernerJsIdentifier()};`);
+        }
+        this.groups.forEach((stmt) => {
+            output.push(stmt.convertToJs());
+        });
+        return output;
     }
     
     convertToJs() {

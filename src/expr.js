@@ -182,6 +182,16 @@ export class IdentifierAccessExpr extends Expr {
             this.throwError("Item member access is not yet implemented.");
         }
     }
+    
+    convertToJs() {
+        const type = this.operand.getConstraintType();
+        if (type instanceof ObjType) {
+            const discerner = type.factorType.getDiscerner(this.name);
+            return `${this.operand.convertToJs()}[${discerner.getDiscernerJsIdentifier()}].${compUtils.getJsIdentifier(this.name)}`;
+        } else {
+            this.throwError("Item member access is not yet implemented.");
+        }
+    }
 }
 
 export class ExprSeqExpr extends SingleComponentExpr {
