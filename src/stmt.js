@@ -6,7 +6,7 @@ import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
-import { StmtCompVar, StmtEvalVar, BuiltInEvalVar } from "./var.js";
+import { StmtCompVar, StmtEvalVar, ReflexiveVar } from "./var.js";
 import { SpecialExpr, FeatureExpr } from "./specialExpr.js";
 import { ItemType } from "./itemType.js";
 import { ObjType } from "./obj.js";
@@ -556,7 +556,7 @@ export class MethodStmt extends ChildAttrStmt {
         this.addVars(this.getArgVars());
         const featureType = this.getFeatureExpr().getConstraintType();
         const objType = new ObjType(featureType);
-        this.selfVar = new BuiltInEvalVar("self", objType);
+        this.selfVar = new ReflexiveVar("self", objType);
         this.addVar(this.selfVar);
     }
     

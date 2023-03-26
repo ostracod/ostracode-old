@@ -73,6 +73,13 @@ export class BuiltInEvalVar extends EvalVar {
     }
 }
 
+export class ReflexiveVar extends BuiltInEvalVar {
+    
+    convertToRefJs() {
+        return "this.obj";
+    }
+}
+
 // Really wishing I had multiple inheritance right now...
 export class StmtEvalVar extends EvalVar {
     
