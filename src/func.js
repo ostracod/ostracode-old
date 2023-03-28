@@ -19,21 +19,22 @@ export class CustomFunc extends Func {
         super();
         this.argVars = argVars;
         this.bhvrStmtSeq = bhvrStmtSeq;
-        // TODO: Use `parentContext` to create a closure.
-        
+        this.closureContext = new EvalContext();
+        // TODO: Add closure variables for default arg items.
+        this.bhvrStmtSeq.buildClosureContext(this.closureContext, parentContext);
     }
     
-    createParentContext() {
-        return null;
+    getParentContext() {
+        return this.closureContext;
     }
     
     evaluate(args) {
-        const context = new EvalContext(this.argVars, [], this.createParentContext());
+        const context = new EvalContext(this.argVars, [], this.getParentContext());
         for (let index = 0; index < args.length; index++) {
             const item = args[index];
             const variable = this.argVars[index];
             // TODO: Populate default arg items.
-            context.getRefByVar(variable).write(item);
+            context.getRef(variable).write(item);
         }
         const result = this.bhvrStmtSeq.evaluate(context);
         if (result.flowControl === FlowControl.Return) {
@@ -56,11 +57,12 @@ export class CustomMethod extends CustomFunc {
         this.featureInstance = featureInstance;
     }
     
-    createParentContext() {
+    getParentContext() {
         const { selfVar } = this.methodStmt;
         const featureExpr = this.methodStmt.getFeatureExpr();
-        const output = new EvalContext([selfVar], [featureExpr]);
-        output.getRefByVar(selfVar).write(this.featureInstance.obj);
+        const parentContext = super.getParentContext();
+        const output = new EvalContext([selfVar], [featureExpr], parentContext);
+        output.getRef(selfVar).write(this.featureInstance.obj);
         output.stowTypeId(featureExpr, this.featureInstance.feature.typeId);
         return output;
     }

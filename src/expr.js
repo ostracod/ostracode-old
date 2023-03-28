@@ -3,6 +3,7 @@ import * as compUtils from "./compUtils.js";
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
+import { EvalVar } from "./var.js";
 import { ResultRef } from "./itemRef.js";
 import { ObjType } from "./obj.js";
 
@@ -102,9 +103,20 @@ export class IdentifierExpr extends SingleComponentExpr {
         return variable;
     }
     
+    buildClosureContext(destContext, srcContext) {
+        const variable = this.getNonNullVar();
+        if (variable instanceof EvalVar) {
+            const varItem = srcContext.getVarItem(variable);
+            if (varItem !== null) {
+                destContext.addEvalVar(variable, varItem);
+            }
+        }
+        super.buildClosureContext(destContext, srcContext);
+    }
+    
     evaluate(context) {
         try {
-            return context.getRefByVar(this.getNonNullVar());
+            return context.getRef(this.getNonNullVar());
         } catch (error) {
             if (error instanceof CompilerError) {
                 error.lineNum = this.getLineNum();
@@ -173,6 +185,18 @@ export class IdentifierAccessExpr extends Expr {
         return this.name;
     }
     
+    buildClosureContext(destContext, srcContext) {
+        const type = this.operand.getConstraintType();
+        if (type instanceof ObjType) {
+            const discerner = type.factorType.getDiscerner(this.name);
+            const compartment = srcContext.getCompartment(discerner);
+            if (compartment !== null) {
+                destContext.addDiscerner(discerner, compartment);
+            }
+        }
+        super.buildClosureContext(destContext, srcContext);
+    }
+    
     evaluate(context) {
         const item = this.operand.evaluateToItem(context);
         const type = this.operand.getConstraintType();
@@ -199,6 +223,14 @@ export class ExprSeqExpr extends SingleComponentExpr {
     constructor(exprSeq) {
         super(exprSeq);
         this.exprSeq = this.addChild(exprSeq);
+    }
+    
+    evaluate(context) {
+        return this.exprSeq.evaluate(context)[0];
+    }
+    
+    convertToJs() {
+        return "(" + this.exprSeq.convertToJs() + ")";
     }
 }
 

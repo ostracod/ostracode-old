@@ -68,6 +68,12 @@ export class Node extends CompilerErrorThrower {
         return Array.from(this.varMap.values());
     }
     
+    buildClosureContext(destContext, srcContext) {
+        for (const child of this.children) {
+            child.buildClosureContext(destContext, srcContext);
+        }
+    }
+    
     getDisplayStringDetail() {
         return null;
     }

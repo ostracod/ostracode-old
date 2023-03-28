@@ -5,8 +5,15 @@ import { ResultRef, VarRef } from "./itemRef.js";
 
 export class VarItem {
     
-    constructor() {
-        this.item = undefined;
+    constructor(item = undefined) {
+        this.item = item;
+    }
+}
+
+export class TypeIdCompartment {
+    
+    constructor(typeId = undefined) {
+        this.typeId = typeId;
     }
 }
 
@@ -17,18 +24,34 @@ export class EvalContext {
         this.varItemMap = new Map();
         for (const variable of vars) {
             if (variable instanceof EvalVar) {
-                this.varItemMap.set(variable, new VarItem());
+                this.addEvalVar(variable);
             }
         }
-        // Map from discerning Expr to type ID.
-        this.typeIdMap = new Map();
+        // Map from discerning Expr to TypeIdCompartment.
+        this.compartmentMap = new Map();
         for (const discerner of discerners) {
-            this.typeIdMap.set(discerner, undefined);
+            this.addDiscerner(discerner);
         }
         this.parent = parent;
     }
     
-    getRefByVar(variable) {
+    addEvalVar(evalVar, varItem = null) {
+        this.varItemMap.set(evalVar, varItem ?? new VarItem());
+    }
+    
+    addDiscerner(discerner, compartment = null) {
+        this.compartmentMap.set(discerner, compartment ?? new TypeIdCompartment());
+    }
+    
+    getVarItem(evalVar) {
+        const varItem = this.varItemMap.get(evalVar);
+        if (typeof varItem !== "undefined") {
+            return varItem;
+        }
+        return (this.parent === null) ? null : this.parent.getVarItem(evalVar);
+    }
+    
+    getRef(variable) {
         if (variable instanceof CompVar) {
             return new ResultRef(variable.getCompItem());
         }
@@ -39,20 +62,27 @@ export class EvalContext {
         if (this.parent === null) {
             throw new CompilerError(`Cannot access variable "${variable.name}" in this context.`);
         }
-        return this.parent.getRefByVar(variable);
+        return this.parent.getRef(variable);
+    }
+    
+    getCompartment(discerner) {
+        const compartment = this.compartmentMap.get(discerner);
+        if (typeof compartment !== "undefined") {
+            return compartment;
+        }
+        return (this.parent === null) ? null : this.parent.getCompartment(discerner);
     }
     
     stowTypeId(discerner, typeId) {
-        if (this.typeIdMap.has(discerner)) {
-            this.typeIdMap.set(discerner, typeId);
-        } else if (this.parent !== null) {
-            this.parent.stowTypeId(discerner, typeId);
+        const compartment = this.getCompartment(discerner);
+        if (compartment !== null) {
+            compartment.typeId = typeId;
         }
     }
     
     getTypeId(discerner) {
-        const typeId = this.typeIdMap.get(discerner);
-        return (typeof typeId === "undefined") ? this.parent.getTypeId(discerner) : typeId;
+        const compartment = this.getCompartment(discerner);
+        return (compartment === null) ? null : compartment.typeId;
     }
 }
 

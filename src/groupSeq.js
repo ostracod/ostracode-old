@@ -241,6 +241,10 @@ export class CompExprSeq extends ExprSeq {
     evaluate(context) {
         return this.getCompItems().map((item) => new ResultRef(item));
     }
+    
+    convertToJs() {
+        return "";
+    }
 }
 
 
