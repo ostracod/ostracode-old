@@ -28,7 +28,7 @@ export const resolveAllCompItems = (resolvables) => {
     }
 };
 
-export const convertItemToJs = (item) => {
+export const convertItemToJs = (item, aggregator) => {
     const type = typeof item;
     if (type === "string") {
         // TODO: Escape string characters.
@@ -37,7 +37,7 @@ export const convertItemToJs = (item) => {
             || type === "undefined") {
         return `${item}`;
     } else if (item instanceof Func) {
-        return item.convertToJs();
+        return item.convertToJs(aggregator);
     } else {
         throw new CompilerError("Conversion to JS is not yet implemented for this type of item.");
     }

@@ -24,17 +24,17 @@ export class ResultRef extends ItemRef {
 
 export class VarRef extends ItemRef {
     
-    constructor(varItem) {
+    constructor(varContent) {
         super();
-        this.varItem = varItem;
+        this.varContent = varContent;
     }
     
     read() {
-        return this.varItem.item;
+        return this.varContent.item;
     }
     
     write(item) {
-        this.varItem.item = item;
+        this.varContent.item = item;
     }
 }
 

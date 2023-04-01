@@ -107,12 +107,12 @@ export class FuncExpr extends SpecialExpr {
         return new CustomFunc(this.getArgVars(), this.bhvrStmtSeq, context);
     }
     
-    convertToJs() {
+    convertToJs(aggregator) {
         // TODO: Assign default items.
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs()})`;
+        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs(aggregator)})`;
     }
 }
 
@@ -149,9 +149,9 @@ export class FeatureValueExpr extends FeatureExpr {
         return true;
     }
     
-    convertToJs() {
-        const fieldCodeList = this.fieldStmts.map((stmt) => stmt.convertToJs());
-        const methodCodeList = this.methodStmts.map((stmt) => stmt.convertToJs());
+    convertToJs(aggregator) {
+        const fieldCodeList = this.fieldStmts.map((stmt) => stmt.convertToJs(aggregator));
+        const methodCodeList = this.methodStmts.map((stmt) => stmt.convertToJs(aggregator));
         return `(() => {
 const feature = class extends classes.Feature {
 static typeId = Symbol("typeId");
@@ -193,8 +193,8 @@ export class ObjExpr extends ExprSpecialExpr {
         return new ObjType(factorType);
     }
     
-    convertToJs() {
-        return `(new classes.Obj(${this.exprSeq.convertToJs()}))`;
+    convertToJs(aggregator) {
+        return `(new classes.Obj(${this.exprSeq.convertToJs(aggregator)}))`;
     }
 }
 

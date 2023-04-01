@@ -36,8 +36,8 @@ export class BuiltInCompVar extends CompVar {
         return this.item;
     }
     
-    convertToRefJs() {
-        return compUtils.convertItemToJs(this.item);
+    convertToRefJs(aggregator) {
+        return compUtils.convertItemToJs(this.item, aggregator);
     }
 }
 
@@ -54,6 +54,10 @@ export class StmtCompVar extends CompVar {
     
     getCompItem() {
         return this.stmt.getCompItem();
+    }
+    
+    convertToRefJs(aggregator) {
+        return aggregator.convertItemToRefJs(this.getCompItem());
     }
 }
 
@@ -75,7 +79,7 @@ export class BuiltInEvalVar extends EvalVar {
 
 export class ReflexiveVar extends BuiltInEvalVar {
     
-    convertToRefJs() {
+    convertToRefJs(aggregator) {
         return "this.obj";
     }
 }
@@ -92,7 +96,7 @@ export class StmtEvalVar extends EvalVar {
         return this.stmt.getConstraintType();
     }
     
-    convertToRefJs() {
+    convertToRefJs(aggregator) {
         return this.getJsIdentifier();
     }
 }

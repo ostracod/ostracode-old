@@ -72,9 +72,9 @@ export class OstraCodeFile extends Node {
         return output;
     }
     
-    createJsFile() {
+    createJsFile(aggregator) {
         niceUtils.ensureDirectoryExists(pathUtils.dirname(this.destPath));
-        const codeList = this.bhvrStmtSeq.convertToJsList();
+        const codeList = this.bhvrStmtSeq.convertToJsList(aggregator);
         const code = "import { classes, utils } from \"ostracode-base\";\n" + codeList.join("\n") + "\n";
         fs.writeFileSync(this.destPath, code);
     }

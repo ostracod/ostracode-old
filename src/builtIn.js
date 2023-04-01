@@ -22,7 +22,7 @@ class PrintFunc extends BuiltInFunc {
         console.log(args[0]);
     }
     
-    convertToJs() {
+    convertToJs(aggregator) {
         return "console.log";
     }
 }

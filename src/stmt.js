@@ -130,6 +130,10 @@ export class CompVarStmt extends VarStmt {
     evaluate(context) {
         return { flowControl: FlowControl.None };
     }
+    
+    convertToJs(aggregator) {
+        return "";
+    }
 }
 
 export class EvalVarStmt extends VarStmt {
@@ -146,11 +150,11 @@ export class EvalVarStmt extends VarStmt {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJs() {
+    convertToJs(aggregator) {
         const codeList = [this.getJsKeyword() + " " + this.variable.getJsIdentifier()];
         if (this.initItemExprSeq !== null) {
             codeList.push(" = ");
-            codeList.push(this.initItemExprSeq.convertToJs());
+            codeList.push(this.initItemExprSeq.convertToJs(aggregator));
         }
         codeList.push(";");
         return codeList.join("");
@@ -186,8 +190,8 @@ export class ExprStmt extends BhvrStmt {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJs() {
-        return this.exprSeq.convertToJs() + ";";
+    convertToJs(aggregator) {
+        return this.exprSeq.convertToJs(aggregator) + ";";
     }
 }
 
@@ -205,8 +209,8 @@ export class ScopeStmt extends BhvrStmt {
         return this.stmtSeq.evaluate(context);
     }
     
-    convertToJs() {
-        return this.stmtSeq.convertToJs();
+    convertToJs(aggregator) {
+        return this.stmtSeq.convertToJs(aggregator);
     }
 }
 
@@ -276,11 +280,11 @@ export class ReturnStmt extends BhvrStmt {
         return { flowControl: FlowControl.Return, returnItem, stmt: this };
     }
     
-    convertToJs() {
+    convertToJs(aggregator) {
         if (this.exprSeq === null) {
             return "return;";
         } else {
-            return `return ${this.exprSeq.convertToJs()};`;
+            return `return ${this.exprSeq.convertToJs(aggregator)};`;
         }
     }
 }
@@ -513,12 +517,12 @@ export class FieldStmt extends ChildAttrStmt {
         return compUtils.getJsIdentifier(this.name);
     }
     
-    convertToJs() {
+    convertToJs(aggregator) {
         let initItemCode;
         if (this.initItemExprSeq === null) {
             initItemCode = "undefined";
         } else {
-            initItemCode = this.initItemExprSeq.convertToJs();
+            initItemCode = this.initItemExprSeq.convertToJs(aggregator);
         }
         return `this.${this.getJsIdentifier()} = ${initItemCode};`;
     }
@@ -564,12 +568,12 @@ export class MethodStmt extends ChildAttrStmt {
         return compUtils.getJsIdentifier(this.name);
     }
     
-    convertToJs() {
+    convertToJs(aggregator) {
         // TODO: Assign default items.
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs()}`;
+        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs(aggregator)}`;
     }
 }
 

@@ -6,7 +6,7 @@ import { ArgsStmt } from "./stmt.js";
 
 export class Func {
     // Concrete subclasses of Func must implement these methods:
-    // evaluate
+    // evaluate, convertToJs
 }
 
 export class BuiltInFunc extends Func {

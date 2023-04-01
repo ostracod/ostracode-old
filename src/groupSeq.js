@@ -80,19 +80,19 @@ export class BhvrStmtSeq extends StmtSeq {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJsList() {
+    convertToJsList(aggregator) {
         const output = [];
         for (const discerner of this.discerners) {
             output.push(`let ${discerner.getDiscernerJsIdentifier()};`);
         }
         this.groups.forEach((stmt) => {
-            output.push(stmt.convertToJs());
+            output.push(stmt.convertToJs(aggregator));
         });
         return output;
     }
     
-    convertToJs() {
-        return "{\n" + this.convertToJsList().join("\n") + "\n}";
+    convertToJs(aggregator) {
+        return "{\n" + this.convertToJsList(aggregator).join("\n") + "\n}";
     }
 }
 
@@ -144,6 +144,10 @@ export class ExprSeq extends GroupSeq {
     evaluateToItem(context) {
         return this.evaluateToItems(context)[0];
     }
+    
+    convertToJs(aggregator) {
+        return this.convertToJsList(aggregator)[0];
+    }
 }
 
 // EvalExprSeq = Evaltime expression sequence
@@ -154,12 +158,8 @@ export class EvalExprSeq extends ExprSeq {
         return this.groups.map((group) => group.evaluate(context));
     }
     
-    convertToJsList() {
-        return this.groups.map((group) => group.convertToJs());
-    }
-    
-    convertToJs() {
-        return this.convertToJsList()[0];
+    convertToJsList(aggregator) {
+        return this.groups.map((group) => group.convertToJs(aggregator));
     }
 }
 
@@ -242,8 +242,8 @@ export class CompExprSeq extends ExprSeq {
         return this.getCompItems().map((item) => new ResultRef(item));
     }
     
-    convertToJs() {
-        return "";
+    convertToJsList(aggregator) {
+        return this.getCompItems().map((item) => aggregator.convertItemToRefJs(item));
     }
 }
 

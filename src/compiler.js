@@ -7,6 +7,7 @@ import * as compUtils from "./compUtils.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 import { BuiltInNode } from "./builtIn.js";
+import { CompItemAggregator } from "./aggregator.js";
 
 const ostraCodeExtension = ".ostc";
 const javaScriptExtension = ".js";
@@ -239,8 +240,9 @@ export class Compiler {
             console.log(codeFile.getDisplayString());
         }
         compUtils.resolveAllCompItems(this.ostraCodeFiles);
+        const aggregator = new CompItemAggregator();
         for (const codeFile of this.ostraCodeFiles) {
-            codeFile.createJsFile();
+            codeFile.createJsFile(aggregator);
         }
     }
 }

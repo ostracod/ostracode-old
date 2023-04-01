@@ -36,8 +36,8 @@ export class BinaryOperator extends Operator {
         throw new CompilerError(`"${this.text}" operator is not yet implemented.`);
     }
     
-    convertToJs(expr1, expr2) {
-        return `(${expr1.convertToJs()} ${this.text} ${expr2.convertToJs()})`;
+    convertToJs(expr1, expr2, aggregator) {
+        return `(${expr1.convertToJs(aggregator)} ${this.text} ${expr2.convertToJs(aggregator)})`;
     }
 }
 
