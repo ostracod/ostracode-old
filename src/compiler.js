@@ -28,6 +28,7 @@ export class Compiler {
         }
         this.srcPath = pathUtils.join(this.packagePath, "src");
         this.buildPath = pathUtils.join(this.packagePath, "build");
+        this.supportPath = pathUtils.join(this.packagePath, "support");
     }
     
     init() {
@@ -240,10 +241,12 @@ export class Compiler {
             console.log(codeFile.getDisplayString());
         }
         compUtils.resolveAllCompItems(this.ostraCodeFiles);
-        const aggregator = new CompItemAggregator();
+        const aggregator = new CompItemAggregator(this.supportPath);
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.createJsFile(aggregator);
         }
+        niceUtils.ensureDirectoryExists(this.supportPath);
+        aggregator.createJsFile();
     }
 }
 

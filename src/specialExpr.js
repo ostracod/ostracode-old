@@ -78,6 +78,15 @@ export class ListExpr extends SpecialExpr {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.exprSeq = parser.readExprSeq();
     }
+    
+    evaluateHelper(context) {
+        return this.exprSeq.evaluateToItems(context);
+    }
+    
+    convertToJs(aggregator) {
+        const codeList = this.exprSeq.convertToJsList(aggregator);
+        return `[${codeList.join(", ")}]`;
+    }
 }
 
 export class ListTypeExpr extends SpecialExpr {

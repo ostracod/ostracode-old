@@ -36,11 +36,15 @@ export const convertItemToJs = (item, aggregator) => {
     } else if (type === "number" || type === "boolean" || type === "null"
             || type === "undefined") {
         return `${item}`;
-    } else if (item instanceof Func) {
-        return item.convertToJs(aggregator);
-    } else {
-        throw new CompilerError("Conversion to JS is not yet implemented for this type of item.");
+    } else if (type === "object") {
+        if (Array.isArray(item)) {
+            const codeList = item.map((element) => convertItemToJs(element, aggregator));
+            return `[${codeList.join(", ")}]`;
+        } else if (item instanceof Func) {
+            return item.convertToJs(aggregator);
+        }
     }
+    throw new CompilerError("Conversion to JS is not yet implemented for this type of item.");
 };
 
 export const getJsIdentifier = (name, prefix = "_") => (
