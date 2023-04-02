@@ -14,7 +14,7 @@ export class CompItemAggregator {
         this.nextItemId = 0;
     }
     
-    convertItemToRefJs(item) {
+    addItem(item) {
         if (typeof item === "object" && item !== null) {
             let itemId = this.itemIdMap.get(item);
             if (typeof itemId === "undefined") {
@@ -22,19 +22,54 @@ export class CompItemAggregator {
                 this.nextItemId += 1;
                 this.itemIdMap.set(item, itemId);
             }
-            return "compItems." + getJsIdentifier(itemId);
+            return itemId;
         } else {
-            return compUtils.convertItemToJs(item, this);
+            return null;
         }
     }
     
+    getJsIdentifier(item) {
+        const itemId = this.itemIdMap.get(item);
+        return (typeof itemId === "undefined") ? null : getJsIdentifier(itemId);
+    }
+    
+    convertItemToRefJs(item) {
+        const itemId = this.addItem(item);
+        if (itemId === null) {
+            return this.convertItemToJs(item);
+        } else {
+            return "compItems." + getJsIdentifier(itemId);
+        }
+    }
+    
+    convertItemToJs(item) {
+        return compUtils.convertItemToJs(item, (nestedItem) => (
+            this.convertItemToRefJs(nestedItem)
+        ));
+    }
+    
+    convertItemToModuleJs(item) {
+        return compUtils.convertItemToJs(item, (nestedItem) => {
+            const identifier = this.getJsIdentifier(nestedItem);
+            if (identifier === null) {
+                return this.convertItemToModuleJs(nestedItem);
+            } else {
+                return identifier;
+            }
+        });
+    }
+    
     createJsFile() {
+        for (const item of this.itemIdMap.keys()) {
+            const nestedItems = compUtils.getNestedItems(item);
+            for (const nestedItem of nestedItems) {
+                this.addItem(nestedItem);
+            }
+        }
         const codeList = [];
         for (const [item, id] of this.itemIdMap) {
             const identifier = getJsIdentifier(id);
-            // TODO: Handle items which have been added to the aggregator
-            // when calling `convertItemToJs`.
-            const itemCode = compUtils.convertItemToJs(item, this);
+            const itemCode = this.convertItemToModuleJs(item);
             codeList.push(`export const ${identifier} = ${itemCode};`);
         }
         const code = codeList.join("\n") + "\n";

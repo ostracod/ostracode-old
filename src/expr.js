@@ -40,7 +40,7 @@ export class LiteralExpr extends SingleComponentExpr {
     }
     
     convertToJs(aggregator) {
-        return compUtils.convertItemToJs(this.getItem(), aggregator);
+        return aggregator.convertItemToJs(this.getItem());
     }
 }
 

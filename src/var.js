@@ -37,7 +37,7 @@ export class BuiltInCompVar extends CompVar {
     }
     
     convertToRefJs(aggregator) {
-        return compUtils.convertItemToJs(this.item, aggregator);
+        return aggregator.convertItemToJs(this.item);
     }
 }
 

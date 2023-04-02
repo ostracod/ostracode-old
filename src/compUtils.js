@@ -1,6 +1,6 @@
 
-import * as niceUtils from "./niceUtils.js";
 import { CompilerError } from "./error.js";
+import * as niceUtils from "./niceUtils.js";
 import { Func } from "./func.js";
 
 export const resolveCompItems = (resolvables) => {
@@ -28,7 +28,18 @@ export const resolveAllCompItems = (resolvables) => {
     }
 };
 
-export const convertItemToJs = (item, aggregator) => {
+export const getNestedItems = (item) => {
+    if (typeof item === "object") {
+        if (Array.isArray(item)) {
+            return item.slice();
+        }
+    } else {
+        return [];
+    }
+    throw new CompilerError("Cannot retrieve nested items for this type of item yet.");
+};
+
+export const convertItemToJs = (item, convertNestedItem) => {
     const type = typeof item;
     if (type === "string") {
         // TODO: Escape string characters.
@@ -38,10 +49,10 @@ export const convertItemToJs = (item, aggregator) => {
         return `${item}`;
     } else if (type === "object") {
         if (Array.isArray(item)) {
-            const codeList = item.map((element) => convertItemToJs(element, aggregator));
+            const codeList = item.map((element) => convertNestedItem(element));
             return `[${codeList.join(", ")}]`;
         } else if (item instanceof Func) {
-            return item.convertToJs(aggregator);
+            return item.convertToJs(convertNestedItem);
         }
     }
     throw new CompilerError("Conversion to JS is not yet implemented for this type of item.");
