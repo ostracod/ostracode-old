@@ -55,4 +55,21 @@ export class FeatureMemberRef extends ItemRef {
     }
 }
 
+export class SubscriptRef extends ItemRef {
+    
+    constructor(item, subscript) {
+        super();
+        this.item = item;
+        this.subscript = subscript;
+    }
+    
+    read() {
+        return this.item[this.subscript];
+    }
+    
+    write(item) {
+        this.item[this.subscript] = item;
+    }
+}
+
 

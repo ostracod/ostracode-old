@@ -1,6 +1,6 @@
 
 import { CompilerError } from "./error.js";
-import { ResultRef } from "./itemRef.js";
+import { ResultRef, SubscriptRef } from "./itemRef.js";
 
 export class Operator {
     
@@ -24,7 +24,7 @@ export const binaryOperatorMap = new Map();
 
 export class BinaryOperator extends Operator {
     // Concrete subclasses of BinaryOperator must implement these methods:
-    // perform, convertToJs
+    // perform
     
     constructor(text, precedence) {
         super(text);
@@ -37,7 +37,28 @@ export class BinaryOperator extends Operator {
     }
     
     convertToJs(expr1, expr2, aggregator) {
-        return `(${expr1.convertToJs(aggregator)} ${this.text} ${expr2.convertToJs(aggregator)})`;
+        const code1 = expr1.convertToJs(aggregator);
+        const code2 = expr2.convertToJs(aggregator);
+        return `(${code1} ${this.text} ${code2})`;
+    }
+}
+
+export class SubscriptOperator extends BinaryOperator {
+    
+    constructor() {
+        super("@", 1);
+    }
+    
+    perform(itemRef1, itemRef2) {
+        const item = itemRef1.read();
+        const subscript = itemRef2.read();
+        return new SubscriptRef(item, subscript);
+    }
+    
+    convertToJs(expr1, expr2, aggregator) {
+        const code1 = expr1.convertToJs(aggregator);
+        const code2 = expr2.convertToJs(aggregator);
+        return `${code1}[${code2}]`;
     }
 }
 
@@ -79,7 +100,7 @@ new BinaryOperator("#neq", 7);
 new BinaryOperator("||", 13);
 new BinaryOperator("&&", 11);
 new BinaryOperator("^^", 12);
-new BinaryOperator("@", 1);
+new SubscriptOperator();
 new BinaryOperator(":", 0);
 new BinaryOperator("::", 0);
 new AssignOperator();
