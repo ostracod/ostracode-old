@@ -39,6 +39,10 @@ export const getNestedItems = (item) => {
     throw new CompilerError("Cannot retrieve nested items for this type of item yet.");
 };
 
+// `convertNestedItem` is a function which accepts two arguments:
+// > The nested item within `item`
+// > A function which accepts an identifier, and returns JS code
+//   which references the nested item
 export const convertItemToJs = (item, convertNestedItem) => {
     const type = typeof item;
     if (type === "string") {
@@ -49,7 +53,10 @@ export const convertItemToJs = (item, convertNestedItem) => {
         return `${item}`;
     } else if (type === "object") {
         if (Array.isArray(item)) {
-            const codeList = item.map((element) => convertNestedItem(element));
+            const codeList = item.map((element, index) => convertNestedItem(
+                element,
+                (identifier) => `${identifier}[${index}]`,
+            ));
             return `[${codeList.join(", ")}]`;
         } else if (item instanceof Func) {
             return item.convertToJs(convertNestedItem);

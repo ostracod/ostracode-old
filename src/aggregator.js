@@ -1,6 +1,7 @@
 
 import * as fs from "fs";
 import * as pathUtils from "path";
+import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 
 const getJsIdentifier = (itemId) => compUtils.getJsIdentifier(`${itemId}`, "C");
@@ -48,15 +49,25 @@ export class CompItemAggregator {
         ));
     }
     
-    convertItemToModuleJs(item) {
-        return compUtils.convertItemToJs(item, (nestedItem) => {
-            const identifier = this.getJsIdentifier(nestedItem);
-            if (identifier === null) {
-                return this.convertItemToModuleJs(nestedItem);
+    convertItemToModuleJs(item, convertedItems) {
+        const assignments = [];
+        const identifier = this.getJsIdentifier(item);
+        const itemCode = compUtils.convertItemToJs(item, (nestedItem, getRefJs) => {
+            const nestedItemIdentifier = this.getJsIdentifier(nestedItem);
+            if (nestedItemIdentifier === null) {
+                const result = this.convertItemToModuleJs(nestedItem, convertedItems);
+                niceUtils.extendList(assignments, result.assignments);
+                return result.itemCode;
+            } else if (convertedItems.has(nestedItem)) {
+                return nestedItemIdentifier;
             } else {
-                return identifier;
+                const refCode = getRefJs(identifier);
+                assignments.push(`${refCode} = ${nestedItemIdentifier};`);
+                return "null";
             }
         });
+        convertedItems.add(item);
+        return { itemCode, assignments };
     }
     
     createJsFile() {
@@ -66,13 +77,16 @@ export class CompItemAggregator {
                 this.addItem(nestedItem);
             }
         }
+        const convertedItems = new Set();
         const codeList = [];
+        const assignments = [];
         for (const [item, id] of this.itemIdMap) {
             const identifier = getJsIdentifier(id);
-            const itemCode = this.convertItemToModuleJs(item);
-            codeList.push(`export const ${identifier} = ${itemCode};`);
+            const result = this.convertItemToModuleJs(item, convertedItems);
+            codeList.push(`export const ${identifier} = ${result.itemCode};`);
+            niceUtils.extendList(assignments, result.assignments);
         }
-        const code = codeList.join("\n") + "\n";
+        const code = codeList.join("\n") + "\n" + assignments.join("\n") + "\n";
         fs.writeFileSync(this.path, code);
     }
 }
