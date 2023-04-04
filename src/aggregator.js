@@ -7,8 +7,7 @@ import { SupportItemConverter } from "./itemConverter.js";
 
 export class CompItemAggregator {
     
-    constructor(supportPath) {
-        this.path = pathUtils.join(supportPath, "compItems.js");
+    constructor() {
         // Map from item to ID.
         this.itemIdMap = new Map();
         this.nextItemId = 0;
@@ -21,28 +20,39 @@ export class CompItemAggregator {
                 itemId = this.nextItemId;
                 this.nextItemId += 1;
                 this.itemIdMap.set(item, itemId);
+                return true;
             }
         }
+        return false;
     }
     
-    createJsFile() {
-        // TODO: Recursively add nested items of nested items.
-        for (const item of this.itemIdMap.keys()) {
-            const nestedItems = compUtils.getNestedItems(item);
-            for (const nestedItem of nestedItems) {
-                this.addItem(nestedItem);
+    createJsFile(supportPath) {
+        let items = Array.from(this.itemIdMap.keys());
+        while (items.length > 0) {
+            let nextItems = [];
+            for (const item of items) {
+                const nestedItems = compUtils.getNestedItems(item);
+                for (const nestedItem of nestedItems) {
+                    const isNew = this.addItem(nestedItem);
+                    if (isNew) {
+                        nextItems.push(nestedItem);
+                    }
+                }
             }
+            items = nextItems;
         }
         const itemConverter = new SupportItemConverter(this.itemIdMap);
         const codeList = [];
         for (const [item, id] of this.itemIdMap) {
-            const identifier = compUtils.getJsIdentifier(`${id}`, "C");
+            const identifier = compUtils.getJsCompIdentifier(id);
             const itemCode = itemConverter.convertItemToJs(item);
+            itemConverter.visibleItems.add(item);
             codeList.push(`export const ${identifier} = ${itemCode};`);
         }
         const { assignments } = itemConverter;
         const code = baseImportStmt + "\n" + codeList.concat(assignments).join("\n") + "\n";
-        fs.writeFileSync(this.path, code);
+        const path = pathUtils.join(supportPath, "compItems.js");
+        fs.writeFileSync(path, code);
     }
 }
 

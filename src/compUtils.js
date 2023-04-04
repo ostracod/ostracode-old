@@ -46,4 +46,6 @@ export const getJsIdentifier = (name, prefix = "_") => (
     "$" + prefix + name.replace("$", "$$$$")
 );
 
+export const getJsCompIdentifier = (itemId) => getJsIdentifier(`${itemId}`, "C");
+
 

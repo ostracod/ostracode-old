@@ -2,6 +2,7 @@
 import { CompilerError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { Func } from "./func.js";
+import { ListNest } from "./itemNest.js";
 
 export class ItemConverter {
     // Concrete subclasses of ItemConverter must implement these methods:
@@ -17,7 +18,7 @@ export class ItemConverter {
         if (typeof itemId === "undefined") {
             return null;
         } else {
-            return compUtils.getJsIdentifier(`${itemId}`, "C");
+            return compUtils.getJsCompIdentifier(itemId);
         }
     }
     
@@ -31,11 +32,10 @@ export class ItemConverter {
             return `${item}`;
         } else if (type === "object") {
             if (Array.isArray(item)) {
-                const codeList = item.map((element, index) => this.convertNestedItem(
-                    item,
-                    element,
-                    (identifier) => `${identifier}[${index}]`,
-                ));
+                const codeList = item.map((element, index) => {
+                    const nest = new ListNest(item, element, index);
+                    return this.convertNestedItem(nest);
+                });
                 return `[${codeList.join(", ")}]`;
             } else if (item instanceof Func) {
                 return item.convertToJs(this);
@@ -52,12 +52,12 @@ export class BuildItemConverter extends ItemConverter {
         if (typeof itemId === "undefined") {
             return this.convertItemToExpansion(item);
         } else {
-            return "compItems." + compUtils.getJsIdentifier(`${itemId}`, "C");
+            return "compItems." + compUtils.getJsCompIdentifier(itemId);
         }
     }
     
-    convertNestedItem(parentItem, item, getRefJs) {
-        return this.convertItemToJs(item);
+    convertNestedItem(nest) {
+        return this.convertItemToJs(nest.childItem);
     }
 }
 
@@ -65,26 +65,25 @@ export class SupportItemConverter extends ItemConverter {
     
     constructor(itemIdMap) {
         super(itemIdMap);
-        this.convertedItems = new Set();
+        this.visibleItems = new Set();
         this.assignments = [];
     }
     
-    convertItemToJs(item, convertedItems) {
-        const output = this.convertItemToExpansion(item);
-        this.convertedItems.add(item);
-        return output;
+    convertItemToJs(item) {
+        return this.convertItemToExpansion(item);
     }
     
-    convertNestedItem(parentItem, item, getRefJs) {
-        const itemIdentifier = this.getJsIdentifier(item);
-        if (itemIdentifier === null) {
+    convertNestedItem(nest) {
+        const item = nest.childItem;
+        const identifier = this.getJsIdentifier(item);
+        if (identifier === null) {
             return this.convertItemToJs(item);
-        } else if (this.convertedItems.has(item)) {
-            return itemIdentifier;
+        } else if (this.visibleItems.has(item)) {
+            return identifier;
         } else {
-            const parentIdentifier = this.getJsIdentifier(parentItem);
-            const refCode = getRefJs(parentIdentifier);
-            this.assignments.push(`${refCode} = ${itemIdentifier};`);
+            const parentIdentifier = this.getJsIdentifier(nest.parentItem);
+            const assignment = nest.convertToJs(parentIdentifier, identifier);
+            this.assignments.push(assignment);
             return "null";
         }
     }

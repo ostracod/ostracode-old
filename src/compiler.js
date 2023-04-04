@@ -242,12 +242,12 @@ export class Compiler {
             console.log(codeFile.getDisplayString());
         }
         compUtils.resolveAllCompItems(this.ostraCodeFiles);
-        const aggregator = new CompItemAggregator(this.supportPath);
+        const aggregator = new CompItemAggregator();
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.aggregateCompItems(aggregator);
         }
         niceUtils.ensureDirectoryExists(this.supportPath);
-        aggregator.createJsFile();
+        aggregator.createJsFile(this.supportPath);
         const itemConverter = new BuildItemConverter(aggregator.itemIdMap);
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.createJsFile(itemConverter);
