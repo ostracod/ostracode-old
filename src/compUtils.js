@@ -32,37 +32,14 @@ export const getNestedItems = (item) => {
     if (typeof item === "object") {
         if (Array.isArray(item)) {
             return item.slice();
+        } else if (item instanceof Func) {
+            // TODO: Implement.
+            return [];
         }
     } else {
         return [];
     }
     throw new CompilerError("Cannot retrieve nested items for this type of item yet.");
-};
-
-// `convertNestedItem` is a function which accepts two arguments:
-// > The nested item within `item`
-// > A function which accepts an identifier, and returns JS code
-//   which references the nested item
-export const convertItemToJs = (item, convertNestedItem) => {
-    const type = typeof item;
-    if (type === "string") {
-        // TODO: Escape string characters.
-        return `"${item}"`;
-    } else if (type === "number" || type === "boolean" || type === "null"
-            || type === "undefined") {
-        return `${item}`;
-    } else if (type === "object") {
-        if (Array.isArray(item)) {
-            const codeList = item.map((element, index) => convertNestedItem(
-                element,
-                (identifier) => `${identifier}[${index}]`,
-            ));
-            return `[${codeList.join(", ")}]`;
-        } else if (item instanceof Func) {
-            return item.convertToJs(convertNestedItem);
-        }
-    }
-    throw new CompilerError("Conversion to JS is not yet implemented for this type of item.");
 };
 
 export const getJsIdentifier = (name, prefix = "_") => (

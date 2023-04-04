@@ -39,8 +39,12 @@ export class LiteralExpr extends SingleComponentExpr {
         return new ResultRef(this.getItem());
     }
     
-    convertToJs(aggregator) {
-        return aggregator.convertItemToJs(this.getItem());
+    aggregateCompItems(aggregator) {
+        aggregator.addItem(this.getItem());
+    }
+    
+    convertToJs(itemConverter) {
+        return itemConverter.convertItemToJs(this.getItem());
     }
 }
 
@@ -129,8 +133,12 @@ export class IdentifierExpr extends SingleComponentExpr {
         return this.getNonNullVar().getConstraintType();
     }
     
-    convertToJs(aggregator) {
-        return this.getNonNullVar().convertToRefJs(aggregator);
+    aggregateCompItems(aggregator) {
+        this.getNonNullVar().aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        return this.getNonNullVar().convertToRefJs(itemConverter);
     }
 }
 
@@ -168,8 +176,12 @@ export class BinaryExpr extends OperatorExpr {
         return this.operator.perform(itemRef1, itemRef2);
     }
     
-    convertToJs(aggregator) {
-        return this.operator.convertToJs(this.operand1, this.operand2, aggregator);
+    aggregateCompItems(aggregator) {
+        this.operator.aggregateCompItems(this.operand1, this.operand2, aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        return this.operator.convertToJs(this.operand1, this.operand2, itemConverter);
     }
 }
 
@@ -207,11 +219,15 @@ export class IdentifierAccessExpr extends Expr {
         }
     }
     
-    convertToJs(aggregator) {
+    aggregateCompItems(aggregator) {
+        this.operand.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
             const discerner = type.factorType.getDiscerner(this.name);
-            return `${this.operand.convertToJs(aggregator)}[${discerner.getDiscernerJsIdentifier()}].${compUtils.getJsIdentifier(this.name)}`;
+            return `${this.operand.convertToJs(itemConverter)}[${discerner.getDiscernerJsIdentifier()}].${compUtils.getJsIdentifier(this.name)}`;
         } else {
             this.throwError("Item member access is not yet implemented.");
         }
@@ -229,8 +245,12 @@ export class ExprSeqExpr extends SingleComponentExpr {
         return this.exprSeq.evaluate(context)[0];
     }
     
-    convertToJs(aggregator) {
-        return "(" + this.exprSeq.convertToJs(aggregator) + ")";
+    aggregateCompItems(aggregator) {
+        this.exprSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        return "(" + this.exprSeq.convertToJs(itemConverter) + ")";
     }
 }
 
@@ -249,9 +269,14 @@ export class ArgsExpr extends Expr {
         return new ResultRef(func.evaluate(args));
     }
     
-    convertToJs(aggregator) {
-        const codeList = this.argExprSeq.convertToJsList(aggregator);
-        return "(" + this.operand.convertToJs(aggregator) + "(" + codeList.join(", ") + "))";
+    aggregateCompItems(aggregator) {
+        this.argExprSeq.aggregateCompItems(aggregator);
+        this.operand.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        const codeList = this.argExprSeq.convertToJsList(itemConverter);
+        return "(" + this.operand.convertToJs(itemConverter) + "(" + codeList.join(", ") + "))";
     }
 }
 

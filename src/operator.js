@@ -36,9 +36,14 @@ export class BinaryOperator extends Operator {
         throw new CompilerError(`"${this.text}" operator is not yet implemented.`);
     }
     
-    convertToJs(expr1, expr2, aggregator) {
-        const code1 = expr1.convertToJs(aggregator);
-        const code2 = expr2.convertToJs(aggregator);
+    aggregateCompItems(expr1, expr2, aggregator) {
+        expr1.aggregateCompItems(aggregator);
+        expr2.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(expr1, expr2, itemConverter) {
+        const code1 = expr1.convertToJs(itemConverter);
+        const code2 = expr2.convertToJs(itemConverter);
         return `(${code1} ${this.text} ${code2})`;
     }
 }
@@ -55,9 +60,9 @@ export class SubscriptOperator extends BinaryOperator {
         return new SubscriptRef(item, subscript);
     }
     
-    convertToJs(expr1, expr2, aggregator) {
-        const code1 = expr1.convertToJs(aggregator);
-        const code2 = expr2.convertToJs(aggregator);
+    convertToJs(expr1, expr2, itemConverter) {
+        const code1 = expr1.convertToJs(itemConverter);
+        const code2 = expr2.convertToJs(itemConverter);
         return `${code1}[${code2}]`;
     }
 }

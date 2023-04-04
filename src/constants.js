@@ -42,4 +42,6 @@ export const FlowControl = {
     Continue: Symbol("continue"),
 };
 
+export const baseImportStmt = "import { classes, utils } from \"ostracode-base\";";
+
 

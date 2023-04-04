@@ -2,6 +2,7 @@
 import * as fs from "fs";
 import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
+import { baseImportStmt } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";
 import { BhvrStmtSeq } from "./groupSeq.js";
@@ -72,11 +73,15 @@ export class OstraCodeFile extends Node {
         return output;
     }
     
-    createJsFile(aggregator) {
+    aggregateCompItems(aggregator) {
+        this.bhvrStmtSeq.aggregateCompItems(aggregator);
+    }
+    
+    createJsFile(itemConverter) {
         niceUtils.ensureDirectoryExists(pathUtils.dirname(this.destPath));
-        const codeList = this.bhvrStmtSeq.convertToJsList(aggregator);
+        const codeList = this.bhvrStmtSeq.convertToJsList(itemConverter);
         const code = [
-            "import { classes, utils } from \"ostracode-base\";",
+            baseImportStmt,
             // TODO: Fix this import path.
             "import * as compItems from \"../support/compItems.js\";",
             codeList.join("\n"),

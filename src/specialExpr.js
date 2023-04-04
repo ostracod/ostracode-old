@@ -83,8 +83,12 @@ export class ListExpr extends SpecialExpr {
         return this.exprSeq.evaluateToItems(context);
     }
     
-    convertToJs(aggregator) {
-        const codeList = this.exprSeq.convertToJsList(aggregator);
+    aggregateCompItems(aggregator) {
+        this.exprSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        const codeList = this.exprSeq.convertToJsList(itemConverter);
         return `[${codeList.join(", ")}]`;
     }
 }
@@ -116,12 +120,16 @@ export class FuncExpr extends SpecialExpr {
         return new CustomFunc(this.getArgVars(), this.bhvrStmtSeq, context);
     }
     
-    convertToJs(aggregator) {
+    aggregateCompItems(aggregator) {
+        this.bhvrStmtSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
         // TODO: Assign default items.
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs(aggregator)})`;
+        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs(itemConverter)})`;
     }
 }
 
@@ -158,9 +166,22 @@ export class FeatureValueExpr extends FeatureExpr {
         return true;
     }
     
-    convertToJs(aggregator) {
-        const fieldCodeList = this.fieldStmts.map((stmt) => stmt.convertToJs(aggregator));
-        const methodCodeList = this.methodStmts.map((stmt) => stmt.convertToJs(aggregator));
+    aggregateCompItems(aggregator) {
+        for (const fieldStmt of this.fieldStmts) {
+            fieldStmt.aggregateCompItems(aggregator);
+        }
+        for (const methodStmt of this.methodStmts) {
+            methodStmt.aggregateCompItems(aggregator);
+        }
+    }
+    
+    convertToJs(itemConverter) {
+        const fieldCodeList = this.fieldStmts.map((stmt) => (
+            stmt.convertToJs(itemConverter)
+        ));
+        const methodCodeList = this.methodStmts.map((stmt) => (
+            stmt.convertToJs(itemConverter)
+        ));
         return `(() => {
 const feature = class extends classes.Feature {
 static typeId = Symbol("typeId");
@@ -202,8 +223,12 @@ export class ObjExpr extends ExprSpecialExpr {
         return new ObjType(factorType);
     }
     
-    convertToJs(aggregator) {
-        return `(new classes.Obj(${this.exprSeq.convertToJs(aggregator)}))`;
+    aggregateCompItems(aggregator) {
+        this.exprSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        return `(new classes.Obj(${this.exprSeq.convertToJs(itemConverter)}))`;
     }
 }
 

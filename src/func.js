@@ -43,6 +43,13 @@ export class CustomFunc extends Func {
             result.stmt.throwError("Invalid flow control statement in function.");
         }
     }
+    
+    convertToJs(itemConverter) {
+        // TODO: Handle default arg items.
+        const argIdentifiers = this.argVars.map((argVar) => argVar.getJsIdentifier());
+        const bhvrCode = this.bhvrStmtSeq.convertToJs(itemConverter);
+        return `(${argIdentifiers.join(", ")}) => ${bhvrCode}`;
+    }
 }
 
 export class CustomMethod extends CustomFunc {

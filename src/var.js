@@ -3,7 +3,7 @@ import * as compUtils from "./compUtils.js";
 
 export class Var {
     // Concrete subclasses of Var must implement these methods:
-    // getConstraintType
+    // getConstraintType, aggregateCompItems, convertToRefJs
     
     constructor(name) {
         this.name = name;
@@ -18,6 +18,13 @@ export class CompVar extends Var {
     // Concrete subclasses of CompVar must implement these methods:
     // getCompItem
     
+    aggregateCompItems(aggregator) {
+        aggregator.addItem(this.getCompItem());
+    }
+    
+    convertToRefJs(itemConverter) {
+        return itemConverter.convertItemToJs(this.getCompItem());
+    }
 }
 
 export class BuiltInCompVar extends CompVar {
@@ -35,10 +42,6 @@ export class BuiltInCompVar extends CompVar {
     getCompItem() {
         return this.item;
     }
-    
-    convertToRefJs(aggregator) {
-        return aggregator.convertItemToJs(this.item);
-    }
 }
 
 export class StmtCompVar extends CompVar {
@@ -55,14 +58,13 @@ export class StmtCompVar extends CompVar {
     getCompItem() {
         return this.stmt.getCompItem();
     }
-    
-    convertToRefJs(aggregator) {
-        return aggregator.convertItemToRefJs(this.getCompItem());
-    }
 }
 
 export class EvalVar extends Var {
     
+    aggregateCompItems(aggregator) {
+        // Do nothing.
+    }
 }
 
 export class BuiltInEvalVar extends EvalVar {
@@ -79,7 +81,7 @@ export class BuiltInEvalVar extends EvalVar {
 
 export class ReflexiveVar extends BuiltInEvalVar {
     
-    convertToRefJs(aggregator) {
+    convertToRefJs(itemConverter) {
         return "this.obj";
     }
 }
@@ -96,7 +98,7 @@ export class StmtEvalVar extends EvalVar {
         return this.stmt.getConstraintType();
     }
     
-    convertToRefJs(aggregator) {
+    convertToRefJs(itemConverter) {
         return this.getJsIdentifier();
     }
 }

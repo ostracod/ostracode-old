@@ -80,19 +80,25 @@ export class BhvrStmtSeq extends StmtSeq {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJsList(aggregator) {
+    aggregateCompItems(aggregator) {
+        for (const stmt of this.groups) {
+            stmt.aggregateCompItems(aggregator);
+        }
+    }
+    
+    convertToJsList(itemConverter) {
         const output = [];
         for (const discerner of this.discerners) {
             output.push(`let ${discerner.getDiscernerJsIdentifier()};`);
         }
         this.groups.forEach((stmt) => {
-            output.push(stmt.convertToJs(aggregator));
+            output.push(stmt.convertToJs(itemConverter));
         });
         return output;
     }
     
-    convertToJs(aggregator) {
-        return "{\n" + this.convertToJsList(aggregator).join("\n") + "\n}";
+    convertToJs(itemConverter) {
+        return "{\n" + this.convertToJsList(itemConverter).join("\n") + "\n}";
     }
 }
 
@@ -113,7 +119,7 @@ export class AttrStmtSeq extends StmtSeq {
 // ExprSeq = Expression sequence
 export class ExprSeq extends GroupSeq {
     // Concrete subclasses of ExprSeq must implement these methods:
-    // evaluate
+    // evaluate, aggregateCompItems, convertToJsList
     
     constructor(hasFactorType, exprs) {
         super(exprs);
@@ -145,8 +151,8 @@ export class ExprSeq extends GroupSeq {
         return this.evaluateToItems(context)[0];
     }
     
-    convertToJs(aggregator) {
-        return this.convertToJsList(aggregator)[0];
+    convertToJs(itemConverter) {
+        return this.convertToJsList(itemConverter)[0];
     }
 }
 
@@ -158,8 +164,14 @@ export class EvalExprSeq extends ExprSeq {
         return this.groups.map((group) => group.evaluate(context));
     }
     
-    convertToJsList(aggregator) {
-        return this.groups.map((group) => group.convertToJs(aggregator));
+    aggregateCompItems(aggregator) {
+        for (const expr of this.groups) {
+            expr.aggregateCompItems(aggregator);
+        }
+    }
+    
+    convertToJsList(itemConverter) {
+        return this.groups.map((expr) => expr.convertToJs(itemConverter));
     }
 }
 
@@ -242,8 +254,14 @@ export class CompExprSeq extends ExprSeq {
         return this.getCompItems().map((item) => new ResultRef(item));
     }
     
-    convertToJsList(aggregator) {
-        return this.getCompItems().map((item) => aggregator.convertItemToRefJs(item));
+    aggregateCompItems(aggregator) {
+        for (const item of this.getCompItems()) {
+            aggregator.addItem(item);
+        }
+    }
+    
+    convertToJsList(itemConverter) {
+        return this.getCompItems().map((item) => itemConverter.convertItemToJs(item));
     }
 }
 

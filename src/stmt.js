@@ -57,6 +57,10 @@ export class Stmt extends ResolvedGroup {
     getParentVars() {
         return [];
     }
+    
+    aggregateCompItems(aggregator) {
+        // Do nothing.
+    }
 }
 
 export class BhvrStmt extends Stmt {
@@ -131,7 +135,7 @@ export class CompVarStmt extends VarStmt {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJs(aggregator) {
+    convertToJs(itemConverter) {
         return "";
     }
 }
@@ -150,11 +154,17 @@ export class EvalVarStmt extends VarStmt {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJs(aggregator) {
+    aggregateCompItems(aggregator) {
+        if (this.initItemExprSeq !== null) {
+            this.initItemExprSeq.aggregateCompItems(aggregator);
+        }
+    }
+    
+    convertToJs(itemConverter) {
         const codeList = [this.getJsKeyword() + " " + this.variable.getJsIdentifier()];
         if (this.initItemExprSeq !== null) {
             codeList.push(" = ");
-            codeList.push(this.initItemExprSeq.convertToJs(aggregator));
+            codeList.push(this.initItemExprSeq.convertToJs(itemConverter));
         }
         codeList.push(";");
         return codeList.join("");
@@ -190,8 +200,12 @@ export class ExprStmt extends BhvrStmt {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJs(aggregator) {
-        return this.exprSeq.convertToJs(aggregator) + ";";
+    aggregateCompItems(aggregator) {
+        this.exprSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        return this.exprSeq.convertToJs(itemConverter) + ";";
     }
 }
 
@@ -209,8 +223,12 @@ export class ScopeStmt extends BhvrStmt {
         return this.stmtSeq.evaluate(context);
     }
     
-    convertToJs(aggregator) {
-        return this.stmtSeq.convertToJs(aggregator);
+    aggregateCompItems(aggregator) {
+        this.stmtSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
+        return this.stmtSeq.convertToJs(itemConverter);
     }
 }
 
@@ -280,11 +298,17 @@ export class ReturnStmt extends BhvrStmt {
         return { flowControl: FlowControl.Return, returnItem, stmt: this };
     }
     
-    convertToJs(aggregator) {
+    aggregateCompItems(aggregator) {
+        if (this.exprSeq !== null) {
+            this.exprSeq.aggregateCompItems(aggregator);
+        }
+    }
+    
+    convertToJs(itemConverter) {
         if (this.exprSeq === null) {
             return "return;";
         } else {
-            return `return ${this.exprSeq.convertToJs(aggregator)};`;
+            return `return ${this.exprSeq.convertToJs(itemConverter)};`;
         }
     }
 }
@@ -517,12 +541,18 @@ export class FieldStmt extends ChildAttrStmt {
         return compUtils.getJsIdentifier(this.name);
     }
     
-    convertToJs(aggregator) {
+    aggregateCompItems(aggregator) {
+        if (this.initItemExprSeq !== null) {
+            this.initItemExprSeq.aggregateCompItems(aggregator);
+        }
+    }
+    
+    convertToJs(itemConverter) {
         let initItemCode;
         if (this.initItemExprSeq === null) {
             initItemCode = "undefined";
         } else {
-            initItemCode = this.initItemExprSeq.convertToJs(aggregator);
+            initItemCode = this.initItemExprSeq.convertToJs(itemConverter);
         }
         return `this.${this.getJsIdentifier()} = ${initItemCode};`;
     }
@@ -568,12 +598,16 @@ export class MethodStmt extends ChildAttrStmt {
         return compUtils.getJsIdentifier(this.name);
     }
     
-    convertToJs(aggregator) {
+    aggregateCompItems(aggregator) {
+        this.bhvrStmtSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(itemConverter) {
         // TODO: Assign default items.
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs(aggregator)}`;
+        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs(itemConverter)}`;
     }
 }
 

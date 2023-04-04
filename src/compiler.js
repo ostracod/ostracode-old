@@ -8,6 +8,7 @@ import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 import { BuiltInNode } from "./builtIn.js";
 import { CompItemAggregator } from "./aggregator.js";
+import { BuildItemConverter } from "./itemConverter.js";
 
 const ostraCodeExtension = ".ostc";
 const javaScriptExtension = ".js";
@@ -243,10 +244,14 @@ export class Compiler {
         compUtils.resolveAllCompItems(this.ostraCodeFiles);
         const aggregator = new CompItemAggregator(this.supportPath);
         for (const codeFile of this.ostraCodeFiles) {
-            codeFile.createJsFile(aggregator);
+            codeFile.aggregateCompItems(aggregator);
         }
         niceUtils.ensureDirectoryExists(this.supportPath);
         aggregator.createJsFile();
+        const itemConverter = new BuildItemConverter(aggregator.itemIdMap);
+        for (const codeFile of this.ostraCodeFiles) {
+            codeFile.createJsFile(itemConverter);
+        }
     }
 }
 
