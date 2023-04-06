@@ -3,10 +3,15 @@ import { FlowControl } from "./constants.js";
 import * as nodeUtils from "./nodeUtils.js";
 import { EvalContext } from "./evalContext.js";
 import { ArgsStmt } from "./stmt.js";
+import { CompItemAggregator } from "./aggregator.js";
 
 export class Func {
     // Concrete subclasses of Func must implement these methods:
     // evaluate, convertToJs
+    
+    getNestedItems() {
+        return [];
+    }
 }
 
 export class BuiltInFunc extends Func {
@@ -42,6 +47,19 @@ export class CustomFunc extends Func {
         } else if (result.flowControl !== FlowControl.None) {
             result.stmt.throwError("Invalid flow control statement in function.");
         }
+    }
+    
+    getNestedItems() {
+        const output = [];
+        for (const varContent of this.closureContext.varContentMap.values()) {
+            output.push(varContent.item);
+        }
+        const aggregator = new CompItemAggregator();
+        this.bhvrStmtSeq.aggregateCompItems(aggregator);
+        for (const item of aggregator.itemIdMap.keys()) {
+            output.push(item);
+        }
+        return output;
     }
     
     convertToJs(jsConverter) {

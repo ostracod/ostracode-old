@@ -49,11 +49,9 @@ export class CompItemAggregator {
         const { varContentMap } = func.closureContext;
         const closureItemMap = new Map();
         for (const [variable, varContent] of varContentMap.entries()) {
-            const { item } = varContent;
-            this.addItem(item);
             const varId = this.nextClosureVarId;
             this.nextClosureVarId += 1;
-            const closureItem = new ClosureItem(item, varId);
+            const closureItem = new ClosureItem(varContent.item, varId);
             closureItemMap.set(variable, closureItem);
         }
         this.closureItemsMap.set(func, closureItemMap);

@@ -33,8 +33,7 @@ export const getNestedItems = (item) => {
         if (Array.isArray(item)) {
             return item.slice();
         } else if (item instanceof Func) {
-            // TODO: Implement.
-            return [];
+            return item.getNestedItems();
         }
     } else {
         return [];
