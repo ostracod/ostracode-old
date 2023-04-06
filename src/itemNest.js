@@ -16,8 +16,8 @@ export class ListNest extends ItemNest {
         this.index = index;
     }
     
-    convertToJs(parentIdentifier, childIdentifier) {
-        return `${parentIdentifier}[${this.index}] = ${childIdentifier};`;
+    convertToJs(parentRefCode, childRefCode) {
+        return `${parentRefCode}[${this.index}] = ${childRefCode};`;
     }
 }
 

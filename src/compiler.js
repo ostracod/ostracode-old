@@ -248,7 +248,7 @@ export class Compiler {
         }
         niceUtils.ensureDirectoryExists(this.supportPath);
         aggregator.createJsFile(this.supportPath);
-        const jsConverter = new BuildJsConverter(aggregator.itemIdMap);
+        const jsConverter = new BuildJsConverter(aggregator);
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.createJsFile(jsConverter);
         }

@@ -7,20 +7,23 @@ import { ListNest } from "./itemNest.js";
 
 export class JsConverter {
     // Concrete subclasses of JsConverter must implement these methods:
-    // convertItemToJs, convertNestedItem, convertStmtEvalVar
+    // convertStmtEvalVar
     
-    constructor(itemIdMap) {
-        // Map from item to ID.
-        this.itemIdMap = itemIdMap;
+    constructor(aggregator) {
+        this.aggregator = aggregator;
     }
     
-    getJsIdentifier(item) {
-        const itemId = this.itemIdMap.get(item);
+    convertItemToRefJs(item) {
+        const itemId = this.aggregator.itemIdMap.get(item);
         if (typeof itemId === "undefined") {
             return null;
         } else {
             return compUtils.getJsCompIdentifier(itemId);
         }
+    }
+    
+    convertNestedItem(nest) {
+        throw new Error("Unexpected nested item conversion.");
     }
     
     convertItemToExpansion(item) {
@@ -39,10 +42,16 @@ export class JsConverter {
                 });
                 return `[${codeList.join(", ")}]`;
             } else if (item instanceof Func) {
-                return item.convertToJs(this);
+                const closureItemMap = this.aggregator.closureItemsMap.get(item);
+                const jsConverter = new ClosureJsConverter(this.aggregator, closureItemMap);
+                return item.convertToJs(jsConverter);
             }
         }
         throw new CompilerError("Conversion to JS is not yet implemented for this type of item.");
+    }
+    
+    convertItemToJs(item) {
+        return this.convertItemToRefJs(item) ?? this.convertItemToExpansion(item);
     }
     
     convertVarToRefJs(variable) {
@@ -60,17 +69,9 @@ export class JsConverter {
 
 export class BuildJsConverter extends JsConverter {
     
-    convertItemToJs(item) {
-        const itemId = this.itemIdMap.get(item);
-        if (typeof itemId === "undefined") {
-            return this.convertItemToExpansion(item);
-        } else {
-            return "compItems." + compUtils.getJsCompIdentifier(itemId);
-        }
-    }
-    
-    convertNestedItem(nest) {
-        throw new Error("Unexpected nested item conversion.");
+    convertItemToRefJs(item) {
+        const refCode = super.convertItemToRefJs(item);
+        return (refCode === null) ? null : "compItems." + refCode;
     }
     
     convertStmtEvalVar(variable) {
@@ -80,26 +81,22 @@ export class BuildJsConverter extends JsConverter {
 
 export class SupportJsConverter extends JsConverter {
     
-    constructor(itemIdMap) {
-        super(itemIdMap);
+    constructor(aggregator) {
+        super(aggregator);
         this.visibleItems = new Set();
         this.assignments = [];
     }
     
-    convertItemToJs(item) {
-        return this.convertItemToExpansion(item);
-    }
-    
     convertNestedItem(nest) {
         const item = nest.childItem;
-        const identifier = this.getJsIdentifier(item);
-        if (identifier === null) {
+        const refCode = this.convertItemToRefJs(item);
+        if (refCode === null) {
             return this.convertItemToJs(item);
         } else if (this.visibleItems.has(item)) {
-            return identifier;
+            return refCode;
         } else {
-            const parentIdentifier = this.getJsIdentifier(nest.parentItem);
-            const assignment = nest.convertToJs(parentIdentifier, identifier);
+            const parentRefCode = this.convertItemToRefJs(nest.parentItem);
+            const assignment = nest.convertToJs(parentRefCode, refCode);
             this.assignments.push(assignment);
             return "null";
         }
@@ -107,6 +104,23 @@ export class SupportJsConverter extends JsConverter {
     
     convertStmtEvalVar(variable) {
         throw new Error("Unexpected evaltime variable.");
+    }
+}
+
+export class ClosureJsConverter extends JsConverter {
+    
+    constructor(aggregator, closureItemMap) {
+        super(aggregator);
+        this.closureItemMap = closureItemMap;
+    }
+    
+    convertStmtEvalVar(variable) {
+        const closureItem = this.closureItemMap.get(variable);
+        if (closureItem === null) {
+            return variable.getJsIdentifier();
+        } else {
+            return closureItem.getJsIdentifier();
+        }
     }
 }
 
