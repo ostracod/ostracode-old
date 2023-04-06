@@ -135,7 +135,7 @@ export class CompVarStmt extends VarStmt {
         return { flowControl: FlowControl.None };
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         return "";
     }
 }
@@ -160,11 +160,11 @@ export class EvalVarStmt extends VarStmt {
         }
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         const codeList = [this.getJsKeyword() + " " + this.variable.getJsIdentifier()];
         if (this.initItemExprSeq !== null) {
             codeList.push(" = ");
-            codeList.push(this.initItemExprSeq.convertToJs(itemConverter));
+            codeList.push(this.initItemExprSeq.convertToJs(jsConverter));
         }
         codeList.push(";");
         return codeList.join("");
@@ -204,8 +204,8 @@ export class ExprStmt extends BhvrStmt {
         this.exprSeq.aggregateCompItems(aggregator);
     }
     
-    convertToJs(itemConverter) {
-        return this.exprSeq.convertToJs(itemConverter) + ";";
+    convertToJs(jsConverter) {
+        return this.exprSeq.convertToJs(jsConverter) + ";";
     }
 }
 
@@ -227,8 +227,8 @@ export class ScopeStmt extends BhvrStmt {
         this.stmtSeq.aggregateCompItems(aggregator);
     }
     
-    convertToJs(itemConverter) {
-        return this.stmtSeq.convertToJs(itemConverter);
+    convertToJs(jsConverter) {
+        return this.stmtSeq.convertToJs(jsConverter);
     }
 }
 
@@ -304,11 +304,11 @@ export class ReturnStmt extends BhvrStmt {
         }
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         if (this.exprSeq === null) {
             return "return;";
         } else {
-            return `return ${this.exprSeq.convertToJs(itemConverter)};`;
+            return `return ${this.exprSeq.convertToJs(jsConverter)};`;
         }
     }
 }
@@ -547,12 +547,12 @@ export class FieldStmt extends ChildAttrStmt {
         }
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         let initItemCode;
         if (this.initItemExprSeq === null) {
             initItemCode = "undefined";
         } else {
-            initItemCode = this.initItemExprSeq.convertToJs(itemConverter);
+            initItemCode = this.initItemExprSeq.convertToJs(jsConverter);
         }
         return `this.${this.getJsIdentifier()} = ${initItemCode};`;
     }
@@ -602,12 +602,12 @@ export class MethodStmt extends ChildAttrStmt {
         this.bhvrStmtSeq.aggregateCompItems(aggregator);
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         // TODO: Assign default items.
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs(itemConverter)}`;
+        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs(jsConverter)}`;
     }
 }
 

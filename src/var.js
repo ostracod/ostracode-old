@@ -3,7 +3,7 @@ import * as compUtils from "./compUtils.js";
 
 export class Var {
     // Concrete subclasses of Var must implement these methods:
-    // getConstraintType, aggregateCompItems, convertToRefJs
+    // getConstraintType, aggregateCompItems
     
     constructor(name) {
         this.name = name;
@@ -20,10 +20,6 @@ export class CompVar extends Var {
     
     aggregateCompItems(aggregator) {
         aggregator.addItem(this.getCompItem());
-    }
-    
-    convertToRefJs(itemConverter) {
-        return itemConverter.convertItemToJs(this.getCompItem());
     }
 }
 
@@ -81,7 +77,7 @@ export class BuiltInEvalVar extends EvalVar {
 
 export class ReflexiveVar extends BuiltInEvalVar {
     
-    convertToRefJs(itemConverter) {
+    convertToRefJs() {
         return "this.obj";
     }
 }
@@ -96,10 +92,6 @@ export class StmtEvalVar extends EvalVar {
     
     getConstraintType() {
         return this.stmt.getConstraintType();
-    }
-    
-    convertToRefJs(itemConverter) {
-        return this.getJsIdentifier();
     }
 }
 

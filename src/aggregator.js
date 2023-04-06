@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as pathUtils from "path";
 import { baseImportStmt } from "./constants.js";
 import * as compUtils from "./compUtils.js";
-import { SupportItemConverter } from "./itemConverter.js";
+import { SupportJsConverter } from "./jsConverter.js";
 
 export class CompItemAggregator {
     
@@ -41,15 +41,15 @@ export class CompItemAggregator {
             }
             items = nextItems;
         }
-        const itemConverter = new SupportItemConverter(this.itemIdMap);
+        const jsConverter = new SupportJsConverter(this.itemIdMap);
         const codeList = [];
         for (const [item, id] of this.itemIdMap) {
             const identifier = compUtils.getJsCompIdentifier(id);
-            const itemCode = itemConverter.convertItemToJs(item);
-            itemConverter.visibleItems.add(item);
+            const itemCode = jsConverter.convertItemToJs(item);
+            jsConverter.visibleItems.add(item);
             codeList.push(`export const ${identifier} = ${itemCode};`);
         }
-        const { assignments } = itemConverter;
+        const { assignments } = jsConverter;
         const code = baseImportStmt + "\n" + codeList.concat(assignments).join("\n") + "\n";
         const path = pathUtils.join(supportPath, "compItems.js");
         fs.writeFileSync(path, code);

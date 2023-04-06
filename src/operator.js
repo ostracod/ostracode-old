@@ -41,9 +41,9 @@ export class BinaryOperator extends Operator {
         expr2.aggregateCompItems(aggregator);
     }
     
-    convertToJs(expr1, expr2, itemConverter) {
-        const code1 = expr1.convertToJs(itemConverter);
-        const code2 = expr2.convertToJs(itemConverter);
+    convertToJs(expr1, expr2, jsConverter) {
+        const code1 = expr1.convertToJs(jsConverter);
+        const code2 = expr2.convertToJs(jsConverter);
         return `(${code1} ${this.text} ${code2})`;
     }
 }
@@ -60,9 +60,9 @@ export class SubscriptOperator extends BinaryOperator {
         return new SubscriptRef(item, subscript);
     }
     
-    convertToJs(expr1, expr2, itemConverter) {
-        const code1 = expr1.convertToJs(itemConverter);
-        const code2 = expr2.convertToJs(itemConverter);
+    convertToJs(expr1, expr2, jsConverter) {
+        const code1 = expr1.convertToJs(jsConverter);
+        const code2 = expr2.convertToJs(jsConverter);
         return `${code1}[${code2}]`;
     }
 }

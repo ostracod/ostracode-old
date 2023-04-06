@@ -86,19 +86,19 @@ export class BhvrStmtSeq extends StmtSeq {
         }
     }
     
-    convertToJsList(itemConverter) {
+    convertToJsList(jsConverter) {
         const output = [];
         for (const discerner of this.discerners) {
             output.push(`let ${discerner.getDiscernerJsIdentifier()};`);
         }
         this.groups.forEach((stmt) => {
-            output.push(stmt.convertToJs(itemConverter));
+            output.push(stmt.convertToJs(jsConverter));
         });
         return output;
     }
     
-    convertToJs(itemConverter) {
-        return "{\n" + this.convertToJsList(itemConverter).join("\n") + "\n}";
+    convertToJs(jsConverter) {
+        return "{\n" + this.convertToJsList(jsConverter).join("\n") + "\n}";
     }
 }
 
@@ -151,8 +151,8 @@ export class ExprSeq extends GroupSeq {
         return this.evaluateToItems(context)[0];
     }
     
-    convertToJs(itemConverter) {
-        return this.convertToJsList(itemConverter)[0];
+    convertToJs(jsConverter) {
+        return this.convertToJsList(jsConverter)[0];
     }
 }
 
@@ -170,8 +170,8 @@ export class EvalExprSeq extends ExprSeq {
         }
     }
     
-    convertToJsList(itemConverter) {
-        return this.groups.map((expr) => expr.convertToJs(itemConverter));
+    convertToJsList(jsConverter) {
+        return this.groups.map((expr) => expr.convertToJs(jsConverter));
     }
 }
 
@@ -260,8 +260,8 @@ export class CompExprSeq extends ExprSeq {
         }
     }
     
-    convertToJsList(itemConverter) {
-        return this.getCompItems().map((item) => itemConverter.convertItemToJs(item));
+    convertToJsList(jsConverter) {
+        return this.getCompItems().map((item) => jsConverter.convertItemToJs(item));
     }
 }
 

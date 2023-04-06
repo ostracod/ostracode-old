@@ -87,8 +87,8 @@ export class ListExpr extends SpecialExpr {
         this.exprSeq.aggregateCompItems(aggregator);
     }
     
-    convertToJs(itemConverter) {
-        const codeList = this.exprSeq.convertToJsList(itemConverter);
+    convertToJs(jsConverter) {
+        const codeList = this.exprSeq.convertToJsList(jsConverter);
         return `[${codeList.join(", ")}]`;
     }
 }
@@ -124,12 +124,12 @@ export class FuncExpr extends SpecialExpr {
         this.bhvrStmtSeq.aggregateCompItems(aggregator);
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         // TODO: Assign default items.
         const argIdentifiers = this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
-        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs(itemConverter)})`;
+        return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs(jsConverter)})`;
     }
 }
 
@@ -175,12 +175,12 @@ export class FeatureValueExpr extends FeatureExpr {
         }
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         const fieldCodeList = this.fieldStmts.map((stmt) => (
-            stmt.convertToJs(itemConverter)
+            stmt.convertToJs(jsConverter)
         ));
         const methodCodeList = this.methodStmts.map((stmt) => (
-            stmt.convertToJs(itemConverter)
+            stmt.convertToJs(jsConverter)
         ));
         return `(() => {
 const feature = class extends classes.Feature {
@@ -227,8 +227,8 @@ export class ObjExpr extends ExprSpecialExpr {
         this.exprSeq.aggregateCompItems(aggregator);
     }
     
-    convertToJs(itemConverter) {
-        return `(new classes.Obj(${this.exprSeq.convertToJs(itemConverter)}))`;
+    convertToJs(jsConverter) {
+        return `(new classes.Obj(${this.exprSeq.convertToJs(jsConverter)}))`;
     }
 }
 

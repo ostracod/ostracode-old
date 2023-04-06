@@ -44,10 +44,10 @@ export class CustomFunc extends Func {
         }
     }
     
-    convertToJs(itemConverter) {
+    convertToJs(jsConverter) {
         // TODO: Handle default arg items.
         const argIdentifiers = this.argVars.map((argVar) => argVar.getJsIdentifier());
-        const bhvrCode = this.bhvrStmtSeq.convertToJs(itemConverter);
+        const bhvrCode = this.bhvrStmtSeq.convertToJs(jsConverter);
         return `(${argIdentifiers.join(", ")}) => ${bhvrCode}`;
     }
 }

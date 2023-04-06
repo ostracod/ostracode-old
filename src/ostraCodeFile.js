@@ -77,9 +77,9 @@ export class OstraCodeFile extends Node {
         this.bhvrStmtSeq.aggregateCompItems(aggregator);
     }
     
-    createJsFile(itemConverter) {
+    createJsFile(jsConverter) {
         niceUtils.ensureDirectoryExists(pathUtils.dirname(this.destPath));
-        const codeList = this.bhvrStmtSeq.convertToJsList(itemConverter);
+        const codeList = this.bhvrStmtSeq.convertToJsList(jsConverter);
         const code = [
             baseImportStmt,
             // TODO: Fix this import path.
