@@ -1,10 +1,6 @@
 
-import * as fs from "fs";
-import * as pathUtils from "path";
-import { baseImportStmt } from "./constants.js";
 import * as compUtils from "./compUtils.js";
 import { CustomFunc } from "./func.js";
-import { SupportJsConverter } from "./jsConverter.js";
 
 export class ClosureItem {
     
@@ -57,7 +53,7 @@ export class CompItemAggregator {
         this.closureItemsMap.set(func, closureItemMap);
     }
     
-    createJsFile(supportPath) {
+    addNestedItems() {
         let items = Array.from(this.itemIdMap.keys());
         while (items.length > 0) {
             let nextItems = [];
@@ -72,27 +68,6 @@ export class CompItemAggregator {
             }
             items = nextItems;
         }
-        const jsConverter = new SupportJsConverter(this);
-        const codeList = [];
-        for (const [item, id] of this.itemIdMap) {
-            const identifier = compUtils.getJsCompIdentifier(id);
-            const itemCode = jsConverter.convertItemToExpansion(item);
-            jsConverter.visibleItems.add(item);
-            codeList.push(`export const ${identifier} = ${itemCode};`);
-        }
-        const { assignments } = jsConverter;
-        const closureVarDeclarations = [];
-        for (const closureItemMap of this.closureItemsMap.values()) {
-            for (const closureItem of closureItemMap.values()) {
-                const identifier = closureItem.getJsIdentifier();
-                const itemCode = jsConverter.convertItemToJs(closureItem.item);
-                const declaration = `let ${identifier} = ${itemCode};`
-                closureVarDeclarations.push(declaration);
-            }
-        }
-        const code = baseImportStmt + "\n" + codeList.concat(assignments, closureVarDeclarations).join("\n") + "\n";
-        const path = pathUtils.join(supportPath, "compItems.js");
-        fs.writeFileSync(path, code);
     }
 }
 

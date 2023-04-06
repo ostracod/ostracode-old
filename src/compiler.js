@@ -2,13 +2,14 @@
 import * as fs from "fs";
 import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
+import { baseImportStmt } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 import { BuiltInNode } from "./builtIn.js";
 import { CompItemAggregator } from "./aggregator.js";
-import { BuildJsConverter } from "./jsConverter.js";
+import { BuildJsConverter, SupportJsConverter } from "./jsConverter.js";
 
 const ostraCodeExtension = ".ostc";
 const javaScriptExtension = ".js";
@@ -46,6 +47,7 @@ export class Compiler {
         // Map from build path to OstraCodeFile.
         this.buildPathMap = new Map();
         this.rootPlatformNames = new Set();
+        this.aggregator = new CompItemAggregator();
     }
     
     addOstraCodeFile(codeFile) {
@@ -236,19 +238,44 @@ export class Compiler {
         fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");
     }
     
+    createSupportFile() {
+        const { itemIdMap, closureItemsMap } = this.aggregator;
+        niceUtils.ensureDirectoryExists(this.supportPath);
+        const jsConverter = new SupportJsConverter(this.aggregator);
+        const codeList = [];
+        for (const [item, id] of itemIdMap) {
+            const identifier = compUtils.getJsCompIdentifier(id);
+            const itemCode = jsConverter.convertItemToExpansion(item);
+            jsConverter.visibleItems.add(item);
+            codeList.push(`export const ${identifier} = ${itemCode};`);
+        }
+        const { assignments } = jsConverter;
+        const closureVarDeclarations = [];
+        for (const closureItemMap of closureItemsMap.values()) {
+            for (const closureItem of closureItemMap.values()) {
+                const identifier = closureItem.getJsIdentifier();
+                const itemCode = jsConverter.convertItemToJs(closureItem.item);
+                const declaration = `let ${identifier} = ${itemCode};`;
+                closureVarDeclarations.push(declaration);
+            }
+        }
+        const code = baseImportStmt + "\n" + codeList.concat(assignments, closureVarDeclarations).join("\n") + "\n";
+        const path = pathUtils.join(this.supportPath, "compItems.js");
+        fs.writeFileSync(path, code);
+    }
+    
     compile() {
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.parse();
             console.log(codeFile.getDisplayString());
         }
         compUtils.resolveAllCompItems(this.ostraCodeFiles);
-        const aggregator = new CompItemAggregator();
         for (const codeFile of this.ostraCodeFiles) {
-            codeFile.aggregateCompItems(aggregator);
+            codeFile.aggregateCompItems(this.aggregator);
         }
-        niceUtils.ensureDirectoryExists(this.supportPath);
-        aggregator.createJsFile(this.supportPath);
-        const jsConverter = new BuildJsConverter(aggregator);
+        this.aggregator.addNestedItems();
+        this.createSupportFile();
+        const jsConverter = new BuildJsConverter(this.aggregator);
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.createJsFile(jsConverter);
         }
