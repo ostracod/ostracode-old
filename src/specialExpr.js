@@ -159,7 +159,8 @@ export class FeatureValueExpr extends FeatureExpr {
     }
     
     getConstraintType() {
-        return new FeatureType(this.fieldStmts, this.methodStmts, this);
+        const compartment = this.getDiscernerCompartment();
+        return new FeatureType(this.fieldStmts, this.methodStmts, compartment);
     }
     
     isDiscerner() {
@@ -176,6 +177,7 @@ export class FeatureValueExpr extends FeatureExpr {
     }
     
     convertToJs(jsConverter) {
+        const compartment = this.getDiscernerCompartment();
         const fieldCodeList = this.fieldStmts.map((stmt) => (
             stmt.convertToJs(jsConverter)
         ));
@@ -191,7 +193,7 @@ ${fieldCodeList.join("\n")}
 }
 ${methodCodeList.join("\n")}
 };
-${this.getDiscernerJsIdentifier()} = feature.typeId;
+${compartment.getJsIdentifier()} = feature.typeId;
 return feature;
 })()`;
     }

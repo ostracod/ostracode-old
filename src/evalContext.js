@@ -1,6 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import { CompVar, EvalVar } from "./var.js";
+import { CompCompartment, EvalCompartment } from "./compartment.js";
 import { ResultRef, VarRef } from "./itemRef.js";
 
 export class VarContent {
@@ -19,7 +20,7 @@ export class CompartmentContent {
 
 export class EvalContext {
     
-    constructor(vars = [], discerners = [], parent = null) {
+    constructor(vars = [], compartments = [], parent = null) {
         // Map from EvalVar to VarContent.
         this.varContentMap = new Map();
         for (const variable of vars) {
@@ -27,10 +28,12 @@ export class EvalContext {
                 this.addEvalVar(variable);
             }
         }
-        // Map from discerning Expr to CompartmentContent.
+        // Map from EvalCompartment to CompartmentContent.
         this.compartmentContentMap = new Map();
-        for (const discerner of discerners) {
-            this.addDiscerner(discerner);
+        for (const compartment of compartments) {
+            if (compartment instanceof EvalCompartment) {
+                this.addEvalCompartment(compartment);
+            }
         }
         this.parent = parent;
     }
@@ -39,9 +42,9 @@ export class EvalContext {
         this.varContentMap.set(evalVar, varContent ?? new VarContent());
     }
     
-    addDiscerner(discerner, compartmentContent = null) {
+    addEvalCompartment(evalCompartment, compartmentContent = null) {
         this.compartmentContentMap.set(
-            discerner,
+            evalCompartment,
             compartmentContent ?? new CompartmentContent(),
         );
     }
@@ -68,23 +71,31 @@ export class EvalContext {
         return this.parent.getRef(variable);
     }
     
-    getCompartmentContent(discerner) {
-        const compartmentContent = this.compartmentContentMap.get(discerner);
+    getCompartmentContent(evalCompartment) {
+        const compartmentContent = this.compartmentContentMap.get(evalCompartment);
         if (typeof compartmentContent !== "undefined") {
             return compartmentContent;
         }
-        return (this.parent === null) ? null : this.parent.getCompartmentContent(discerner);
+        if (this.parent === null) {
+            return null;
+        } else {
+            return this.parent.getCompartmentContent(evalCompartment);
+        }
     }
     
     stowTypeId(discerner, typeId) {
-        const compartmentContent = this.getCompartmentContent(discerner);
+        const evalCompartment = discerner.getDiscernerCompartment();
+        const compartmentContent = this.getCompartmentContent(evalCompartment);
         if (compartmentContent !== null) {
             compartmentContent.typeId = typeId;
         }
     }
     
-    getTypeId(discerner) {
-        const compartmentContent = this.getCompartmentContent(discerner);
+    getTypeId(compartment) {
+        if (compartment instanceof CompCompartment) {
+            return compartment.getCompTypeId();
+        }
+        const compartmentContent = this.getCompartmentContent(compartment);
         return (compartmentContent === null) ? null : compartmentContent.typeId;
     }
     

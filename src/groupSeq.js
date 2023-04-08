@@ -7,6 +7,7 @@ import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
 import { EvalContext } from "./evalContext.js";
 import { ResultRef } from "./itemRef.js";
+import { EvalCompartment } from "./compartment.js";
 
 export class GroupSeq extends Node {
     
@@ -65,12 +66,16 @@ export class BhvrStmtSeq extends StmtSeq {
         }
     }
     
-    shouldStoreDiscernersHelper() {
+    shouldStoreCompartmentsHelper() {
         return true;
     }
     
     evaluate(parentContext) {
-        const context = new EvalContext(this.getVars(), this.discerners, parentContext);
+        const context = new EvalContext(
+            this.getVars(),
+            this.getCompartments(),
+            parentContext,
+        );
         for (const stmt of this.groups) {
             const result = stmt.evaluate(context);
             if (result.flowControl !== FlowControl.None) {
@@ -88,8 +93,10 @@ export class BhvrStmtSeq extends StmtSeq {
     
     convertToJsList(jsConverter) {
         const output = [];
-        for (const discerner of this.discerners) {
-            output.push(`let ${discerner.getDiscernerJsIdentifier()};`);
+        for (const compartment of this.getCompartments()) {
+            if (compartment instanceof EvalCompartment) {
+                output.push(`let ${compartment.getJsIdentifier()};`);
+            }
         }
         this.groups.forEach((stmt) => {
             output.push(stmt.convertToJs(jsConverter));
@@ -246,7 +253,7 @@ export class CompExprSeq extends ExprSeq {
         return this.itemResolutions.map((resolution) => resolution.item);
     }
     
-    shouldStoreDiscernersHelper() {
+    shouldStoreCompartmentsHelper() {
         return true;
     }
     

@@ -79,8 +79,9 @@ export class CustomMethod extends CustomFunc {
     getParentContext() {
         const { selfVar } = this.methodStmt;
         const featureExpr = this.methodStmt.getFeatureExpr();
+        const compartment = featureExpr.getDiscernerCompartment();
         const parentContext = super.getParentContext();
-        const output = new EvalContext([selfVar], [featureExpr], parentContext);
+        const output = new EvalContext([selfVar], [compartment], parentContext);
         output.getRef(selfVar).write(this.featureInstance.obj);
         output.stowTypeId(featureExpr, this.featureInstance.feature.typeId);
         return output;

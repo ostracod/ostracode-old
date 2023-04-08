@@ -2,6 +2,7 @@
 import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { CompilerErrorThrower } from "./error.js";
+import { EvalCompartment } from "./compartment.js";
 
 let nextNodeId = 0;
 
@@ -15,8 +16,8 @@ export class Node extends CompilerErrorThrower {
         this.children = [];
         // Map from variable name to Var.
         this.varMap = new Map();
-        // List of Expr which discern feature types.
-        this.discerners = [];
+        // Map from discerning Expr to Compartment.
+        this.compartmentMap = new Map();
     }
     
     addChild(child) {
@@ -68,6 +69,34 @@ export class Node extends CompilerErrorThrower {
         return Array.from(this.varMap.values());
     }
     
+    addCompartment(compartment) {
+        this.compartmentMap.set(compartment.discerner, compartment);
+    }
+    
+    addCompartments(compartments) {
+        for (const compartment of compartments) {
+            this.addCompartment(compartment);
+        }
+    }
+    
+    getCompartment(discerner) {
+        const compartment = this.compartmentMap.get(discerner);
+        if (typeof compartment === "undefined") {
+            return (this.parent === null) ? null : this.parent.getCompartment(discerner);
+        } else {
+            return compartment;
+        }
+    }
+    
+    getCompartments() {
+        return Array.from(this.compartmentMap.values());
+    }
+    
+    // Assumes that this.isDiscerner returns true.
+    getDiscernerCompartment() {
+        return this.getCompartment(this);
+    }
+    
     buildClosureContext(destContext, srcContext) {
         for (const child of this.children) {
             child.buildClosureContext(destContext, srcContext);
@@ -96,44 +125,39 @@ export class Node extends CompilerErrorThrower {
         return false;
     }
     
-    shouldStoreDiscernersHelper() {
+    shouldStoreCompartmentsHelper() {
         return false;
     }
     
-    overrideChildDiscerners(child) {
+    overrideChildCompartments(child) {
         return false;
     }
     
-    shouldStoreDiscerners() {
-        if (this.shouldStoreDiscernersHelper()) {
+    shouldStoreCompartments() {
+        if (this.shouldStoreCompartmentsHelper()) {
             return true;
         }
         if (this.parent === null) {
             return false;
         }
-        return (this.parent.overrideChildDiscerners(this));
+        return (this.parent.overrideChildCompartments(this));
     }
     
-    resolveDiscerners() {
-        const discerners = [];
+    resolveCompartments() {
+        const compartments = [];
         if (this.isDiscerner()) {
-            discerners.push(this);
+            compartments.push(new EvalCompartment(this));
         }
         for (const child of this.children) {
-            const childDiscerners = child.resolveDiscerners();
-            niceUtils.extendList(discerners, childDiscerners);
+            const childCompartments = child.resolveCompartments();
+            niceUtils.extendList(compartments, childCompartments);
         }
-        if (this.shouldStoreDiscerners()) {
-            this.discerners = discerners;
+        if (this.shouldStoreCompartments()) {
+            this.addCompartments(compartments);
             return [];
         } else {
-            this.discerners = [];
-            return discerners;
+            return compartments;
         }
-    }
-    
-    getDiscernerJsIdentifier() {
-        return compUtils.getJsIdentifier(`${this.id}`, "D");
     }
     
     resolveCompItems() {

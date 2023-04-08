@@ -494,7 +494,7 @@ export class ArgStmt extends ChildAttrStmt {
         }
     }
     
-    overrideChildDiscerners(child) {
+    overrideChildCompartments(child) {
         return (child === this.defaultItemExprSeq);
     }
 }
@@ -532,7 +532,7 @@ export class FieldStmt extends ChildAttrStmt {
         }
     }
     
-    overrideChildDiscerners(child) {
+    overrideChildCompartments(child) {
         return (child === this.initItemExprSeq
             && this.getParent(SpecialExpr) instanceof FeatureExpr);
     }

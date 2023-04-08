@@ -200,10 +200,10 @@ export class IdentifierAccessExpr extends Expr {
     buildClosureContext(destContext, srcContext) {
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
-            const discerner = type.factorType.getDiscerner(this.name);
-            const compartmentContent = srcContext.getCompartmentContent(discerner);
+            const compartment = type.factorType.getCompartment(this.name);
+            const compartmentContent = srcContext.getCompartmentContent(compartment);
             if (compartmentContent !== null) {
-                destContext.addDiscerner(discerner, compartmentContent);
+                destContext.addCompartment(compartment, compartmentContent);
             }
         }
         super.buildClosureContext(destContext, srcContext);
@@ -226,8 +226,8 @@ export class IdentifierAccessExpr extends Expr {
     convertToJs(jsConverter) {
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
-            const discerner = type.factorType.getDiscerner(this.name);
-            return `${this.operand.convertToJs(jsConverter)}[${discerner.getDiscernerJsIdentifier()}].${compUtils.getJsIdentifier(this.name)}`;
+            const compartment = type.factorType.getCompartment(this.name);
+            return `${this.operand.convertToJs(jsConverter)}[${compartment.getJsIdentifier()}].${compUtils.getJsIdentifier(this.name)}`;
         } else {
             this.throwError("Item member access is not yet implemented.");
         }

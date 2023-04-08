@@ -61,7 +61,7 @@ export class OstraCodeFile extends Node {
             this.parsePreGroups();
             this.bhvrStmtSeq.resolveStmts();
             this.bhvrStmtSeq.resolveExprsAndVars();
-            this.bhvrStmtSeq.resolveDiscerners();
+            this.bhvrStmtSeq.resolveCompartments();
         });
     }
     
