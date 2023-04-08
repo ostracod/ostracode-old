@@ -1,7 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
-import { Func } from "./func.js";
+import { Item } from "./item.js";
 
 export const resolveCompItems = (resolvables) => {
     let resolvedCount = 0;
@@ -32,7 +32,7 @@ export const getNestedItems = (item) => {
     if (typeof item === "object") {
         if (Array.isArray(item)) {
             return item.slice();
-        } else if (item instanceof Func) {
+        } else if (item instanceof Item) {
             return item.getNestedItems();
         }
     } else {

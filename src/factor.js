@@ -1,9 +1,12 @@
 
 import { CompilerError } from "./error.js";
+import * as niceUtils from "./niceUtils.js";
 import { createTypeId } from "./itemType.js";
 import { CustomMethod } from "./func.js";
+import { CompItemAggregator } from "./aggregator.js";
+import { Item } from "./item.js";
 
-export class Factor {
+export class Factor extends Item {
     // Concrete subclasses of Factor must implement these methods:
     // getFeatures
 }
@@ -18,16 +21,27 @@ export class FeatureMember {
 
 export class FeatureField extends FeatureMember {
     
-    constructor(name, context, initItemExprSeq) {
-        super(name, context);
-        this.initItemExprSeq = initItemExprSeq;
+    constructor(fieldStmt, context) {
+        super(fieldStmt.name, context);
+        this.fieldStmt = fieldStmt;
     }
     
     getInitItem() {
-        if (this.initItemExpr === null) {
+        const { initItemExprSeq } = this.fieldStmt;
+        if (initItemExprSeq === null) {
             return undefined;
         }
-        return this.initItemExprSeq.evaluateToItem(this.context);
+        return initItemExprSeq.evaluateToItem(this.context);
+    }
+    
+    getNestedItems() {
+        const aggregator = new CompItemAggregator();
+        this.fieldStmt.aggregateCompItems(aggregator);
+        return aggregator.getItems();
+    }
+    
+    convertToJs(jsConverter) {
+        return this.fieldStmt.convertToJs(jsConverter);
     }
 }
 
@@ -41,6 +55,16 @@ export class FeatureMethod extends FeatureMember {
     createMethod(featureInstance) {
         return new CustomMethod(this.methodStmt, this.context, featureInstance);
     }
+    
+    getNestedItems() {
+        const aggregator = new CompItemAggregator();
+        this.methodStmt.aggregateCompItems(aggregator);
+        return aggregator.getItems();
+    }
+    
+    convertToJs(jsConverter) {
+        return this.methodStmt.convertToJs(jsConverter);
+    }
 }
 
 export class Feature extends Factor {
@@ -53,7 +77,7 @@ export class Feature extends Factor {
             if (name === null) {
                 fieldStmt.throwError("Feature field must use name identifier.");
             }
-            return new FeatureField(name, context, fieldStmt.initItemExprSeq);
+            return new FeatureField(fieldStmt, context);
         });
         // Map from name to FeatureMethod.
         this.methods = new Map();
@@ -65,6 +89,40 @@ export class Feature extends Factor {
     
     getFeatures() {
         return [this];
+    }
+    
+    getNestedItems() {
+        const output = [];
+        for (const field of this.fields) {
+            niceUtils.extendList(output, field.getNestedItems());
+        }
+        for (const method of this.methods.values()) {
+            niceUtils.extendList(output, method.getNestedItems());
+        }
+        return output;
+    }
+    
+    getClosureItems() {
+        // TODO: Implement.
+        return new Map();
+    }
+    
+    convertToJs(jsConverter) {
+        const fieldCodeList = [];
+        for (const field of this.fields) {
+            fieldCodeList.push(field.convertToJs(jsConverter));
+        }
+        const methodCodeList = [];
+        for (const method of this.methods.values()) {
+            methodCodeList.push(method.convertToJs(jsConverter));
+        }
+        return `(class extends classes.Feature {
+constructor(obj) {
+super(obj);
+${fieldCodeList.join("\n")}
+}
+${methodCodeList.join("\n")}
+})`;
     }
 }
 

@@ -1,6 +1,6 @@
 
 import * as compUtils from "./compUtils.js";
-import { CustomFunc } from "./func.js";
+import { Item } from "./item.js";
 
 export class ClosureItem {
     
@@ -20,7 +20,7 @@ export class CompItemAggregator {
         // Map from item to ID.
         this.itemIdMap = new Map();
         this.nextItemId = 0;
-        // Map from item to (Map from Var to ClosureItem).
+        // Map from Item to (Map from Var to ClosureItem).
         this.closureItemsMap = new Map();
         this.nextClosureVarId = 0;
     }
@@ -32,7 +32,7 @@ export class CompItemAggregator {
                 itemId = this.nextItemId;
                 this.nextItemId += 1;
                 this.itemIdMap.set(item, itemId);
-                if (item instanceof CustomFunc) {
+                if (item instanceof Item) {
                     this.addClosureItems(item);
                 }
                 return true;
@@ -41,20 +41,20 @@ export class CompItemAggregator {
         return false;
     }
     
-    addClosureItems(func) {
-        const { varContentMap } = func.closureContext;
+    addClosureItems(item) {
+        const varItemMap = item.getClosureItems();
         const closureItemMap = new Map();
-        for (const [variable, varContent] of varContentMap.entries()) {
+        for (const [variable, item] of varItemMap.entries()) {
             const varId = this.nextClosureVarId;
             this.nextClosureVarId += 1;
-            const closureItem = new ClosureItem(varContent.item, varId);
+            const closureItem = new ClosureItem(item, varId);
             closureItemMap.set(variable, closureItem);
         }
-        this.closureItemsMap.set(func, closureItemMap);
+        this.closureItemsMap.set(item, closureItemMap);
     }
     
     addNestedItems() {
-        let items = Array.from(this.itemIdMap.keys());
+        let items = this.getItems();
         while (items.length > 0) {
             let nextItems = [];
             for (const item of items) {
@@ -68,6 +68,10 @@ export class CompItemAggregator {
             }
             items = nextItems;
         }
+    }
+    
+    getItems() {
+        return Array.from(this.itemIdMap.keys());
     }
 }
 

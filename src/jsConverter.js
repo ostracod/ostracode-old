@@ -2,7 +2,7 @@
 import { CompilerError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { CompVar, BuiltInEvalVar, StmtEvalVar } from "./var.js";
-import { Func } from "./func.js";
+import { Item } from "./item.js";
 import { ListNest } from "./itemNest.js";
 
 export class JsConverter {
@@ -41,7 +41,7 @@ export class JsConverter {
                     return this.convertNestedItem(nest);
                 });
                 return `[${codeList.join(", ")}]`;
-            } else if (item instanceof Func) {
+            } else if (item instanceof Item) {
                 const closureItemMap = this.aggregator.closureItemsMap.get(item);
                 const jsConverter = new ClosureJsConverter(this.aggregator, closureItemMap);
                 return item.convertToJs(jsConverter);

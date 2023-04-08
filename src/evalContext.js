@@ -87,6 +87,14 @@ export class EvalContext {
         const compartmentContent = this.getCompartmentContent(discerner);
         return (compartmentContent === null) ? null : compartmentContent.typeId;
     }
+    
+    getVarItemMap() {
+        const output = new Map();
+        for (const [variable, varContent] of this.varContentMap.entries()) {
+            output.set(variable, varContent.item);
+        }
+        return output;
+    }
 }
 
 

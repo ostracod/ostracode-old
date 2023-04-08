@@ -4,14 +4,11 @@ import * as nodeUtils from "./nodeUtils.js";
 import { EvalContext } from "./evalContext.js";
 import { ArgsStmt } from "./stmt.js";
 import { CompItemAggregator } from "./aggregator.js";
+import { Item } from "./item.js";
 
-export class Func {
+export class Func extends Item {
     // Concrete subclasses of Func must implement these methods:
-    // evaluate, convertToJs
-    
-    getNestedItems() {
-        return [];
-    }
+    // evaluate
 }
 
 export class BuiltInFunc extends Func {
@@ -50,16 +47,13 @@ export class CustomFunc extends Func {
     }
     
     getNestedItems() {
-        const output = [];
-        for (const varContent of this.closureContext.varContentMap.values()) {
-            output.push(varContent.item);
-        }
         const aggregator = new CompItemAggregator();
         this.bhvrStmtSeq.aggregateCompItems(aggregator);
-        for (const item of aggregator.itemIdMap.keys()) {
-            output.push(item);
-        }
-        return output;
+        return aggregator.getItems();
+    }
+    
+    getClosureItems() {
+        return this.closureContext.getVarItemMap();
     }
     
     convertToJs(jsConverter) {
