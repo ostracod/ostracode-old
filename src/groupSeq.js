@@ -7,7 +7,7 @@ import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
 import { EvalContext } from "./evalContext.js";
 import { ResultRef } from "./itemRef.js";
-import { EvalCompartment } from "./compartment.js";
+import { EvalCompartment, CompCompartment } from "./compartment.js";
 
 export class GroupSeq extends Node {
     
@@ -187,14 +187,34 @@ export class CompExprSeq extends ExprSeq {
         this.exprSeqSelector = exprSeqSelector;
         this.itemResolutions = [];
         while (this.itemResolutions.length < this.groups.length) {
-            this.itemResolutions.push({ hasResolved: false, item: 0 });
+            this.itemResolutions.push({ hasResolved: false, item: undefined });
+        }
+    }
+    
+    stowCompTypeId(discerner, typeId) {
+        let node = this.parent;
+        while (node !== null) {
+            const compartment = node.getCompartment(discerner);
+            if (compartment !== null) {
+                compartment.typeId = typeId;
+            }
+            node = node.parent;
+        }
+    }
+    
+    stowCompTypeIds(context) {
+        for (const content of context.compartmentContentMap.values()) {
+            const { compartment: { discerner }, typeId } = content;
+            this.stowCompTypeId(discerner, typeId);
         }
     }
     
     resolveCompItem(expr) {
         if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
             const context = new EvalContext(null, this);
-            return expr.evaluateToItem(context);
+            const output = expr.evaluateToItem(context);
+            this.stowCompTypeIds(context);
+            return output;
         }
         if (this.exprSeqSelector === ExprSeqSelector.ConstraintTypes) {
             return expr.getConstraintType();
@@ -251,6 +271,17 @@ export class CompExprSeq extends ExprSeq {
     
     shouldStoreCompartmentsHelper() {
         return true;
+    }
+    
+    resolveCompartments() {
+        super.resolveCompartments();
+        const output = [];
+        if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
+            for (const compartment of this.compartmentMap.values()) {
+                output.push(new CompCompartment(compartment.discerner));
+            }
+        }
+        return output;
     }
     
     evaluate(context) {
