@@ -2,7 +2,7 @@
 import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { CompilerErrorThrower } from "./error.js";
-import { EvalCompartment } from "./compartment.js";
+import { CompCompartment, EvalCompartment } from "./compartment.js";
 
 let nextNodeId = 0;
 
@@ -170,6 +170,20 @@ export class Node extends CompilerErrorThrower {
     
     resolveCompItems() {
         return compUtils.resolveCompItems(this.children);
+    }
+    
+    aggregateCompTypeIds(typeIdSet) {
+        for (const compartment of this.compartmentMap.values()) {
+            if (compartment instanceof CompCompartment) {
+                const { typeId } = compartment;
+                if (typeId !== null) {
+                    typeIdSet.add(typeId);
+                }
+            }
+        }
+        for (const child of this.children) {
+            child.aggregateCompTypeIds(typeIdSet);
+        }
     }
 }
 

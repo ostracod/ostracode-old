@@ -47,6 +47,8 @@ export class Compiler {
         // Map from build path to OstraCodeFile.
         this.buildPathMap = new Map();
         this.rootPlatformNames = new Set();
+        // Set of numbers.
+        this.typeIdSet = new Set();
         this.aggregator = new CompItemAggregator();
     }
     
@@ -238,13 +240,23 @@ export class Compiler {
         fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");
     }
     
-    createSupportFile() {
+    createTypeIdsFile() {
+        const codeList = [];
+        for (const typeId of this.typeIdSet) {
+            const identifier = compUtils.getJsTypeIdIdentifier(typeId);
+            codeList.push(`export const ${identifier} = Symbol("typeId${typeId}");`);
+        }
+        const code = codeList.join("\n") + "\n";
+        const path = pathUtils.join(this.supportPath, "typeIds.js");
+        fs.writeFileSync(path, code);
+    }
+    
+    createCompItemsFile() {
         const { itemIdMap, closureItemsMap } = this.aggregator;
-        niceUtils.ensureDirectoryExists(this.supportPath);
         const jsConverter = new SupportJsConverter(this.aggregator);
         const codeList = [];
         for (const [item, id] of itemIdMap) {
-            const identifier = compUtils.getJsCompIdentifier(id);
+            const identifier = compUtils.getJsCompItemIdentifier(id);
             const itemCode = jsConverter.convertItemToExpansion(item);
             jsConverter.visibleItems.add(item);
             codeList.push(`export const ${identifier} = ${itemCode};`);
@@ -259,7 +271,7 @@ export class Compiler {
                 closureVarDeclarations.push(declaration);
             }
         }
-        const code = baseImportStmt + "\n" + codeList.concat(assignments, closureVarDeclarations).join("\n") + "\n";
+        const code = baseImportStmt + "\nimport * as typeIds from \"./typeIds.js\";\n" + codeList.concat(assignments, closureVarDeclarations).join("\n") + "\n";
         const path = pathUtils.join(this.supportPath, "compItems.js");
         fs.writeFileSync(path, code);
     }
@@ -271,10 +283,13 @@ export class Compiler {
         }
         compUtils.resolveAllCompItems(this.ostraCodeFiles);
         for (const codeFile of this.ostraCodeFiles) {
+            codeFile.aggregateCompTypeIds(this.typeIdSet);
             codeFile.aggregateCompItems(this.aggregator);
         }
         this.aggregator.addNestedItems();
-        this.createSupportFile();
+        niceUtils.ensureDirectoryExists(this.supportPath);
+        this.createTypeIdsFile();
+        this.createCompItemsFile();
         const jsConverter = new BuildJsConverter(this.aggregator);
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.createJsFile(jsConverter);

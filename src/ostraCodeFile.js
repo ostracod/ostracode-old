@@ -82,7 +82,8 @@ export class OstraCodeFile extends Node {
         const codeList = this.bhvrStmtSeq.convertToJsList(jsConverter);
         const code = [
             baseImportStmt,
-            // TODO: Fix this import path.
+            // TODO: Fix these import paths.
+            "import * as typeIds from \"../support/typeIds.js\";",
             "import * as compItems from \"../support/compItems.js\";",
             codeList.join("\n"),
             "",

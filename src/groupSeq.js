@@ -91,7 +91,7 @@ export class BhvrStmtSeq extends StmtSeq {
         const output = [];
         for (const compartment of this.getCompartments()) {
             if (compartment instanceof EvalCompartment) {
-                output.push(`let ${compartment.getJsIdentifier()};`);
+                output.push(`let ${compartment.convertToJs()};`);
             }
         }
         this.groups.forEach((stmt) => {
@@ -286,6 +286,10 @@ export class CompExprSeq extends ExprSeq {
     
     evaluate(context) {
         return this.getCompItems().map((item) => new ResultRef(item));
+    }
+    
+    aggregateCompTypeIds(typeIdSet) {
+        // Do nothing.
     }
     
     aggregateCompItems(aggregator) {

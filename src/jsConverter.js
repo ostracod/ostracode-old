@@ -18,7 +18,7 @@ export class JsConverter {
         if (typeof itemId === "undefined") {
             return null;
         } else {
-            return compUtils.getJsCompIdentifier(itemId);
+            return compUtils.getJsCompItemIdentifier(itemId);
         }
     }
     

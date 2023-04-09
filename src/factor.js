@@ -1,6 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
+import * as compUtils from "./compUtils.js";
 import { createTypeId } from "./itemType.js";
 import { CustomMethod } from "./func.js";
 import { CompItemAggregator } from "./aggregator.js";
@@ -116,7 +117,9 @@ export class Feature extends Factor {
         for (const method of this.methods.values()) {
             methodCodeList.push(method.convertToJs(jsConverter));
         }
+        const typeIdIdentifier = compUtils.getJsTypeIdIdentifier(this.typeId);
         return `(class extends classes.Feature {
+static typeId = typeIds.${typeIdIdentifier};
 constructor(obj) {
 super(obj);
 ${fieldCodeList.join("\n")}

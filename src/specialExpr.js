@@ -192,7 +192,7 @@ ${fieldCodeList.join("\n")}
 }
 ${methodCodeList.join("\n")}
 };
-${compartment.getJsIdentifier()} = feature.typeId;
+${compartment.convertToJs()} = feature.typeId;
 return feature;
 })()`;
     }

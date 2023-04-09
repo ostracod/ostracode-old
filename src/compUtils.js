@@ -45,6 +45,8 @@ export const getJsIdentifier = (name, prefix = "_") => (
     "$" + prefix + name.replace("$", "$$$$")
 );
 
-export const getJsCompIdentifier = (itemId) => getJsIdentifier(`${itemId}`, "C");
+export const getJsCompItemIdentifier = (itemId) => getJsIdentifier(`${itemId}`, "C");
+
+export const getJsTypeIdIdentifier = (typeId) => getJsIdentifier(`${typeId}`, "T");
 
 
