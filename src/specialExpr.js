@@ -159,8 +159,7 @@ export class FeatureValueExpr extends FeatureExpr {
     }
     
     getConstraintType() {
-        const compartment = this.getDiscernerCompartment();
-        return new FeatureType(this.fieldStmts, this.methodStmts, compartment);
+        return new FeatureType(this.fieldStmts, this.methodStmts, this);
     }
     
     isDiscerner() {

@@ -36,7 +36,7 @@ export class CustomFunc extends Func {
             const item = args[index];
             const variable = this.argVars[index];
             // TODO: Populate default arg items.
-            context.addVarItem(variable, item);
+            context.addVar(variable, item);
         }
         const result = this.bhvrStmtSeq.evaluate(context);
         if (result.flowControl === FlowControl.Return) {
@@ -82,8 +82,8 @@ export class CustomMethod extends CustomFunc {
         const compartment = featureExpr.getDiscernerCompartment();
         const parentContext = super.getParentContext();
         const output = new EvalContext(parentContext);
-        output.addVarItem(selfVar, this.featureInstance.obj);
-        output.addCompartmentTypeId(compartment, this.featureInstance.feature.typeId);
+        output.addVar(selfVar, this.featureInstance.obj);
+        output.addCompartment(compartment, this.featureInstance.feature.typeId);
         return output;
     }
 }

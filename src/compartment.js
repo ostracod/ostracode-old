@@ -1,10 +1,12 @@
 
 import { UnresolvedItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
+import { Container } from "./container.js";
 
-export class Compartment {
+export class Compartment extends Container {
     
     constructor(discerner) {
+        super();
         this.discerner = discerner;
     }
 }

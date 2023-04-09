@@ -56,10 +56,14 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
-    getVar(name) {
+    getVar(name, checkParent = true) {
         const variable = this.varMap.get(name);
         if (typeof variable === "undefined") {
-            return (this.parent === null) ? null : this.parent.getVar(name);
+            if (checkParent) {
+                return (this.parent === null) ? null : this.parent.getVar(name, checkParent);
+            } else {
+                return null;
+            }
         } else {
             return variable;
         }
@@ -79,10 +83,14 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
-    getCompartment(discerner) {
+    getCompartment(discerner, checkParent = true) {
         const compartment = this.compartmentMap.get(discerner);
         if (typeof compartment === "undefined") {
-            return (this.parent === null) ? null : this.parent.getCompartment(discerner);
+            if (checkParent) {
+                return (this.parent === null) ? null : this.parent.getCompartment(discerner);
+            } else {
+                return null;
+            }
         } else {
             return compartment;
         }

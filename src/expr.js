@@ -3,7 +3,6 @@ import * as compUtils from "./compUtils.js";
 import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
-import { EvalVar } from "./var.js";
 import { ResultRef } from "./itemRef.js";
 import { ObjType } from "./obj.js";
 
@@ -108,19 +107,16 @@ export class IdentifierExpr extends SingleComponentExpr {
     }
     
     buildClosureContext(destContext, srcContext) {
-        const variable = this.getNonNullVar();
-        if (variable instanceof EvalVar) {
-            const varContent = srcContext.getVarContent(variable);
-            if (varContent !== null) {
-                destContext.addEvalVar(variable, varContent);
-            }
+        const content = srcContext.getVarContent(this.name);
+        if (content !== null) {
+            destContext.addVarContent(content);
         }
         super.buildClosureContext(destContext, srcContext);
     }
     
     evaluate(context) {
         try {
-            return context.getRef(this.getNonNullVar());
+            return context.getRef(this.name);
         } catch (error) {
             if (error instanceof CompilerError) {
                 error.lineNum = this.getLineNum();
@@ -200,10 +196,10 @@ export class IdentifierAccessExpr extends Expr {
     buildClosureContext(destContext, srcContext) {
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
-            const compartment = type.factorType.getCompartment(this.name);
-            const compartmentContent = srcContext.getCompartmentContent(compartment);
-            if (compartmentContent !== null) {
-                destContext.addCompartment(compartment, compartmentContent);
+            const discerner = type.factorType.getDiscerner(this.name);
+            const content = srcContext.getCompartmentContent(discerner);
+            if (content !== null) {
+                destContext.addCompartmentContent(content);
             }
         }
         super.buildClosureContext(destContext, srcContext);
@@ -226,7 +222,8 @@ export class IdentifierAccessExpr extends Expr {
     convertToJs(jsConverter) {
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
-            const compartment = type.factorType.getCompartment(this.name);
+            const discerner = type.factorType.getDiscerner(this.name);
+            const compartment = this.getCompartment(discerner);
             return `${this.operand.convertToJs(jsConverter)}[${compartment.getJsIdentifier()}].${compUtils.getJsIdentifier(this.name)}`;
         } else {
             this.throwError("Item member access is not yet implemented.");

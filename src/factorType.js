@@ -5,14 +5,14 @@ import { FeatureMemberRef } from "./itemRef.js";
 
 export class FactorType extends ItemType {
     // Concrete subclasses of FactorType must implement these methods:
-    // getCompartment
+    // getDiscerner
     
     getObjMember(obj, name, context) {
-        const compartment = this.getCompartment(name);
-        if (compartment === null) {
+        const discerner = this.getDiscerner(name);
+        if (discerner === null) {
             throw new CompilerError("Cannot retrieve member of feature without discerned type.");
         }
-        const typeId = context.getTypeId(compartment);
+        const typeId = context.getTypeId(discerner);
         const featureInstance = obj.featureInstances.get(typeId);
         return new FeatureMemberRef(featureInstance, name);
     }
@@ -44,7 +44,7 @@ export class FeatureTypeMethod extends FeatureTypeMember {
 
 export class FeatureType extends FactorType {
     
-    constructor(fieldStmts, methodStmts, compartment = null) {
+    constructor(fieldStmts, methodStmts, discerner = null) {
         super();
         this.fields = fieldStmts.map((fieldStmt) => {
             const { name } = fieldStmt;
@@ -58,11 +58,11 @@ export class FeatureType extends FactorType {
         this.methods = methodStmts.map((methodStmt) => (
             new FeatureTypeMethod(methodStmt.name, methodStmt.attrStmtSeq)
         ));
-        this.compartment = compartment;
+        this.discerner = discerner;
     }
     
-    getCompartment(name) {
-        return this.compartment;
+    getDiscerner(name) {
+        return this.discerner;
     }
 }
 

@@ -193,7 +193,7 @@ export class CompExprSeq extends ExprSeq {
     
     resolveCompItem(expr) {
         if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
-            const context = new EvalContext();
+            const context = new EvalContext(null, this);
             return expr.evaluateToItem(context);
         }
         if (this.exprSeqSelector === ExprSeqSelector.ConstraintTypes) {
