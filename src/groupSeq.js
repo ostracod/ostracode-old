@@ -71,11 +71,7 @@ export class BhvrStmtSeq extends StmtSeq {
     }
     
     evaluate(parentContext) {
-        const context = new EvalContext(
-            this.getVars(),
-            this.getCompartments(),
-            parentContext,
-        );
+        const context = new EvalContext(parentContext, this);
         for (const stmt of this.groups) {
             const result = stmt.evaluate(context);
             if (result.flowControl !== FlowControl.None) {

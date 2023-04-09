@@ -20,33 +20,54 @@ export class CompartmentContent {
 
 export class EvalContext {
     
-    constructor(vars = [], compartments = [], parent = null) {
+    constructor(parent = null, node = null) {
         // Map from EvalVar to VarContent.
         this.varContentMap = new Map();
-        for (const variable of vars) {
-            if (variable instanceof EvalVar) {
-                this.addEvalVar(variable);
-            }
-        }
         // Map from EvalCompartment to CompartmentContent.
         this.compartmentContentMap = new Map();
-        for (const compartment of compartments) {
-            if (compartment instanceof EvalCompartment) {
-                this.addEvalCompartment(compartment);
-            }
-        }
         this.parent = parent;
+        this.node = node;
+        if (this.node !== null) {
+            this.addVars(this.node.getVars());
+            this.addCompartments(this.node.getCompartments());
+        }
     }
     
-    addEvalVar(evalVar, varContent = null) {
+    addVars(vars) {
+        for (const variable of vars) {
+            if (variable instanceof EvalVar) {
+                this.addVarContent(variable);
+            }
+        }
+    }
+    
+    addCompartments(compartments) {
+        for (const compartment of compartments) {
+            if (compartment instanceof EvalCompartment) {
+                this.addCompartmentContent(compartment);
+            }
+        }
+    }
+    
+    addVarContent(evalVar, varContent = null) {
         this.varContentMap.set(evalVar, varContent ?? new VarContent());
     }
     
-    addEvalCompartment(evalCompartment, compartmentContent = null) {
+    addCompartmentContent(evalCompartment, compartmentContent = null) {
         this.compartmentContentMap.set(
             evalCompartment,
             compartmentContent ?? new CompartmentContent(),
         );
+    }
+    
+    addVarItem(evalVar, item) {
+        const content = new VarContent(item);
+        this.addVarContent(content);
+    }
+    
+    addCompartmentTypeId(evalCompartment, typeId) {
+        const content = new CompartmentContent(typeId);
+        this.addCompartmentContent(content);
     }
     
     getVarContent(evalVar) {

@@ -31,12 +31,12 @@ export class CustomFunc extends Func {
     }
     
     evaluate(args) {
-        const context = new EvalContext(this.argVars, [], this.getParentContext());
+        const context = new EvalContext(this.getParentContext());
         for (let index = 0; index < args.length; index++) {
             const item = args[index];
             const variable = this.argVars[index];
             // TODO: Populate default arg items.
-            context.getRef(variable).write(item);
+            context.addVarItem(variable, item);
         }
         const result = this.bhvrStmtSeq.evaluate(context);
         if (result.flowControl === FlowControl.Return) {
@@ -81,9 +81,9 @@ export class CustomMethod extends CustomFunc {
         const featureExpr = this.methodStmt.getFeatureExpr();
         const compartment = featureExpr.getDiscernerCompartment();
         const parentContext = super.getParentContext();
-        const output = new EvalContext([selfVar], [compartment], parentContext);
-        output.getRef(selfVar).write(this.featureInstance.obj);
-        output.stowTypeId(featureExpr, this.featureInstance.feature.typeId);
+        const output = new EvalContext(parentContext);
+        output.addVarItem(selfVar, this.featureInstance.obj);
+        output.addCompartmentTypeId(compartment, this.featureInstance.feature.typeId);
         return output;
     }
 }
