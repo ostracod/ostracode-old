@@ -17,7 +17,12 @@ export class CompilerError extends Error {
             components.push(" on line " + this.lineNum);
         }
         if (this.ostraCodeFile !== null) {
-            components.push(" of " + this.ostraCodeFile.srcPath);
+            if (this.lineNum === null) {
+                components.push(" in ");
+            } else {
+                components.push(" of ");
+            }
+            components.push(this.ostraCodeFile.srcPath);
         }
         return components.join("");
     }
@@ -25,10 +30,28 @@ export class CompilerError extends Error {
 
 export class CompilerErrorThrower {
     // Concrete subclasses of CompilerErrorThrower must implement these methods:
-    // getLineNum
+    // getOstraCodeFile, getLineNum
     
     throwError(message) {
-        throw new CompilerError(message, null, this.getLineNum());
+        throw new CompilerError(message, this.getOstraCodeFile(), this.getLineNum());
+    }
+    
+    tryOperation(operation) {
+        let output;
+        try {
+            output = operation();
+        } catch (error) {
+            if (error instanceof CompilerError) {
+                if (error.ostraCodeFile === null) {
+                    error.ostraCodeFile = this.getOstraCodeFile();
+                }
+                if (error.lineNum === null) {
+                    error.lineNum = this.getLineNum();
+                }
+            }
+            throw error;
+        }
+        return output;
     }
 }
 

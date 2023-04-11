@@ -29,15 +29,8 @@ export class OstraCodeFile extends Node {
         return niceUtils.nameSetsAreEqual(this.platformNames, codeFile.platformNames);
     }
     
-    tryOperation(operation) {
-        try {
-            operation();
-        } catch (error) {
-            if (error instanceof CompilerError) {
-                error.ostraCodeFile = this;
-            }
-            throw error;
-        }
+    getOstraCodeFile() {
+        return this;
     }
     
     parseTokens() {
@@ -59,18 +52,10 @@ export class OstraCodeFile extends Node {
         this.tryOperation(() => {
             this.parseTokens();
             this.parsePreGroups();
-            this.bhvrStmtSeq.resolveStmts();
-            this.bhvrStmtSeq.resolveExprsAndVars();
-            this.bhvrStmtSeq.resolveCompartments();
         });
-    }
-    
-    resolveCompItems() {
-        let output;
-        this.tryOperation(() => {
-            output = super.resolveCompItems();
-        });
-        return output;
+        this.bhvrStmtSeq.resolveStmts();
+        this.bhvrStmtSeq.resolveExprsAndVars();
+        this.bhvrStmtSeq.resolveCompartments();
     }
     
     aggregateCompItems(aggregator) {

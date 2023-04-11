@@ -21,14 +21,9 @@ export class Stmt extends ResolvedGroup {
         if (this.isKeywordStmt()) {
             parser.index += 1;
         }
-        try {
+        this.tryOperation(() => {
             this.init(parser);
-        } catch (error) {
-            if (error instanceof CompilerError && error.lineNum === null) {
-                error.lineNum = this.getLineNum();
-            }
-            throw error;
-        }
+        });
         parser.assertEnd("statement");
     }
     

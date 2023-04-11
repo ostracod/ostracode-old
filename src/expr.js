@@ -1,6 +1,5 @@
 
 import * as compUtils from "./compUtils.js";
-import { CompilerError } from "./error.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
@@ -115,14 +114,9 @@ export class IdentifierExpr extends SingleComponentExpr {
     }
     
     evaluate(context) {
-        try {
-            return context.getRef(this.name);
-        } catch (error) {
-            if (error instanceof CompilerError) {
-                error.lineNum = this.getLineNum();
-            }
-            throw error;
-        }
+        return this.tryOperation(() => (
+            context.getRef(this.name)
+        ));
     }
     
     getConstraintType() {
@@ -169,7 +163,9 @@ export class BinaryExpr extends OperatorExpr {
     evaluate(context) {
         const itemRef1 = this.operand1.evaluate(context);
         const itemRef2 = this.operand2.evaluate(context);
-        return this.operator.perform(itemRef1, itemRef2);
+        return this.tryOperation(() => (
+            this.operator.perform(itemRef1, itemRef2)
+        ));
     }
     
     aggregateCompItems(aggregator) {
@@ -209,7 +205,9 @@ export class IdentifierAccessExpr extends Expr {
         const item = this.operand.evaluateToItem(context);
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
-            return type.factorType.getObjMember(item, this.name, context);
+            return this.tryOperation(() => (
+                type.factorType.getObjMember(item, this.name, context)
+            ));
         } else {
             this.throwError("Item member access is not yet implemented.");
         }
@@ -222,7 +220,9 @@ export class IdentifierAccessExpr extends Expr {
     convertToJs(jsConverter) {
         const type = this.operand.getConstraintType();
         if (type instanceof ObjType) {
-            const discerner = type.factorType.getDiscerner(this.name);
+            const discerner = this.tryOperation(() => (
+                type.factorType.getDiscerner(this.name)
+            ));
             const compartment = this.getCompartment(discerner);
             return `${this.operand.convertToJs(jsConverter)}[${compartment.convertToJs()}].${compUtils.getJsIdentifier(this.name)}`;
         } else {
