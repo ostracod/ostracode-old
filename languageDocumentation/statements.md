@@ -155,25 +155,61 @@ length ($length)
 
 Asserts that the number of elements in the parent list type is `$length`.
 
-### Function Statements:
-
-Valid contexts for function statements:
-
-* `func` and `funcT` specials
-* Method statement
-* `methodT` special
-
-```
-args [$args]
-```
-
-Declares the arguments which the parent function may accept.
+### Async Statement:
 
 ```
 async
 ```
 
+Valid contexts:
+
+* `func` and `funcT` specials
+* Method statement
+* `methodT` special
+
 Asserts that the parent function is asynchronous, and has a return type which conforms to `(*ThenT)`.
+
+### Arguments Statement:
+
+```
+args [$args]
+```
+
+Valid contexts:
+
+* `func` and `funcT` specials
+* Method statement
+* `methodT` special
+* `generic` and `genericT` specials
+
+Declares the arguments which the parent function or generic may accept.
+
+### Argument Statements:
+
+```
+$name <$type> [$attrs] = ($defaultItem)
+```
+
+Valid contexts:
+
+* `args` statement in one of the following contexts:
+    * `func` special
+    * Method statement
+    * `generic` or `genericT` specials
+
+Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. If both `<$type>` and `= ($defaultItem)` are excluded, then the constraint type of the argument will be `itemT`.
+
+```
+$name ($type) [$attrs]
+```
+
+Valid contexts:
+
+* `args` statement in one of the following contexts:
+    * `funcT` special
+    * `methodT` special
+
+Declares an argument with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the argument will be `itemT`.
 
 ### Returns Statements:
 
@@ -198,33 +234,6 @@ Valid contexts:
 * `methodT` special
 
 Asserts that the parent function type returns an item whose type conforms to type `$type`. The default return type is `undefT`.
-
-### Argument Statements:
-
-```
-$name <$type> [$attrs] = ($defaultItem)
-```
-
-Valid contexts:
-
-* `args` statement in one of the following contexts:
-    * `func` special
-    * Method statement
-* `typeArgs` statement
-
-Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. If both `<$type>` and `= ($defaultItem)` are excluded, then the constraint type of the argument will be `itemT` within `args` statements, and `typeT` within `typeArgs` statements.
-
-```
-$name ($type) [$attrs]
-```
-
-Valid contexts:
-
-* `args` statement in one of the following contexts:
-    * `funcT` special
-    * `methodT` special
-
-Declares an argument with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the argument will be `itemT`.
 
 ### Field Type Statements:
 
@@ -588,22 +597,6 @@ Valid contexts:
 * `bundleT` special
 
 Asserts that the parent bundle type includes features which satisfy factor types `$factorTypes`.
-
-### Type Arguments Statement:
-
-```
-typeArgs [$args]
-```
-
-Valid contexts:
-
-* `listT` special
-* `dictT` special
-* `interfaceT` special
-* `feature` and `featureT` specials
-* `bundle` and `bundleT` specials
-
-Declares type arguments with which the parent item may be qualified.
 
 ### Exported Statement:
 

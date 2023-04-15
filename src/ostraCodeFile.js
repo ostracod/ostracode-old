@@ -1,7 +1,6 @@
 
 import * as fs from "fs";
 import * as pathUtils from "path";
-import { CompilerError } from "./error.js";
 import { baseImportStmt } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";

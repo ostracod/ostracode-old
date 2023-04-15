@@ -2,7 +2,7 @@
 import * as niceUtils from "./niceUtils.js";
 import { WordToken, NumToken, StrToken, OperatorToken } from "./token.js";
 import { GroupSeq, BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
-import { NumLiteralExpr, StrLiteralExpr, IdentifierExpr, UnaryExpr, BinaryExpr, IdentifierAccessExpr, ExprSeqExpr, ArgsExpr } from "./expr.js";
+import { NumLiteralExpr, StrLiteralExpr, IdentifierExpr, UnaryExpr, BinaryExpr, IdentifierAccessExpr, ExprSeqExpr, InvocationExpr } from "./expr.js";
 import { specialConstructorMap } from "./specialExpr.js";
 import { unaryOperatorMap, binaryOperatorMap } from "./operator.js";
 
@@ -251,7 +251,7 @@ export class ExprParser extends GroupParser {
                 }
             } else if (component instanceof ExprSeq) {
                 this.index += 1;
-                output = new ArgsExpr(components, output, component);
+                output = new InvocationExpr(components, output, component);
                 continue;
             }
             component.throwError("Expected operator or argument expression sequence.");

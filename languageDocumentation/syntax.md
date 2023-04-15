@@ -12,7 +12,6 @@ OstraCode supports the following types of expressions:
 * Unary operation with an operand expression
 * Binary operation with two operand expressions
 * Function, method, and special invocations
-* Item qualification
 * Expression sequence which returns one item
 
 Value literals include the following:
@@ -86,11 +85,9 @@ Note that attribute statement sequences are always optional in statements, and m
 
 A comment with the prefix `//` may be placed at the end of any line.
 
-## Argument Syntax
+## Invocation Syntax
 
 A function invocation accepts an argument item sequence, and returns an item. A function may be invoked by placing an expression sequence after an expression which returns the function. For example, `$func($evalExprs)` invokes `$func` using the items returned by `$evalExprs` at evaltime. Method invocation uses the same syntax as function invocation.
-
-An item qualification accepts an argument type sequence, and returns a qualified item. An item may be qualified by placing an expression sequence after an expression which returns the item. For example, `$factor<$compExprs>` qualifies `$factor` using the types returned by `$compExprs` at comptime. Type qualification may accept arguments with any time grade, but the arguments of value qualification must be known at comptime.
 
 A "special" is an identifier which may be invoked in a similar fashion to a function. A special accepts both expression sequences and statement sequences which are placed immediately after the special. For example, `$special [$attrs] ($evalExprs)` invokes `$special` with both `[$attrs]` and `($evalExprs)`.
 

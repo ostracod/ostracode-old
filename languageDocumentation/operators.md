@@ -56,7 +56,7 @@ OstraCode has the following member access operators:
     * `$module` is an imported module
     * `$identifier` is an identifier
 * `$collection @ $subscript` = Member of `$collection` located at `$subscript`
-    * `$collection` is an expression with constraint type `(*SubscriptGetT($subscriptType, $memberType))`
+    * `$collection` is an expression with constraint type `(*SubscriptGetT+:($subscriptType, $memberType))`
     * `$subscript` is an expression with constraint type `$subscriptType`
     * The constraint type of `$collection @ $subscript` is `$memberType`
 
@@ -76,6 +76,17 @@ OstraCode has the following type operators:
 * `$type1 & $type2` = Intersection of `$type1` and `$type2`
     * `$type1` and `$type2` are expressions with constraint type `typeT`
     * The constraint type of `$type1 & $type2` is also `typeT`
+
+Generic items may be qualified with the `+:` operator:
+
+* `$generic+:<$args>` = Qualification of `$generic` with `$args`
+    * `$generic` is an expression with constraint type `genericT`
+    * `<$args>` is a sequence of expressions with constraint type `itemT`
+    * The constraint type of `$generic+:<$args>` depends on the generic definition of `$generic` and the items returned by `<$args>`
+* `$type+:($args)` = Qualification of `$type` with `$args`
+    * `$type` is an expression with constraint type `<?genericT>`
+    * `($args)` is a sequence of expressions with constraint type `itemT`
+    * The constraint type of `$type+:($args)` depends on the generic definition of `$type`
 
 The expression `$ref = $item` assigns the return item of expression `$item` to reference `$ref`. The constraint type of `$item` must conform to the constraint type of `$ref`. `=` may be combined with various binary operators to assign the result of an operation between `$ref` and `$expr`. For example, `$ref += $item` assigns `$ref + $item` to `$ref`. The list of all composite assignment operators is below:
 
@@ -195,6 +206,20 @@ objT ($factorType)
 ```
 
 Creates an object type whose factor type is `$factorType`.
+
+### Generic Specials:
+
+```
+generic [$attrs] ($item)
+```
+
+Returns `$item` as a generic item which may be qualified with arguments described by `$attrs`. The argument variables are comptime with respect to `$item`.
+
+```
+genericT [$attrs] ($type)
+```
+
+Returns `$type` as a generic type which may be qualified with arguments described by `$attrs`. The argument variables are evaltime with respect to `$item`.
 
 ### Discern Special:
 

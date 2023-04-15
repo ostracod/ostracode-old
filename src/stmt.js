@@ -1,6 +1,6 @@
 
 import { FlowControl } from "./constants.js";
-import { CompilerError, UnresolvedItemError } from "./error.js";
+import { UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
@@ -682,13 +682,6 @@ export class ImplementsStmt extends ExprAttrStmt {
     }
 }
 
-export class TypeArgsStmt extends ParentAttrStmt {
-    
-    getChildConstructor() {
-        return ArgStmt;
-    }
-}
-
 export class ExportedStmt extends AttrStmt {
     
 }
@@ -752,7 +745,6 @@ export const attrStmtConstructors = {
     vis: VisStmt,
     shield: ShieldStmt,
     implements: ImplementsStmt,
-    typeArgs: TypeArgsStmt,
     exported: ExportedStmt,
     foreign: ForeignStmt,
     as: AsStmt,

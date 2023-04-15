@@ -108,6 +108,7 @@ new BinaryOperator("^^", 12);
 new SubscriptOperator();
 new BinaryOperator(":", 0);
 new BinaryOperator("::", 0);
+new BinaryOperator("+:", 0);
 new AssignOperator();
 new BinaryOperator("+=", 14);
 new BinaryOperator("-=", 14);

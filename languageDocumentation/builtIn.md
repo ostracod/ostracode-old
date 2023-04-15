@@ -76,8 +76,9 @@ The `conformsTo` method determines whether the parent item conforms to the given
 ### Subscript Get Interface:
 
 ```
-comp SubscriptGetT = <interfaceT [
-    typeArgs [subscriptT, memberT = (itemT)]
+comp SubscriptGetT = <genericT [
+    args [subscriptT <typeT>, memberT = (itemT)]
+] (interfaceT [
     methods [
         getMember [
             public, vis (2)
@@ -85,7 +86,7 @@ comp SubscriptGetT = <interfaceT [
             returns (memberT)
         ]
     ]
-]>
+])>
 ```
 
 The `getMember` method retrieves the member located at `subscript`. Strings, lists, and dictionaries implement `SubscriptGetT`. The `SubscriptGetT` interface interoperates with the subscript operator (`@`).
@@ -93,15 +94,16 @@ The `getMember` method retrieves the member located at `subscript`. Strings, lis
 ### Subscript Set Interface:
 
 ```
-comp SubscriptSetT = <interfaceT [
-    typeArgs [subscriptT, memberT = (itemT)]
+comp SubscriptSetT = <genericT [
+    args [subscriptT <typeT>, memberT = (itemT)]
+] (interfaceT [
     methods [
         setMember [
             public, vis (2)
             args [subscript (subscriptT), item (memberT)]
         ]
     ]
-]>
+])>
 ```
 
 The `setMember` method modifies the member located at `subscript`. Lists and dictionaries implement `SubscriptSetT`. The `SubscriptSetT` interface interoperates with the subscript operator (`@`).
@@ -110,15 +112,16 @@ The `setMember` method modifies the member located at `subscript`. Lists and dic
 ### Subscript Delete Interface:
 
 ```
-comp SubscriptDeleteT = <interfaceT [
-    typeArgs [subscriptT]
+comp SubscriptDeleteT = <genericT [
+    args [subscriptT <typeT>]
+] (interfaceT [
     methods [
         deleteMember [
             public, vis (2)
             args [subscript (subscriptT)]
         ]
     ]
-]>
+])>
 ```
 
 The `deleteMember` method deletes the member located at `subscript`. Dictionaries implement `SubscriptDeleteT`.
@@ -126,8 +129,9 @@ The `deleteMember` method deletes the member located at `subscript`. Dictionarie
 ### Iterator Interface:
 
 ```
-comp IteratorT = <interfaceT [
-    typeArgs [memberT = (itemT)]
+comp IteratorT = <genericT [
+    args [memberT = (itemT)]
+] (interfaceT [
     methods [
         getNext [
             public, vis (2)
@@ -138,7 +142,7 @@ comp IteratorT = <interfaceT [
             returns (boolT)
         ]
     ]
-]>
+])>
 ```
 
 The `getNext` method retrieves the next member in the iteration. The `isFinished` method returns whether the iteration has finished. The `IteratorT` interface interoperates with the `IterableT` interface.
@@ -146,15 +150,16 @@ The `getNext` method retrieves the next member in the iteration. The `isFinished
 ### Iterable Interface:
 
 ```
-comp IterableT = <interfaceT [
-    typeArgs [memberT = (itemT)]
+comp IterableT = <genericT [
+    args [memberT = (itemT)]
+] (interfaceT [
     methods [
         createIterator [
             public, vis (2)
-            returns (*IteratorT(memberT))
+            returns (*IteratorT+:(memberT))
         ]
     ]
-]>
+])>
 ```
 
 The `createIterator` method creates a new iterator which iterates over members in the parent item. Strings, lists, and dictionaries implement `IterableT`. The `IterableT` interface interoperates with the `for` statement.
@@ -174,8 +179,9 @@ The `message` field stores an error message. The `Error` factor implements `Erro
 ### Then Interface:
 
 ```
-comp ThenT = <interfaceT [
-    typeArgs [resultT = (undefT)]
+comp ThenT = <genericT [
+    args [resultT <typeT> = (undefT)]
+] (interfaceT [
     methods [
         then [
             public, vis (2)
@@ -186,7 +192,7 @@ comp ThenT = <interfaceT [
             returns <??self>
         ]
     ]
-]>
+])>
 ```
 
 The `ThenT` interface represents an asynchronous task. The `Promise` factor implements `ThenT`. The `ThenT` interface interoperates with the `await` special.
@@ -203,7 +209,7 @@ OstraCode has the following built-in factors:
 
 ### Promise Factor:
 
-`Promise<$resultType>` stores an asynchronous task. `Promise` implements the `ToStringT` and `ThenT<$resultType>` interfaces. `Promise` also provides the following methods:
+`Promise+:<$resultType>` stores an asynchronous task. `Promise` implements the `ToStringT` and `ThenT+:($resultType)` interfaces. `Promise` also provides the following methods:
 
 * `$promise.init($task)` initializes the promise with function `$task`. The type of `$task` is below:
     ```

@@ -501,32 +501,33 @@ const myExchange = (obj (Transfer))
 (myExchange.dest = 999)
 ```
 
-## Factor Qualification
+## Generic Factors
 
-A factor which uses the `typeArgs` statement may be "qualified" with one or more type arguments. Field types and method signatures may reference type arguments. The example below demonstrates factor qualification:
+A generic factor may be "qualified" with one or more arguments. Field types and method signatures may reference the generic arguments. Generic factors may be created by using the `generic` special. The example below demonstrates usage of generic factors:
 
 ```
-const ListNode = (feature [
-    // `ListNode` may be qualified with a type argument
-    // named `contentT`, whose constraint type is `typeT`.
-    typeArgs [contentT]
+// `ListNode` may be qualified with a type argument
+// named `contentT`, whose constraint type is `typeT`.
+const ListNode = (generic [
+    args [contentT <typeT>]
+] (feature [
     fields [
         // The constraint type of `content` is equal to the
         // type argument `contentT`.
         content <contentT> [public]
         // `next` can store another node which stores
         // the same type of content.
-        next <*?ListNode<contentT>> [public]
+        next <*?ListNode+:<contentT>> [public]
     ]
-])
+]))
 
-const node1 = (obj (ListNode<numT>))
-const node2 = (obj (ListNode<numT>))
+const node1 = (obj (ListNode+:<numT>))
+const node2 = (obj (ListNode+:<numT>))
 // The type of `content` in `node1` and `node2` is `numT`.
 (node1.content = 10)
 (node2.content = 20)
 // The type of `next` in `node1` and `node2`
-// is `<*?ListNode<numT>>`.
+// is `<*?ListNode+:<numT>>`.
 (node1.next = node2)
 ```
 

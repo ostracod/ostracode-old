@@ -49,6 +49,7 @@ Data types may be categorized into the following supertypes:
 * `valueT` is the type of a value. Items with type `valueT` may not be used as variable constraint types.
 * `missingT` is the type of a missing item. `missingT` is a supertype of `undefT` and `nullT`.
 * `factorT` is the type of a factor. `factorT` is a supertype of `interfaceT`, `featureT`, and `bundleT`.
+* `genericT` is the type of an item which may be qualified with one or more arguments.
 
 Note that evaltime variables can store items with type `typeT` even at runtime. This allows applications to manipulate types which are not known during compilation.
 

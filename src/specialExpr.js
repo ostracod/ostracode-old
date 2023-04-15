@@ -1,7 +1,7 @@
 
 import * as nodeUtils from "./nodeUtils.js";
 import { AttrStmtSeq } from "./groupSeq.js";
-import { ArgsStmt, TypeArgsStmt, FieldsStmt, MethodsStmt } from "./stmt.js";
+import { ArgsStmt, FieldsStmt, MethodsStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc } from "./func.js";
@@ -25,8 +25,6 @@ export class SpecialExpr extends Expr {
     resolveVars() {
         const argVars = this.getAttrStmtVars(ArgsStmt);
         this.addVars(argVars);
-        const typeArgVars = this.getAttrStmtVars(TypeArgsStmt);
-        this.addVars(typeArgVars);
     }
     
     getAttrStmtSeq() {
@@ -244,6 +242,22 @@ export class ObjTypeExpr extends ExprSpecialExpr {
     }
 }
 
+export class GenericExpr extends SpecialExpr {
+    
+    init(parser) {
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+        this.exprSeq = parser.readExprSeq();
+    }
+}
+
+export class GenericTypeExpr extends SpecialExpr {
+    
+    init(parser) {
+        this.attrStmtSeq = parser.readAttrStmtSeq();
+        this.exprSeq = parser.readExprSeq();
+    }
+}
+
 export class DiscernExpr extends ExprSpecialExpr {
     
     evaluateHelper(context) {
@@ -273,6 +287,8 @@ export const specialConstructorMap = {
     bundleT: BundleTypeExpr,
     obj: ObjExpr,
     objT: ObjTypeExpr,
+    generic: GenericExpr,
+    genericT: GenericTypeExpr,
     discern: DiscernExpr,
 };
 

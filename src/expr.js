@@ -251,7 +251,7 @@ export class ExprSeqExpr extends SingleComponentExpr {
     }
 }
 
-export class ArgsExpr extends Expr {
+export class InvocationExpr extends Expr {
     
     constructor(components, operand, argExprSeq) {
         super(components);
@@ -260,7 +260,6 @@ export class ArgsExpr extends Expr {
     }
     
     evaluate(context) {
-        // TODO: Handle item qualification.
         const func = this.operand.evaluateToItem(context);
         const args = this.argExprSeq.evaluateToItems(context);
         return new ResultRef(func.evaluate(args));
