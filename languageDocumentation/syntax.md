@@ -11,6 +11,7 @@ OstraCode supports the following types of expressions:
 * Variable identifier
 * Unary operation with an operand expression
 * Binary operation with two operand expressions
+* Binary operation with an expression and an expression sequence
 * Function, method, and special invocations
 * Expression sequence which returns one item
 

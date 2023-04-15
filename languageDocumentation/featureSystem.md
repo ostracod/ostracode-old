@@ -506,14 +506,14 @@ const myExchange = (obj (Transfer))
 A generic factor may be "qualified" with one or more arguments. Field types and method signatures may reference the generic arguments. Generic factors may be created by using the `generic` special. The example below demonstrates usage of generic factors:
 
 ```
-// `ListNode` may be qualified with a type argument
-// named `contentT`, whose constraint type is `typeT`.
+// `ListNode` may be qualified with an argument named
+// `contentT`, whose constraint type is `typeT`.
 const ListNode = (generic [
     args [contentT <typeT>]
 ] (feature [
     fields [
         // The constraint type of `content` is equal to the
-        // type argument `contentT`.
+        // generic argument `contentT`.
         content <contentT> [public]
         // `next` can store another node which stores
         // the same type of content.
