@@ -30,7 +30,7 @@ const myObj2 = (obj (MyFeature))
 (print(myObj2.myItemField))
 
 // Assigns a value to `mySharedField`. Note that both `myObj1`
-// and `myObj2` share the same value of `mySharedField`
+// and `myObj2` share the same value of `mySharedField`.
 (myObj1.mySharedField = "Goodbye!")
 // Prints "Goodbye!".
 (print(myObj1.mySharedField))
@@ -43,7 +43,7 @@ Feature fields can store methods which manipulate other fields in the parent obj
 ```
 const Counter = (feature [
     itemFields [
-        count <numT> [public]
+        count <numT> [public] = (0)
     ]
     sharedFields [
         increment [publicGet] = (method {
@@ -53,11 +53,9 @@ const Counter = (feature [
 ])
 
 const myCounter = (obj (Counter))
-// Sets the initial value of the `count` field.
-(myCounter.count = 2)
 // Invokes the `increment` method.
 (myCounter.increment())
-// Prints "3".
+// Prints "1".
 (print(myCounter.count))
 ```
 
@@ -149,8 +147,8 @@ In order to access fields of a feature, the feature must have a "discerned" type
 // which is not discerned.
 const createCoinFeature = (func [
     args [probability <numT>]
-    returns <featureT [methods [
-        flip [returns (boolT)]
+    returns <featureT [sharedFields [
+        flip (methodT [returns (boolT)]) [publicGet]
     ]]>
 ] {
     return (feature [sharedFields [
@@ -234,7 +232,7 @@ const myAbc = (obj (AbcBundle))
 
 ## Field Visibility
 
-Every factor field is associated with an integer "visiblity". A field is only visible from the member access operator (`.`) if the fields's visibility is greater than zero. By default, the visibility of every field is 1, but a different visibility may be specified with the `vis` statement. When a factor is included in a bundle, the visibility of all factor fields is decreased by 1. In order to be visible in the bundle, the factor fields must specifiy visibility 2 or higher. The example below demonstrates usage of visibility:
+Every factor field is associated with an integer "visiblity". A field is only visible from the member access operator (`.`) if the field's visibility is greater than zero. By default, the visibility of every field is 1, but a different visibility may be specified with the `vis` statement. When a factor is included in a bundle, the visibility of all factor fields is decreased by 1. In order to be visible in the bundle, the factor fields must specifiy visibility 2 or higher. The example below demonstrates usage of visibility:
 
 ```
 const IsBig = (feature [sharedFields [
@@ -369,7 +367,7 @@ const counter = (obj (bundle [
 (print(counter.count)) // Prints "1".
 ```
 
-Note that the compiler will throw an error when creating an object with an unresolved `thisFactor` statement. The example below demonstrates an unresolved `thisFactor` statement:
+A `thisFactor` statement is "unresolved" when the feature is not included in a bundle with the required factor. The compiler will throw an error when creating an object with an unresolved `thisFactor` statement. The example below demonstrates an unresolved `thisFactor` statement:
 
 ```
 const CreateGreeting = (feature [
@@ -468,7 +466,7 @@ const User = (feature [sharedFields [
     })
 ]])
 
-const CitizenTools = (feature [methods [
+const CitizenTools = (feature [sharedFields [
     thisFactor <?User>
     getWarning [publicGet] = (method [returns <strT>] {
         // Does not throw a compile-time error, because
@@ -502,7 +500,7 @@ const citizen = (obj (bundle [
 (print(citizen.getSecret()))
 ```
 
-Fields may specify write permission by using the `publicSet`, `protectedSet`, `privateSet`, and `forbiddenSet` statements. When a field has the `forbiddenSet` statement, it is unable to be modified after initialization. The default write permission is `privateSet` within `itemFields`, and `forbiddenSet` within `sharedFields`. The example below demonstrates usage of read and write permission statements:
+Fields may specify write permission by using the `publicSet`, `protectedSet`, `privateSet`, and `forbiddenSet` statements. When a field has the `forbiddenSet` statement, it is unable to be modified after initialization. The default write permission is `privateSet` within `itemFields`, and `forbiddenSet` within `sharedFields`. The example below demonstrates usage of write permission statements:
 
 ```
 const Transfer = (feature [
@@ -587,6 +585,7 @@ const ListNode = (generic [
     ]
 ]))
 
+// `node1` and `node2` include `ListNode` qualified with `numT`.
 const node1 = (obj (ListNode+:<numT>))
 const node2 = (obj (ListNode+:<numT>))
 // The type of `content` in `node1` and `node2` is `numT`.

@@ -49,7 +49,7 @@ Supose that `$bool1` and `$bool2` are expressions with constraint type `boolT`. 
 
 OstraCode has the following member access operators:
 
-* `$item.$identifier` = Member of discerned feature in `$item` with name `$identifier`
+* `$item.$identifier` = Field of discerned feature in `$item` with name `$identifier`
     * `$item` is an expression with constraint type `itemT`
     * `$identifier` is an identifier
 * `$module.$identifier` = Member of `$module` with name `$identifier`

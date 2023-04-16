@@ -37,7 +37,7 @@ comp ToStringT = <interfaceT [
     sharedFields [
         toString (methodT [
             returns (strT)
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ]>
 ```
@@ -64,7 +64,7 @@ comp ConformsToT = <interfaceT [
         conformsTo (methodT [
             args [type (typeT)]
             returns (boolT)
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ]>
 ```
@@ -81,7 +81,7 @@ comp SubscriptGetT = <genericT [
         getMember (methodT [
             args [subscript (subscriptT)]
             returns (memberT)
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ])>
 ```
@@ -97,7 +97,7 @@ comp SubscriptSetT = <genericT [
     sharedField [
         setMember (methodT [
             args [subscript (subscriptT), item (memberT)]
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ])>
 ```
@@ -114,7 +114,7 @@ comp SubscriptDeleteT = <genericT [
     sharedFields [
         deleteMember (methodT [
             args [subscript (subscriptT)]
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ])>
 ```
@@ -130,10 +130,10 @@ comp IteratorT = <genericT [
     sharedFields [
         getNext (methodT [
             returns (memberT)
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
         isFinished (methodT [
             returns (boolT)
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ])>
 ```
@@ -149,7 +149,7 @@ comp IterableT = <genericT [
     sharedFields [
         createIterator (methodT [
             returns (*IteratorT+:(memberT))
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ])>
 ```
@@ -181,7 +181,7 @@ comp ThenT = <genericT [
                 onReject (funcT [args [error]]) [optional]
             ]
             returns <??self>
-        ]) [public, vis (2)]
+        ]) [publicGet, vis (2)]
     ]
 ])>
 ```
