@@ -1,12 +1,13 @@
 
 import * as nodeUtils from "./nodeUtils.js";
 import { AttrStmtSeq } from "./groupSeq.js";
-import { ArgsStmt, FieldsStmt, MethodsStmt } from "./stmt.js";
+import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
-import { CustomFunc } from "./func.js";
+import { CustomFunc, UnboundCustomMethod } from "./func.js";
 import { TypeType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
+import { ReflexiveVar } from "./var.js";
 import { Feature } from "./factor.js";
 import { FeatureType } from "./factorType.js";
 import { Obj, ObjType } from "./obj.js";
@@ -103,7 +104,7 @@ export class DictExpr extends AttrsSpecialExpr {}
 
 export class DictTypeExpr extends AttrsSpecialExpr {}
 
-export class FuncExpr extends SpecialExpr {
+export class InvocableExpr extends SpecialExpr {
     
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
@@ -114,24 +115,56 @@ export class FuncExpr extends SpecialExpr {
         return this.getAttrStmtVars(ArgsStmt);
     }
     
-    evaluateHelper(context) {
-        return new CustomFunc(this.getArgVars(), this.bhvrStmtSeq, context);
-    }
-    
     aggregateCompItems(aggregator) {
         this.bhvrStmtSeq.aggregateCompItems(aggregator);
     }
     
-    convertToJs(jsConverter) {
-        // TODO: Assign default items.
-        const argIdentifiers = this.getArgVars().map((variable) => (
+    getArgIdentifiers() {
+        return this.getArgVars().map((variable) => (
             variable.getJsIdentifier()
         ));
+    }
+}
+
+export class FuncExpr extends InvocableExpr {
+    
+    evaluateHelper(context) {
+        return new CustomFunc(this.getArgVars(), this.bhvrStmtSeq, context);
+    }
+    
+    convertToJs(jsConverter) {
+        // TODO: Assign default items.
+        const argIdentifiers = this.getArgIdentifiers();
         return `((${argIdentifiers.join(", ")}) => ${this.bhvrStmtSeq.convertToJs(jsConverter)})`;
     }
 }
 
 export class FuncTypeExpr extends AttrsSpecialExpr {}
+
+export class MethodExpr extends InvocableExpr {
+    
+    getFeatureExpr() {
+        return this.getParent(FeatureExpr);
+    }
+    
+    resolveVars() {
+        super.resolveVars();
+        const featureType = this.getFeatureExpr().getConstraintType();
+        const objType = new ObjType(featureType);
+        this.selfVar = new ReflexiveVar("self", objType);
+        this.addVar(this.selfVar);
+    }
+    
+    evaluateHelper(context) {
+        return new UnboundCustomMethod(this, context);
+    }
+    
+    convertToJs(jsConverter) {
+        // TODO: Assign default items.
+        const argIdentifiers = this.getArgIdentifiers();
+        return `(function (${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs(jsConverter)})`;
+    }
+}
 
 export class MethodTypeExpr extends AttrsSpecialExpr {}
 
@@ -143,21 +176,21 @@ export class FeatureExpr extends AttrsSpecialExpr {
     
     constructor(components, groupSeqs) {
         super(components, groupSeqs);
-        this.fieldStmts = this.getAttrStmtChildren(FieldsStmt);
-        this.methodStmts = this.getAttrStmtChildren(MethodsStmt);
+        this.itemFieldStmts = this.getAttrStmtChildren(ItemFieldsStmt);
+        this.sharedFieldStmts = this.getAttrStmtChildren(SharedFieldsStmt);
     }
 }
 
 export class FeatureValueExpr extends FeatureExpr {
     
     evaluateHelper(context) {
-        const output = new Feature(this.fieldStmts, this.methodStmts, context);
+        const output = new Feature(this.itemFieldStmts, this.sharedFieldStmts, context);
         context.stowTypeId(this, output.typeId);
         return output;
     }
     
     getConstraintType() {
-        return new FeatureType(this.fieldStmts, this.methodStmts, this);
+        return new FeatureType(this.itemFieldStmts, this.sharedFieldStmts, this);
     }
     
     isDiscerner() {
@@ -165,30 +198,30 @@ export class FeatureValueExpr extends FeatureExpr {
     }
     
     aggregateCompItems(aggregator) {
-        for (const fieldStmt of this.fieldStmts) {
+        for (const fieldStmt of this.itemFieldStmts) {
             fieldStmt.aggregateCompItems(aggregator);
         }
-        for (const methodStmt of this.methodStmts) {
-            methodStmt.aggregateCompItems(aggregator);
+        for (const fieldStmt of this.sharedFieldStmts) {
+            fieldStmt.aggregateCompItems(aggregator);
         }
     }
     
     convertToJs(jsConverter) {
         const compartment = this.getDiscernerCompartment();
-        const fieldCodeList = this.fieldStmts.map((stmt) => (
-            stmt.convertToJs(jsConverter)
+        const itemFieldCodeList = this.itemFieldStmts.map((stmt) => (
+            stmt.convertToItemJs(jsConverter)
         ));
-        const methodCodeList = this.methodStmts.map((stmt) => (
-            stmt.convertToJs(jsConverter)
+        const sharedFieldCodeList = this.sharedFieldStmts.map((stmt) => (
+            stmt.convertToSharedJs(jsConverter)
         ));
         return `(() => {
 const feature = class extends classes.Feature {
 static typeId = Symbol("typeId");
 constructor(obj) {
 super(obj);
-${fieldCodeList.join("\n")}
+${itemFieldCodeList.join("\n")}
 }
-${methodCodeList.join("\n")}
+${sharedFieldCodeList.join("\n")}
 };
 ${compartment.convertToJs()} = feature.typeId;
 return feature;
@@ -278,6 +311,7 @@ export const specialConstructorMap = {
     dictT: DictTypeExpr,
     func: FuncExpr,
     funcT: FuncTypeExpr,
+    method: MethodExpr,
     methodT: MethodTypeExpr,
     await: AwaitExpr,
     interfaceT: InterfaceTypeExpr,

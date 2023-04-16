@@ -3,7 +3,7 @@ import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { createTypeId } from "./itemType.js";
-import { CustomMethod } from "./func.js";
+import { UnboundCustomMethod, BoundCustomMethod } from "./func.js";
 import { CompItemAggregator } from "./aggregator.js";
 import { Item } from "./item.js";
 
@@ -12,19 +12,15 @@ export class Factor extends Item {
     // getFeatures
 }
 
-export class FeatureMember {
-    
-    constructor(name, context) {
-        this.name = name;
-        this.context = context;
-    }
-}
-
-export class FeatureField extends FeatureMember {
+export class FeatureField {
     
     constructor(fieldStmt, context) {
-        super(fieldStmt.name, context);
         this.fieldStmt = fieldStmt;
+        this.context = context;
+        this.name = this.fieldStmt.name;
+        if (this.name === null) {
+            this.fieldStmt.throwError("Feature field must use name identifier.");
+        }
     }
     
     getInitItem() {
@@ -46,46 +42,27 @@ export class FeatureField extends FeatureMember {
     }
 }
 
-export class FeatureMethod extends FeatureMember {
-    
-    constructor(methodStmt, context) {
-        super(methodStmt.name, context);
-        this.methodStmt = methodStmt;
+// Returns a Map from name to item.
+const createItemMap = (fields) => {
+    const output = new Map();
+    for (const field of fields) {
+        output.set(field.name, field.getInitItem());
     }
-    
-    createMethod(featureInstance) {
-        return new CustomMethod(this.methodStmt, this.context, featureInstance);
-    }
-    
-    getNestedItems() {
-        const aggregator = new CompItemAggregator();
-        this.methodStmt.aggregateCompItems(aggregator);
-        return aggregator.getItems();
-    }
-    
-    convertToJs(jsConverter) {
-        return this.methodStmt.convertToJs(jsConverter);
-    }
-}
+    return output;
+};
 
 export class Feature extends Factor {
     
-    constructor(fieldStmts, methodStmts, context) {
+    constructor(itemFieldStmts, sharedFieldStmts, context) {
         super();
         this.typeId = createTypeId();
-        this.fields = fieldStmts.map((fieldStmt) => {
-            const { name } = fieldStmt;
-            if (name === null) {
-                fieldStmt.throwError("Feature field must use name identifier.");
-            }
-            return new FeatureField(fieldStmt, context);
-        });
-        // Map from name to FeatureMethod.
-        this.methods = new Map();
-        for (const methodStmt of methodStmts) {
-            const featureMethod = new FeatureMethod(methodStmt, context);
-            this.methods.set(featureMethod.name, featureMethod);
-        }
+        this.itemFields = itemFieldStmts.map((fieldStmt) => (
+            new FeatureField(fieldStmt, context)
+        ));
+        const sharedFields = sharedFieldStmts.map((fieldStmt) => (
+            new FeatureField(fieldStmt, context)
+        ));
+        this.sharedItemMap = createItemMap(sharedFields);
     }
     
     getFeatures() {
@@ -94,11 +71,11 @@ export class Feature extends Factor {
     
     getNestedItems() {
         const output = [];
-        for (const field of this.fields) {
+        for (const field of this.itemFields) {
             niceUtils.extendList(output, field.getNestedItems());
         }
-        for (const method of this.methods.values()) {
-            niceUtils.extendList(output, method.getNestedItems());
+        for (const item of this.sharedItemMap.values()) {
+            output.push(item);
         }
         return output;
     }
@@ -109,22 +86,24 @@ export class Feature extends Factor {
     }
     
     convertToJs(jsConverter) {
-        const fieldCodeList = [];
-        for (const field of this.fields) {
-            fieldCodeList.push(field.convertToJs(jsConverter));
+        const itemFieldCodeList = [];
+        for (const field of this.itemFields) {
+            itemFieldCodeList.push(field.fieldStmt.convertToItemJs(jsConverter));
         }
-        const methodCodeList = [];
-        for (const method of this.methods.values()) {
-            methodCodeList.push(method.convertToJs(jsConverter));
+        const sharedFieldCodeList = [];
+        for (const [name, item] of this.sharedItemMap.entries()) {
+            const identifier = compUtils.getJsIdentifier(name);
+            const itemCode = jsConverter.convertItemToJs(item);
+            sharedFieldCodeList.push(`${identifier} = ${itemCode};`);
         }
         const typeIdIdentifier = compUtils.getJsTypeIdIdentifier(this.typeId);
         return `(class extends classes.Feature {
 static typeId = typeIds.${typeIdIdentifier};
 constructor(obj) {
 super(obj);
-${fieldCodeList.join("\n")}
+${itemFieldCodeList.join("\n")}
 }
-${methodCodeList.join("\n")}
+${sharedFieldCodeList.join("\n")}
 })`;
     }
 }
@@ -134,29 +113,34 @@ export class FeatureInstance {
     constructor(feature, obj) {
         this.feature = feature;
         this.obj = obj;
-        // Map from name to item.
-        this.fields = new Map();
-        for (const field of this.feature.fields) {
-            this.fields.set(field.name, field.getInitItem());
-        }
+        this.itemMap = createItemMap(feature.itemFields);
+        this.sharedItemMap = this.feature.sharedItemMap;
     }
     
     getMemberItem(name) {
-        if (this.fields.has(name)) {
-            return this.fields.get(name);
+        let item;
+        if (this.itemMap.has(name)) {
+            item = this.itemMap.get(name);
+        } else if (this.sharedItemMap.has(name)) {
+            item = this.sharedItemMap.get(name);
+        } else {
+            throw new CompilerError(`Unknown field "${name}".`);
         }
-        const featureMethod = this.feature.methods.get(name);
-        if (typeof featureMethod === "undefined") {
-            throw new CompilerError(`Unknown member "${name}".`);
+        if (item instanceof UnboundCustomMethod) {
+            return new BoundCustomMethod(item, this);
+        } else {
+            return item;
         }
-        return featureMethod.createMethod(this);
     }
     
     setMemberItem(name, item) {
-        if (this.fields.has(name)) {
-            return this.fields.set(name, item);
+        if (this.itemMap.has(name)) {
+            this.itemMap.set(name, item);
+        } else if (this.sharedItemMap.has(name)) {
+            this.sharedItemMap.set(name, item);
+        } else {
+            throw new CompilerError(`Unknown field "${name}".`);
         }
-        throw new CompilerError(`Unknown field "${name}".`);
     }
 }
 

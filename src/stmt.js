@@ -6,10 +6,9 @@ import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
-import { StmtCompVar, StmtEvalVar, ReflexiveVar } from "./var.js";
+import { StmtCompVar, StmtEvalVar } from "./var.js";
 import { SpecialExpr, FeatureExpr } from "./specialExpr.js";
 import { ItemType } from "./itemType.js";
-import { ObjType } from "./obj.js";
 
 const initItemName = "initialization item";
 
@@ -508,6 +507,10 @@ export class FieldsStmt extends ParentAttrStmt {
     }
 }
 
+export class ItemFieldsStmt extends FieldsStmt {}
+
+export class SharedFieldsStmt extends FieldsStmt {}
+
 export class FieldStmt extends ChildAttrStmt {
     
     init(parser) {
@@ -542,68 +545,31 @@ export class FieldStmt extends ChildAttrStmt {
         }
     }
     
-    convertToJs(jsConverter) {
-        let initItemCode;
+    getInitItemCode(jsConverter) {
         if (this.initItemExprSeq === null) {
-            initItemCode = "undefined";
+            return "undefined";
         } else {
-            initItemCode = this.initItemExprSeq.convertToJs(jsConverter);
+            return this.initItemExprSeq.convertToJs(jsConverter);
         }
-        return `this.${this.getJsIdentifier()} = ${initItemCode};`;
+    }
+    
+    convertToDictJs(jsConverter) {
+        const initItemCode = this.getInitItemCode(jsConverter);
+        return `${this.getJsIdentifier()}: ${initItemCode},`;
+    }
+    
+    convertToSharedJs(jsConverter) {
+        const initItemCode = this.getInitItemCode(jsConverter);
+        return `${this.getJsIdentifier()} = ${initItemCode};`;
+    }
+    
+    convertToItemJs(jsConverter) {
+        return "this." + this.convertToSharedJs(jsConverter);
     }
 }
 
 export class OptionalStmt extends AttrStmt {
     
-}
-
-export class MethodsStmt extends ParentAttrStmt {
-    
-    getChildConstructor() {
-        return MethodStmt;
-    }
-}
-
-export class MethodStmt extends ChildAttrStmt {
-    
-    init(parser) {
-        this.name = parser.readIdentifierText();
-        this.attrStmtSeq = parser.readAttrStmtSeq();
-        this.bhvrStmtSeq = parser.readBhvrStmtSeq(true);
-        this.selfVar = null;
-    }
-    
-    getFeatureExpr() {
-        return this.getParent(FeatureExpr);
-    }
-    
-    getArgVars() {
-        return nodeUtils.getChildVars(this.attrStmtSeq, ArgsStmt);
-    }
-    
-    resolveVars() {
-        this.addVars(this.getArgVars());
-        const featureType = this.getFeatureExpr().getConstraintType();
-        const objType = new ObjType(featureType);
-        this.selfVar = new ReflexiveVar("self", objType);
-        this.addVar(this.selfVar);
-    }
-    
-    getJsIdentifier() {
-        return compUtils.getJsIdentifier(this.name);
-    }
-    
-    aggregateCompItems(aggregator) {
-        this.bhvrStmtSeq.aggregateCompItems(aggregator);
-    }
-    
-    convertToJs(jsConverter) {
-        // TODO: Assign default items.
-        const argIdentifiers = this.getArgVars().map((variable) => (
-            variable.getJsIdentifier()
-        ));
-        return `${this.getJsIdentifier()}(${argIdentifiers.join(", ")}) ${this.bhvrStmtSeq.convertToJs(jsConverter)}`;
-    }
 }
 
 export class SelfFeatureStmt extends ExprAttrStmt {
@@ -728,8 +694,9 @@ export const attrStmtConstructors = {
     returns: ReturnsStmt,
     fieldType: FieldTypeStmt,
     fields: FieldsStmt,
+    itemFields: ItemFieldsStmt,
+    sharedFields: SharedFieldsStmt,
     optional: OptionalStmt,
-    methods: MethodsStmt,
     selfFeature: SelfFeatureStmt,
     thisFactor: ThisFactorsStmt,
     factors: FactorsStmt,
