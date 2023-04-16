@@ -141,7 +141,13 @@ funcT [$attrs]
 
 Creates a function type whose signature is described by `$attrs`.
 
-### Method Special:
+### Method Specials:
+
+```
+method [$attrs] {$body}
+```
+
+Creates a method value whose signature is described by `$attrs`, and whose behavior is determined by `$body`.
 
 ```
 methodT [$attrs]
@@ -163,7 +169,7 @@ If the return item of `$promise` conforms to `(*ThenT)`, the `await` special blo
 interfaceT [$attrs]
 ```
 
-Creates an interface type whose fields and methods are described by `$attrs`.
+Creates an interface type whose field types are described by `$attrs`.
 
 ### Feature Specials:
 
@@ -171,13 +177,13 @@ Creates an interface type whose fields and methods are described by `$attrs`.
 feature [$attrs]
 ```
 
-Creates a feature value whose fields and methods are described by `$attrs`. The output feature has a discerned type.
+Creates a feature value whose fields are described by `$attrs`. The output feature has a discerned type.
 
 ```
 featureT [$attrs]
 ```
 
-Creates a feature type whose field types and method signatures are described by `$attrs`. The output type is not discerned.
+Creates a feature type whose field types are described by `$attrs`. The output type is not discerned.
 
 ### Bundle Specials:
 

@@ -164,8 +164,7 @@ async
 Valid contexts:
 
 * `func` and `funcT` specials
-* Method statement
-* `methodT` special
+* `method` and `methodT` specials
 
 Asserts that the parent function is asynchronous, and has a return type which conforms to `(*ThenT)`.
 
@@ -178,8 +177,7 @@ args [$args]
 Valid contexts:
 
 * `func` and `funcT` specials
-* Method statement
-* `methodT` special
+* `method` and `methodT` specials
 * `generic` and `genericT` specials
 
 Declares the arguments which the parent function or generic may accept.
@@ -194,7 +192,7 @@ Valid contexts:
 
 * `args` statement in one of the following contexts:
     * `func` special
-    * Method statement
+    * `method` special
     * `generic` or `genericT` specials
 
 Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. If both `<$type>` and `= ($defaultItem)` are excluded, then the constraint type of the argument will be `itemT`.
@@ -220,7 +218,7 @@ returns <$type>
 Valid contexts:
 
 * `func` special
-* Method statement
+* `method` special
 
 Asserts that the parent function value returns an item whose type conforms to type `$type`. The default return type is `undefT`.
 
@@ -257,7 +255,7 @@ Valid contexts:
 
 Asserts that the type of each field in the parent dictionary type conforms to type `$type`.
 
-### Fields Statement:
+### Fields Statements:
 
 ```
 fields [$fields]
@@ -266,10 +264,30 @@ fields [$fields]
 Valid contexts:
 
 * `dict` and `dictT` specials
+
+Declares the fields in the parent dictionary.
+
+```
+itemFields [$fields]
+```
+
+Valid contexts:
+
 * `interfaceT` special
 * `feature` and `featureT` specials
 
-Declares the fields in the parent data structure.
+Declares fields which are associated with the parent factor. The fields are stored in each item which includes the factor.
+
+```
+sharedFields [$fields]
+```
+
+Valid contexts:
+
+* `interfaceT` special
+* `feature` and `featureT` specials
+
+Declares fields which are associated with the parent factor. The fields are shared between all items which include the factor.
 
 ### Field Statements:
 
@@ -279,9 +297,8 @@ $name <$type> [$attrs] = ($initItem)
 
 Valid contexts:
 
-* `fields` statement in one of the following contexts:
-    * `dict` special
-    * `feature` special
+* `fields` statement in `dict` special
+* `itemFields` and `sharedFields` statements in `feature` special
 
 Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the field will be `itemT`.
 
@@ -301,8 +318,8 @@ $name ($type) [$attrs]
 
 Valid contexts:
 
-* `fields` statement in one of the following contexts:
-    * `dictT` special
+* `fields` statement in `dictT` special:
+* `itemFields` and `sharedFields` statements in one of the following contexts:
     * `interfaceT` special
     * `featureT` special
 
@@ -331,44 +348,17 @@ Valid contexts:
 
 Asserts that the parent argument or field is optional.
 
-### Methods Statement:
+### Self Feature Statements:
 
 ```
-methods [$methods]
-```
-
-Valid contexts:
-
-* `interfaceT` special
-* `feature` and `featureT` specials
-
-Declares the methods in the parent interface or feature.
-
-### Method Statements:
-
-```
-$name [$attrs] {$behavior}
+selfFeature <$featureType>
 ```
 
 Valid contexts:
 
-* `methods` statement in `feature` special
+* `method` special
 
-Declares a method with name identifier `$name`, whose signature is described by `$attrs`, and whose behavior is determined by `$body`.
-
-```
-$name [$attrs]
-```
-
-Valid contexts:
-
-* `methods` statement in one of the following contexts:
-    * `interfaceT` special
-    * `featureT` special
-
-Declares a method with name identifier `$name`, and whose signature is described by `$attrs`.
-
-### Self Feature Statement:
+Asserts that the type of `self` is `objT ($featureType)` when referenced in the body of the method. `$featureType` must conform to `featureT`.
 
 ```
 selfFeature ($featureType)
@@ -389,7 +379,7 @@ thisFactor <$factorType>
 Valid contexts:
 
 * `feature` special
-* Method statement
+* `method` special
 
 Asserts that the type of `this` is `objT ($factorType)` when referenced in the body of a method. `$factorType` must conform to `factorT`.
 
@@ -435,26 +425,24 @@ Valid contexts for permission statements:
 * Field statement in one of the following contexts:
     * `interfaceT` special
     * `feature` or `featureT` special
-* Method statement
-* `methodT` special
 
 ```
 public
 ```
 
-Asserts that the parent member is accessible in all contexts.
+Asserts that the parent field is accessible in all contexts.
 
 ```
 protected
 ```
 
-Asserts that the parent member is only accessible by features in the same bundle.
+Asserts that the parent field is only accessible by features in the same bundle.
 
 ```
 private
 ```
 
-Asserts that the parent member is only accessible by methods in the same feature.
+Asserts that the parent field is only accessible by methods in the same feature.
 
 ### Get Permission Statements:
 
@@ -508,6 +496,12 @@ privateSet
 
 Asserts that the parent field is only writable by methods in the same feature.
 
+```
+forbiddenSet
+```
+
+Asserts that the parent field is immutable.
+
 ### Visibility Statements:
 
 ```
@@ -517,9 +511,8 @@ vis <$vis>
 Valid contexts:
 
 * Field statement in `feature` special
-* Method statement
 
-Asserts that the visibility of the parent member is `$vis`. The default visibility is 1.
+Asserts that the visibility of the parent field is `$vis`. The default visibility is 1.
 
 ```
 vis ($vis)
@@ -530,9 +523,8 @@ Valid contexts:
 * Field statement in one of the following contexts:
     * `interfaceT` special
     * `featureT` special
-* `methodT` special
 
-Asserts that the visibility of the parent member is `$vis`. The default visibility is 1.
+Asserts that the visibility of the parent field is `$vis`. The default visibility is 1.
 
 ### Shield Statements:
 
@@ -544,7 +536,7 @@ Valid contexts:
 
 * Factor statement in `bundle` special
 
-Asserts that the visibility of members in the parent factor value should be decreased by `$amount`. The default shield amount is 1.
+Asserts that the visibility of fields in the parent factor value should be decreased by `$amount`. The default shield amount is 1.
 
 ```
 shield ($amount)
@@ -554,7 +546,7 @@ Valid contexts:
 
 * Factor statement in `bundleT` special
 
-Asserts that the visibility of members in the parent factor type should be decreased by `$amount`. The default shield amount is 1.
+Asserts that the visibility of fields in the parent factor type should be decreased by `$amount`. The default shield amount is 1.
 
 ### Implements Statements:
 

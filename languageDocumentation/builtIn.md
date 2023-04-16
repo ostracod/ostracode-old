@@ -34,11 +34,10 @@ OstraCode has the following built-in interfaces:
 
 ```
 comp ToStringT = <interfaceT [
-    methods [
-        toString [
-            public, vis (2)
+    sharedFields [
+        toString (methodT [
             returns (strT)
-        ]
+        ]) [public, vis (2)]
     ]
 ]>
 ```
@@ -49,7 +48,7 @@ The `toString` method converts the parent item to a string. Every non-object ite
 
 ```
 comp LengthT = <interfaceT [
-    fields [
+    itemFields [
         length (numT) [publicGet, protectedSet, vis (2)]
     ]
 ]>
@@ -61,12 +60,11 @@ The `length` field stores the number of members in the parent item. Strings, lis
 
 ```
 comp ConformsToT = <interfaceT [
-    methods [
-        conformsTo [
-            public, vis (2)
+    sharedFields [
+        conformsTo (methodT [
             args [type (typeT)]
             returns (boolT)
-        ]
+        ]) [public, vis (2)]
     ]
 ]>
 ```
@@ -79,12 +77,11 @@ The `conformsTo` method determines whether the parent item conforms to the given
 comp SubscriptGetT = <genericT [
     args [subscriptT <typeT>, memberT = (itemT)]
 ] (interfaceT [
-    methods [
-        getMember [
-            public, vis (2)
+    sharedFields [
+        getMember (methodT [
             args [subscript (subscriptT)]
             returns (memberT)
-        ]
+        ]) [public, vis (2)]
     ]
 ])>
 ```
@@ -97,11 +94,10 @@ The `getMember` method retrieves the member located at `subscript`. Strings, lis
 comp SubscriptSetT = <genericT [
     args [subscriptT <typeT>, memberT = (itemT)]
 ] (interfaceT [
-    methods [
-        setMember [
-            public, vis (2)
+    sharedField [
+        setMember (methodT [
             args [subscript (subscriptT), item (memberT)]
-        ]
+        ]) [public, vis (2)]
     ]
 ])>
 ```
@@ -115,11 +111,10 @@ The `setMember` method modifies the member located at `subscript`. Lists and dic
 comp SubscriptDeleteT = <genericT [
     args [subscriptT <typeT>]
 ] (interfaceT [
-    methods [
-        deleteMember [
-            public, vis (2)
+    sharedFields [
+        deleteMember (methodT [
             args [subscript (subscriptT)]
-        ]
+        ]) [public, vis (2)]
     ]
 ])>
 ```
@@ -132,15 +127,13 @@ The `deleteMember` method deletes the member located at `subscript`. Dictionarie
 comp IteratorT = <genericT [
     args [memberT = (itemT)]
 ] (interfaceT [
-    methods [
-        getNext [
-            public, vis (2)
+    sharedFields [
+        getNext (methodT [
             returns (memberT)
-        ]
-        isFinished [
-            public, vis (2)
+        ]) [public, vis (2)]
+        isFinished (methodT [
             returns (boolT)
-        ]
+        ]) [public, vis (2)]
     ]
 ])>
 ```
@@ -153,11 +146,10 @@ The `getNext` method retrieves the next member in the iteration. The `isFinished
 comp IterableT = <genericT [
     args [memberT = (itemT)]
 ] (interfaceT [
-    methods [
-        createIterator [
-            public, vis (2)
+    sharedFields [
+        createIterator (methodT [
             returns (*IteratorT+:(memberT))
-        ]
+        ]) [public, vis (2)]
     ]
 ])>
 ```
@@ -168,7 +160,7 @@ The `createIterator` method creates a new iterator which iterates over members i
 
 ```
 comp ErrorMessageT = <interfaceT [
-    fields [
+    itemFields [
         message (strT) [publicGet, protectedSet, vis (2)]
     ]
 ]>
@@ -182,15 +174,14 @@ The `message` field stores an error message. The `Error` factor implements `Erro
 comp ThenT = <genericT [
     args [resultT <typeT> = (undefT)]
 ] (interfaceT [
-    methods [
-        then [
-            public, vis (2)
+    sharedFields [
+        then (methodT [
             args [
                 onResolve (funcT [args [result (resultT)]])
-                onReject (funcT [args [error]] | undefT) [optional]
+                onReject (funcT [args [error]]) [optional]
             ]
             returns <??self>
-        ]
+        ]) [public, vis (2)]
     ]
 ])>
 ```

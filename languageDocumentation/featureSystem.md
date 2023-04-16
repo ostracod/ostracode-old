@@ -5,22 +5,53 @@ This page documents the feature system in OstraCode.
 
 ## Features and Interfaces
 
-Every object in OstraCode includes one or more "features". A feature defines fields and methods which belong to the parent object. The example below declares a feature and creates an object which includes the feature:
+Every object in OstraCode includes one or more "features". A feature defines fields which may be accessed from the parent object. Fields declared in `itemFields` are stored in each instance of the object. Fields declared in `sharedFields` are shared between all objects which include the feature. The example below declares a feature and creates two objects which include the feature:
 
 ```
-// Declares a feature with a field and a method.
-const Counter = (feature [
-    fields [
-        count <numT> [public]
+const MyFeature = (feature [
+    itemFields [
+        myItemField <strT> [public]
     ]
-    methods [
-        increment [public] {
-            (self.count += 1)
-        }
+    sharedFields [
+        mySharedField <strT> [public]
     ]
 ])
 
-// Creates an object which includes the `Counter` feature.
+// Creates two objects which includes `MyFeature`.
+const myObj1 = (obj (MyFeature))
+const myObj2 = (obj (MyFeature))
+
+// Assigns values to `myItemField` in each object.
+(myObj1.myItemField = "Hello!")
+(myObj2.myItemField = "Hi!")
+// Prints "Hello!".
+(print(myObj1.myItemField))
+// Prints "Hi!".
+(print(myObj2.myItemField))
+
+// Assigns a value to `mySharedField`. Note that both `myObj1`
+// and `myObj2` share the same value of `mySharedField`
+(myObj1.mySharedField = "Goodbye!")
+// Prints "Goodbye!".
+(print(myObj1.mySharedField))
+// Also prints "Goodbye!".
+(print(myObj2.mySharedField))
+```
+
+Feature fields can store methods which manipulate other fields in the parent object. When a method is invoked, `self` becomes bound to the instance of the parent object. The example below demonstrates usage of methods:
+
+```
+const Counter = (feature [
+    itemFields [
+        count <numT> [public]
+    ]
+    sharedFields [
+        increment [publicGet] = (method {
+            (self.count += 1)
+        })
+    ]
+])
+
 const myCounter = (obj (Counter))
 // Sets the initial value of the `count` field.
 (myCounter.count = 2)
@@ -30,33 +61,33 @@ const myCounter = (obj (Counter))
 (print(myCounter.count))
 ```
 
-An "interface" defines field types and method signatures without providing implementations. Every feature may implement a single interface. Features which implement the same interface may be used interchangeably. The example below declares two features which implement the same interface:
+An "interface" defines field types without providing default values. Every feature may implement a single interface. Features which implement the same interface may be used interchangeably. The example below declares two features which implement the same interface:
 
 ```
-// Declares an interface with one method signature.
+// Declares an interface with one method.
 comp SpeakT = <interfaceT [
-    methods [
-        speak [public, returns (strT)]
+    sharedFields [
+        speak (methodT [returns (strT)]) [publicGet]
     ]
 ]>
 
 // Declares a feature which implements `SpeakT`.
 const DogSpeak = (feature [
     implements <SpeakT>
-    methods [
-        speak [public, returns <strT>] {
+    sharedFields [
+        speak [publicGet] = (method [returns <strT>] {
             return ("Woof!")
-        }
+        })
     ]
 ])
 
 // Declares another feature which implements `SpeakT`.
 const CatSpeak = (feature [
     implements <SpeakT>
-    methods [
-        speak [public, returns <strT>] {
+    sharedFields [
+        speak [publicGet] = (method [returns <strT>] {
             return ("Meow!")
-        }
+        })
     ]
 ])
 
@@ -77,7 +108,7 @@ Unlike TypeScript, OstraCode enforces nominal typing for interfaces and features
 
 ```
 comp SizeT = <interfaceT [
-    fields [
+    itemFields [
         size (numT) [public]
     ]
 ]>
@@ -86,13 +117,13 @@ comp SizeT = <interfaceT [
 // `implements` statements.
 
 const CargoSize = (feature [
-    fields [
+    itemFields [
         size <numT> [public]
     ]
 ])
 
 const ShirtSize = (feature [
-    fields [
+    itemFields [
         size <numT> [public]
     ]
 ])
@@ -111,7 +142,7 @@ const myCargo <*?CargoSize> = (obj (CargoSize))
 const myShirt <*?ShirtSize> = (obj (CargoSize))
 ```
 
-In order to access members of a feature, the feature must have a "discerned" type. The output of the `feature` special always has a discerned type, but the output of the `featureT` special is not a discerned type. The `discern` special helps in the case when a feature does not have a discerned type. The `discern` special accepts a feature, and returns the same feature with a discerned type. The example below demonstrates usage of the `discern` special:
+In order to access fields of a feature, the feature must have a "discerned" type. The output of the `feature` special always has a discerned type, but the output of the `featureT` special is not a discerned type. The `discern` special helps in the case when a feature does not have a discerned type. The `discern` special accepts a feature, and returns the same feature with a discerned type. The example below demonstrates usage of the `discern` special:
 
 ```
 // The output of `createCoinFeature` has a constraint type
@@ -122,10 +153,10 @@ const createCoinFeature = (func [
         flip [returns (boolT)]
     ]]>
 ] {
-    return (feature [methods [
-        flip [returns <boolT>] {
+    return (feature [sharedFields [
+        flip [publicGet] = (method [returns <boolT>] {
             return (mathUtils.random() < probability)
-        }
+        })
     ]])
 })
 
@@ -144,23 +175,22 @@ const coin2 = (obj (DiscernedCoin))
 
 ## Bundles and Factors
 
-A "bundle" is a data structure which can group several features together. When an object includes a bundle, the members of all features in the bundle belong to the object. Members may be selected from individual features by casting the object to a type. The example below declares a bundle and creates an object which includes the bundle:
+A "bundle" is a data structure which can group several features together. When an object includes a bundle, the fields of all features in the bundle belong to the object. Fields may be selected from individual features by casting the object to a type. The example below declares a bundle and creates an object which includes the bundle:
 
 ```
 const AddFive = (feature [
-    methods [
-        addFive [
-            public
+    sharedFields [
+        addFive [publicGet] = (method [
             args [num <numT>]
             returns <numT>
         ] {
             return (num + 5)
-        }
+        })
     ]
 ])
 
 const Nameable = (feature [
-    fields [
+    itemFields [
         name <strT> [public]
     ]
 ])
@@ -182,13 +212,13 @@ const myObj = (obj (MyBundle))
 Features and bundles are both considered to be "factors". A bundle contains one or more factors, which means that a bundle may store features, other bundles, or a mixture of features and bundles. The example below declares a bundle which contains another bundle:
 
 ```
-const AFeature = (feature [fields [
+const AFeature = (feature [itemFields [
     a <numT> [public] = (10)
 ]])
-const BFeature = (feature [fields [
+const BFeature = (feature [itemFields [
     b <numT> [public] = (20)
 ]])
-const CFeature = (feature [fields [
+const CFeature = (feature [itemFields [
     c <numT> [public] = (30)
 ]])
 
@@ -202,38 +232,35 @@ const myAbc = (obj (AbcBundle))
 (print(myAbc:<*?CFeature>.c)) // Prints "30".
 ```
 
-## Member Visibility
+## Field Visibility
 
-Every factor member is associated with an integer "visiblity". A member is only visible from the member access operator (`.`) if the member's visibility is greater than zero. By default, the visibility of every member is 1, but a different visibility may be specified with the `vis` statement. When a factor is included in a bundle, the visibility of all factor members is decreased by 1. In order to be visible in the bundle, the factor members must specifiy visibility 2 or higher. The example below demonstrates usage of visibility:
+Every factor field is associated with an integer "visiblity". A field is only visible from the member access operator (`.`) if the fields's visibility is greater than zero. By default, the visibility of every field is 1, but a different visibility may be specified with the `vis` statement. When a factor is included in a bundle, the visibility of all factor fields is decreased by 1. In order to be visible in the bundle, the factor fields must specifiy visibility 2 or higher. The example below demonstrates usage of visibility:
 
 ```
-const IsBig = (feature [methods [
-    isBig [
-        public, vis <2>
+const IsBig = (feature [sharedFields [
+    isBig [publicGet, vis <2>] = (method [
         args [value <numT>]
         returns <boolT>
     ] {
         return (value #gt 100)
-    }
+    })
 ]])
 
-const IsSmall = (feature [methods [
-    isSmall [
-        public, vis <2>
+const IsSmall = (feature [sharedFields [
+    isSmall [publicGet, vis <2>] = (method [
         args [value <numT>]
         returns <boolT>
     ] {
         return (value #lt 0.1)
-    }
+    })
     // The visibility of `isTiny` is 1, because 1 is the default
     // visibility when a `vis` statement is not provided.
-    isTiny [
-        public
+    isTiny [publicGet] = (method [
         args [value <numT>]
         returns <boolT>
     ] {
         return (value #lt 0.001)
-    }
+    })
 ]])
 
 // Within the `SizeCheck` bundle, `isBig` and `isSmall` have
@@ -258,19 +285,19 @@ print(sizeChecker:<*?IsSmall>.isTiny(1000))
 In certain cases, it may be desirable to decrease factor visibility in a bundle by a different amount than 1. The `shield` statement may be used to decrease factor visibility by a custom amount. The example below demonstrates usage of the `shield` statement:
 
 ```
-const Age = (feature [fields [
+const Age = (feature [itemFields [
     age <numT> [public]
 ]])
-const Height = (feature [fields [
+const Height = (feature [itemFields [
     height <numT> [public]
 ]])
 
 // Within the `Profile` bundle, the visibility of `age` is 1,
 // while the visibility of `height` is 0.
 const Profile = (bundle [factors [
-    // The visibility of members in `Age` will decrease by 0.
+    // The visibility of fields in `Age` will decrease by 0.
     (Age) [shield <0>]
-    // The visibility of members in `Height` will decrease by 1,
+    // The visibility of fields in `Height` will decrease by 1,
     // because that is the default amount when a `shield`
     // statement is not provided.
     (Height)
@@ -286,19 +313,19 @@ const myProfile = (obj (Profile))
 (myProfile:<*?Height>.height = 180)
 ```
 
-A "name collision" occurs when two members with the same name are visible in a bundle. The compiler will throw an error when trying to access a member with a name collision. Effective management of member visibility can prevent this issue. The example below demonstrates a name collision:
+A "name collision" occurs when two fields with the same name are visible in a bundle. The compiler will throw an error when trying to access a field with a name collision. Effective management of field visibility can prevent this issue. The example below demonstrates a name collision:
 
 ```
-const VideoManager = (feature [methods [
-    play [public, vis <2>] {
+const VideoManager = (feature [sharedFields [
+    play [publicGet, vis <2>] = (method {
         (print("I will play the video!"))
-    }
+    })
 ]])
 
-const Athlete = (feature [methods [
-    play [public] {
+const Athlete = (feature [sharedFields [
+    play [publicGet] = (method {
         (print("I will play the sportsball!"))
-    }
+    })
 ]])
 
 const steve = (obj (bundle [
@@ -319,7 +346,7 @@ The `thisFactor` statement determines the type of `this` when referenced in a me
 
 ```
 const Count = (feature [
-    fields [
+    itemFields [
         count <numT> [public, vis <2>] = (0)
     ]
 ])
@@ -328,10 +355,10 @@ const Increment = (feature [
     // The type of `this` in methods of `Increment` will
     // be `objT <?CountT>`.
     thisFactor <?Count>
-    methods [
-        increment [public, vis <2>] {
+    sharedFields [
+        increment [publicGet, vis <2>] = (method {
             (this.count += 1)
-        }
+        })
     ]
 ])
 
@@ -346,23 +373,22 @@ Note that the compiler will throw an error when creating an object with an unres
 
 ```
 const CreateGreeting = (feature [
-    methods [
-        createGreeting [
-            public
+    sharedFields [
+        createGreeting [publicGet] = (method [
             args [name <strT>]
             returns <strT>
         ] {
             return ("Hello, " + name + "!")
-        }
+        })
     ]
 ])
 
 const GreetWorld = (feature [
     thisFactor <?CreateGreeting>
-    methods [
-        greetWorld [public] {
+    sharedFields [
+        greetWorld [publicGet] = (method {
             (print(this.createGreeting("world")))
-        }
+        })
     ]
 ])
 
@@ -375,27 +401,27 @@ const goodGreeter = (obj (bundle [
 ]))
 ```
 
-When referenced in a method, the type of `self` is determined by the feature in which the method is defined. Unlike `this`, the type of `self` cannot be changed with an attribute statement. `self` is used to access members of the parent feature. The example below demonstrates usage of `self`:
+When referenced in a method, the type of `self` is determined by the feature in which the method is defined. Unlike `this`, the type of `self` cannot be changed with an attribute statement. `self` is used to access fields of the parent feature. The example below demonstrates usage of `self`:
 
 ```
 const IsActive = (feature [
-    fields [
+    itemFields [
         isActive <boolT> [public] = (false)
     ]
 ])
 
 const Toggle = (feature [
     thisFactor <?IsActive>
-    fields [
+    itemFields [
         toggleCount <numT> [public] = (0)
     ]
-    methods [
-        toggle [public] {
+    sharedFields [
+        toggle [publicGet] = (method {
             // The type of `this` is `objT <?IsActive>`.
             (this.isActive = !this.isActive)
             // The type of `self` is `objT <?Toggle>`.
             (self.toggleCount += 1)
-        }
+        })
     ]
 ])
 
@@ -412,13 +438,15 @@ const toggler = (obj (bundle [
 (print(toggler.toggleCount)) // Prints "3".
 ```
 
-## Member Permission
+## Field Permission
 
-The `public`, `protected`, and `private` statements determine the contexts in which feature members may be accessed. Public members have no access restrictions. Protected members may only be accessed by methods belonging to the same object. Private members may only be accessed by methods which are defined in the same feature. By default, members are private when no permission statement is provided. The example below demonstrates usage of permission statements:
+The `publicGet`, `protectedGet`, and `privateGet` statements determine the contexts in which feature fields may be read. Public fields have no access restrictions. Protected fields may only be accessed by methods belonging to the same object. Private fields may only be accessed by methods which are defined in the same feature. The default read permission is `privateGet` when no permission statement is provided. The example below demonstrates usage of permission statements:
 
 ```
-const User = (feature [methods [
-    getName [public, vis<2>, returns <strT>] {
+const User = (feature [sharedFields [
+    getName [publicGet, vis<2>] = (method [
+        returns <strT>
+    ] {
         // Does not throw a compile-time error, because
         // `getSecret` is accessed in the same feature
         // as it was defined.
@@ -427,33 +455,37 @@ const User = (feature [methods [
         } else {
             return ("Bobby")
         }
-    }
-    getTown [protected, vis<2>, returns <strT>] {
+    })
+    getTown [protectedGet, vis<2>] = (method [
+        returns <strT>
+    ] {
         return ("Townston")
-    }
-    getSecret [private, vis<2>, returns <strT>] {
+    })
+    getSecret [privateGet, vis<2>] = (method [
+        returns <strT>
+    ] {
         return ("sleepysheep")
-    }
+    })
 ]])
 
 const CitizenTools = (feature [methods [
     thisFactor <?User>
-    getWarning [public, returns <strT>] {
+    getWarning [publicGet] = (method [returns <strT>] {
         // Does not throw a compile-time error, because
         // `getName` is public.
         return (this.getName() + ", beware of tornados!")
-    }
-    isInTownston [public, returns <bool>] {
+    })
+    isInTownston [publicGet] = (method [returns <bool>] {
         // Does not throw a compile-time error, because
         // `isInTownston` belongs to the same object
         // as `getTown`.
         return (this.getTown() #eq "Townston")
-    }
-    printSecret [public] {
+    })
+    printSecret [publicGet] = (method {
         // Throws a compile-time error, because `printSecret`
         // is defined in a different feature than `getSecret`.
         (print(this.getSecret())
-    }
+    })
 ]])
 
 const citizen = (obj (bundle [
@@ -470,18 +502,18 @@ const citizen = (obj (bundle [
 (print(citizen.getSecret()))
 ```
 
-Fields may specify read and write permissions separately. The `publicGet`, `protectedGet`, and `privateGet` statements determine field read permission. The `publicSet`, `protectedSet`, and `privateSet` statements determine field write permission. The example below demonstrates usage of read and write permission statements:
+Fields may specify write permission by using the `publicSet`, `protectedSet`, `privateSet`, and `forbiddenSet` statements. When a field has the `forbiddenSet` statement, it is unable to be modified after initialization. The default write permission is `privateSet` within `itemFields`, and `forbiddenSet` within `sharedFields`. The example below demonstrates usage of read and write permission statements:
 
 ```
 const Transfer = (feature [
-    fields [
+    itemFields [
         source <numT> [privateGet, publicSet]
         dest <numT> [publicGet, privateSet]
     ]
-    methods [
-        transfer [public] {
+    sharedFields [
+        transfer [publicGet] = (method {
             (self.dest = self.source)
-        }
+        })
     ]
 ])
 
@@ -501,6 +533,40 @@ const myExchange = (obj (Transfer))
 (myExchange.dest = 999)
 ```
 
+For convenience, read and write permissions may be specified together by using the `public`, `protected`, and `private` statements. The example below demonstrates usage of these permission statements:
+
+```
+const DualCounter = (feature [
+    itemFields [
+        hiddenCount <numT> [private] = (0)
+        exposedCount <numT> [public] = (0)
+    ]
+    sharedFields [
+        incrementHidden [publicGet] = (method {
+            // Does not throw a compile-time error, because `hiddenCount`
+            // may be written and read by methods in `DualCounter`.
+            (self.hiddenCount += 1)
+        })
+        incrementExposed [publicGet] = (method {
+            (self.exposedCount += 1)
+        })
+        countsAreEqual [publicGet] = (method [returns <boolT>] {
+            return (self.hiddenCount #eq self.exposedCount)
+        })
+    ]
+])
+
+const dualCounter = (obj (DualCounter))
+// Does not throw a compile-time error, because `exposedCount` has
+// public read and write permission.
+(dualCounter.exposedCount = 5)
+(print(dualCounter.exposedCount))
+// Throws a compile-time error, because `hiddenCount` has private
+// read and write permission.
+(dualCounter.hiddenCount = 6)
+(print(dualCounter.hiddenCount))
+```
+
 ## Generic Factors
 
 A generic factor may be "qualified" with one or more arguments. Field types and method signatures may reference the generic arguments. Generic factors may be created by using the `generic` special. The example below demonstrates usage of generic factors:
@@ -511,7 +577,7 @@ A generic factor may be "qualified" with one or more arguments. Field types and 
 const ListNode = (generic [
     args [contentT <typeT>]
 ] (feature [
-    fields [
+    itemFields [
         // The constraint type of `content` is equal to the
         // generic argument `contentT`.
         content <contentT> [public]
