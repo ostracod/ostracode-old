@@ -1,6 +1,6 @@
 
-import { ExprSeqSelector, FlowControl } from "./constants.js";
-import { CompilerError, UnresolvedItemError } from "./error.js";
+import { FlowControl } from "./constants.js";
+import { UnresolvedItemError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
@@ -179,12 +179,12 @@ export class EvalExprSeq extends ExprSeq {
 }
 
 // CompExprSeq = Comptime expression sequence
-// Represents `<...>`, `<?...>`, `<??...>`, `<*...>`, `<*?...>`, and `<*??...>`.
+// Represents `<...>`, `<?...>`, `<*...>`, and `<*?...>``.
 export class CompExprSeq extends ExprSeq {
     
-    constructor(hasFactorType, exprSeqSelector, exprs) {
+    constructor(hasFactorType, useConstraintTypes, exprs) {
         super(hasFactorType, exprs);
-        this.exprSeqSelector = exprSeqSelector;
+        this.useConstraintTypes = useConstraintTypes;
         this.itemResolutions = [];
         while (this.itemResolutions.length < this.groups.length) {
             this.itemResolutions.push({ hasResolved: false, item: undefined });
@@ -210,19 +210,14 @@ export class CompExprSeq extends ExprSeq {
     }
     
     resolveCompItem(expr) {
-        if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
+        if (this.useConstraintTypes) {
+            return expr.getConstraintType();
+        } else {
             const context = new EvalContext(null, this);
             const output = expr.evaluateToItem(context);
             this.stowCompTypeIds(context);
             return output;
         }
-        if (this.exprSeqSelector === ExprSeqSelector.ConstraintTypes) {
-            return expr.getConstraintType();
-        }
-        if (this.exprSeqSelector === ExprSeqSelector.InitTypes) {
-            throw new CompilerError("Retrieving initialization type is not yet supported.");
-        }
-        throw new Error("Unexpected expression sequence selector.");
     }
     
     resolveCompItems() {
@@ -276,7 +271,7 @@ export class CompExprSeq extends ExprSeq {
     resolveCompartments() {
         super.resolveCompartments();
         const output = [];
-        if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
+        if (!this.useConstraintTypes) {
             for (const compartment of this.compartmentMap.values()) {
                 output.push(new CompCompartment(compartment.discerner));
             }

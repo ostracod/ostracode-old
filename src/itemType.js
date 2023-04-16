@@ -1,4 +1,6 @@
 
+import { Item } from "./item.js";
+
 let nextTypeId = 0;
 
 export const createTypeId = () => {
@@ -7,7 +9,7 @@ export const createTypeId = () => {
     return output;
 };
 
-export class ItemType {
+export class ItemType extends Item {
     
 }
 

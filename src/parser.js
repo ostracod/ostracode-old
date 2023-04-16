@@ -1,5 +1,5 @@
 
-import { openBracketTextList, closeBracketTextList, separatorTextList, operatorTextList, ExprSeqSelector } from "./constants.js";
+import { openBracketTextList, closeBracketTextList, separatorTextList, operatorTextList } from "./constants.js";
 import { CompilerError } from "./error.js";
 import { WordToken, DecNumToken, HexNumToken, CharToken, StrToken, OpenBracketToken, CloseBracketToken, SeparatorToken, OperatorToken } from "./token.js";
 import { BhvrStmtSeq, AttrStmtSeq, EvalExprSeq, CompExprSeq } from "./groupSeq.js";
@@ -35,15 +35,8 @@ const getSeqBuilder = (openBracketToken) => {
     const hasFactorType = (openBracketText.length > 1
         && openBracketText.charCodeAt(1) === 42);
     const startIndex = hasFactorType ? 2 : 1;
-    const questionMarks = openBracketText.substring(startIndex, openBracketText.length);
-    let exprSeqSelector;
-    if (questionMarks === "??") {
-        exprSeqSelector = ExprSeqSelector.InitTypes;
-    } else if (questionMarks === "?") {
-        exprSeqSelector = ExprSeqSelector.ConstraintTypes;
-    } else {
-        exprSeqSelector = ExprSeqSelector.ReturnItems;
-    }
+    const useConstraintTypes = (startIndex < openBracketText.length
+        && openBracketText.charCodeAt(startIndex) === 63);
     let groupConstructor;
     let closeBracketText;
     let createHelper;
@@ -55,7 +48,7 @@ const getSeqBuilder = (openBracketToken) => {
         groupConstructor = PreExpr;
         closeBracketText = ">";
         createHelper = (preGroups) => (
-            new CompExprSeq(hasFactorType, exprSeqSelector, preGroups)
+            new CompExprSeq(hasFactorType, useConstraintTypes, preGroups)
         );
     } else if (firstChar === 123) {
         groupConstructor = BhvrPreStmt;

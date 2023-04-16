@@ -84,79 +84,31 @@ const myDict1 <myDictType> = (dict [fields [isCool = (true)]])
 const myDict2 <myDictType> = (dict [fields [isCool = (123)]])
 ```
 
-The example below demonstrates the difference between constraint type and initialization type:
+The example below demonstrates usage of the `literalT` function:
 
 ```
-// The constraint type of `myData` is `valueT`.
-// The initialization type of `myData` is `numT`.
-const myData <valueT> = (123)
-// Prints "valueT".
-(print<?myData>)
-// Prints "numT".
-(print<??myData>)
-
-// Does not throw a compile-time error, because `strT`
-// conforms to `valueT`.
-const myNum1 <?myData> = ("Hello")
-// Throws a compile-time error, because `strT` does
-// not conform to `numT`.
-const myNum2 <??myData> = ("Hello")
-```
-
-The example below creates a function whose signature depends on the initialization type of the first argument:
-
-```
-const chooseOne = (func [
-    args [
-        param1 <itemT>
-        param2 <??param1>
-        useFirst <boolT>
-    ]
-    returns <??param1>
-] {
-    if (useFirst) {
-        return (param1)
-    } else {
-        return (param2)
-    }
-})
-
-// The constraint type of `result1` is `numT`.
-// `result1` will store 10 at evaltime.
-const result1 = (chooseOne(10, 20, true))
-// The constraint type of `result2` is `strT`.
-// `result2` will store "twenty" at evaltime.
-const result2 = (chooseOne("ten", "twenty", false))
-```
-
-The example below demonstrates the constraint type and initialization type of value literals:
-
-```
-// `sevenConstraintT` is equal to `numT`.
-comp sevenConstraintT = <?7>
-// `sevenT` is a more specific type than `sevenConstraintT`,
+// `constraintT` is equal to `numT`.
+comp constraintT = <?7>
+// `sevenT` is a more specific type than `constraintT`,
 // and refers to numbers which are equal to 7.
-comp sevenT = <??7>
+comp sevenT = <literalT(7)>
 
 // Does not throw a compile-time error, because the constraint
 // type of `50` is `numT`.
-const myNumber <sevenConstraintT> = (50)
-// Does not throw a compile-time error. The initialization
-// type of `7` is equal to `sevenT`, so `7` is implicitly
-// cast to `sevenT`.
-const myNumber <sevenT> = (7)
-// Throws a compile-time error. The initialization type of
-// `50` is not equal to `sevenT`, so `50` cannot be
+const myNumber <constraintT> = (50)
+// Does not throw a compile-time error, because `7` can be
 // implicitly cast to `sevenT`.
+const myNumber <sevenT> = (7)
+// Throws a compile-time error, because 50 is not equal to 7.
 const myNumber <sevenT> = (50)
 ```
 
-The example below demonstrates usage of the `nominate` function:
+The example below demonstrates usage of the `nominalT` function:
 
 ```
 // `myNumT` conforms to `numT`, but `numT`
 // does not conform to `myNumT`.
-comp myNumT = <nominate(numT)>
+comp myNumT = <nominalT(numT)>
 
 // Throws an error, because the constraint type of 123 is `numT`.
 const myNum1 <myNumT> = (123)

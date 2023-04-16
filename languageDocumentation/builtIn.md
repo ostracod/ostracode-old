@@ -24,7 +24,8 @@ OstraCode has the following built-in functions:
 * `getType($item)` returns the type of item `$item` known at evaltime.
     * If the type of `$item` conforms to `typeT`, `getType` returns the type of the type.
     * If the type of `$item` conforms to `valueT`, `getType` may return a type which is less specific than the type known at comptime.
-* `nominate($type)` creates a subtype of type `$type`. The subtype defines the same data structure as `$type`, but is distinguished through the nominal type system.
+* `nominalT($type)` creates a subtype of type `$type`. The subtype defines the same data structure as `$type`, but is distinguished through the nominal type system.
+* `literalT($item)` creates a type which only contains items equal to `$item`. For example, `literalT(16)` is the type of all numbers which are equal to 16.
 
 ## Built-In Interfaces
 
@@ -175,13 +176,21 @@ comp ThenT = <genericT [
     args [resultT <typeT> = (undefT)]
 ] (interfaceT [
     sharedFields [
-        then (methodT [
+        then (genericT [
+            nextResultT <typeT> = (undefT)
+        ] (methodT [
             args [
-                onResolve (funcT [args [result (resultT)]])
-                onReject (funcT [args [error]]) [optional]
+                onResolve (funcT [
+                    args [result (resultT)]
+                    returns ((*ThenT:+(nextResultT)) | nextResultT)
+                ])
+                onReject (funcT [
+                    args [error]
+                    returns ((*ThenT:+(nextResultT)) | nextResultT)
+                ]) [optional]
             ]
-            returns <??self>
-        ]) [publicGet, vis (2)]
+            returns (*ThenT:+(nextResultT))
+        ])) [publicGet, vis (2)]
     ]
 ])>
 ```

@@ -22,7 +22,7 @@ Value literals include the following:
 * String enclosed by quotation marks (`"`)
 * Character enclosed by apostrophes (`'`)
 
-Note that the constraint type of number literals is `numT`, while the initialization type of a number literal is the type of a number which has the specific value of the number literal. In an analagous fashion, the constraint type of string literals is `strT`, while the initialization type of a string literal is the type of a string which has the specific value of the string literal.
+Note that the constraint type of number literals is `numT`, and the constraint type of string literals is `strT`. To create types which refer to specific values, use the `literalT` function.
 
 Identifiers and keywords may contain the following characters:
 
@@ -48,10 +48,8 @@ OstraCode includes the following expression sequence bracket delimeters:
 * `(*` and `)` enclose an evaltime expression, and return an item type whose factor type is the item returned by the expression.
 * `<` and `>` enclose comptime expressions, and return the items returned by the expressions.
 * `<?` and `>` enclose nevertime expressions, and return the constraint types of the expressions.
-* `<??` and `>` enclose nevertime expressions, and return the initialization types of the expressions.
 * `<*$expr>` is equivalent to `<(*$expr)>`.
 * `<*?$expr>` is equivalent to `<*<?$expr>>`.
-* `<*??$expr>` is equivalent to `<*<??$expr>>`.
 
 Expression sequences provide arguments to functions, methods, specials, qualifications, and statements. Expression sequences may also be nested in expressions.
 
@@ -60,7 +58,6 @@ Bracket delimiters follow the compatibility rules below:
 * `(*` and `)` may be used in any context which accepts `(` and `)`.
 * `<` and `>` may be used in any context which accepts `(` and `)`.
 * `<?` and `>` may be used in any context which accepts `<` and `>`.
-* `<??` and `>` may be used in any context which accepts `<` and `>`.
 
 ## Statement Syntax
 

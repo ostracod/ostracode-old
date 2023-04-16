@@ -22,9 +22,7 @@ Note that an expression may not reference an evaltime variable if the expression
 
 ## Data Types
 
-In OstraCode, each variable is associated with a "constraint type" which must be known at comptime. Variables may only store items whose type conforms to the variable's constraint type. Each variable also has an "initialization type", which is the type of item assigned to the variable during initialization. A variable's initialization type may be more specific than its constraint type.
-
-In an analagous fashion, each expression has a constraint type which is known at comptime. The compiler derives the constraint type of an expression based on the operations and operands in the expression.
+In OstraCode, each variable is associated with a "constraint type" which must be known at comptime. Variables may only store items whose type conforms to the variable's constraint type. Each expression also has a constraint type which is known at comptime. The compiler derives the constraint type of an expression based on the operations and operands in the expression.
 
 OstraCode has the following data types:
 

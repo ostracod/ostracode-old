@@ -13,19 +13,19 @@ OstraCode has the following behavior statements:
 comp $name <$type> [$attrs] = <$initItem>
 ```
 
-Declares a comptime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the constraint type of `$initItem`.
+Declares a comptime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the type of `$initItem`.
 
 ```
 const $name <$type> [$attrs] = ($initItem)
 ```
 
-Declares an immutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the constraint type of `$initItem`.
+Declares an immutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the type of `$initItem`.
 
 ```
 var $name <$type> [$attrs] = ($initItem)
 ```
 
-Declares a mutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the variable will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the variable will be `itemT`.
+Declares a mutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the variable will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the variable will be `itemT`.
 
 ### Expression Statement:
 
@@ -195,7 +195,7 @@ Valid contexts:
     * `method` special
     * `generic` or `genericT` specials
 
-Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the constraint type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. If both `<$type>` and `= ($defaultItem)` are excluded, then the constraint type of the argument will be `itemT`.
+Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. If both `<$type>` and `= ($defaultItem)` are excluded, then the constraint type of the argument will be `itemT`.
 
 ```
 $name ($type) [$attrs]
@@ -300,7 +300,7 @@ Valid contexts:
 * `fields` statement in `dict` special
 * `itemFields` and `sharedFields` statements in `feature` special
 
-Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the constraint type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the field will be `itemT`.
+Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the field will be `itemT`.
 
 ```
 ($name) <$type> [$attrs] = ($initItem)
@@ -430,19 +430,19 @@ Valid contexts for permission statements:
 public
 ```
 
-Asserts that the parent field is accessible in all contexts.
+Asserts that the parent field is readable and writable in all contexts.
 
 ```
 protected
 ```
 
-Asserts that the parent field is only accessible by features in the same bundle.
+Asserts that the parent field is readable and writable only by features in the same bundle.
 
 ```
 private
 ```
 
-Asserts that the parent field is only accessible by methods in the same feature.
+Asserts that the parent field is readable and writable only by methods in the same feature.
 
 ### Get Permission Statements:
 
