@@ -5,7 +5,7 @@ import { unresolvedItem } from "./constants.js";
 export class CompContext {
     
     constructor(compExprSeqs, parent = null) {
-        // Map from CompExprSeq to list of item.
+        // Map from CompExprSeq to list of items.
         this.seqItemsMap = new Map();
         for (const exprSeq of compExprSeqs) {
             const items = exprSeq.groups.map((group) => unresolvedItem);
@@ -50,6 +50,9 @@ export class CompContext {
     getSeqItems(compExprSeq) {
         let items = this.seqItemsMap.get(compExprSeq);
         if (typeof items === "undefined") {
+            if (this.parent === null) {
+                throw new Error("CompContext is missing CompExprSeq.");
+            }
             items = this.parent.getCompItems(compExprSeq);
         }
         if (items.some((item) => (item === unresolvedItem))) {
@@ -64,6 +67,9 @@ export class CompContext {
     
     getVarItem(compVar) {
         const hasItem = this.varItemMap.has(compVar);
+        if (!hasItem && this.parent !== null) {
+            return this.parent.getVarItem(compVar);
+        }
         const item = hasItem ? this.varItemMap.get(compVar) : null;
         return { hasItem, item };
     }
