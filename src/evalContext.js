@@ -25,12 +25,18 @@ const getNodeCompartment = (node, discerner) => {
 
 export class EvalContext {
     
-    constructor(parent = null, node = null) {
+    constructor(options = {}) {
+        const { compContext = null, parent = null, node = null } = options;
         // Map from name to VarContent.
         this.varContentMap = new Map();
         // Map from discerning Expr to CompartmentContent.
         this.compartmentContentMap = new Map();
         this.parent = parent;
+        if (compContext === null) {
+            this.compContext = (this.parent === null) ? null : this.parent.compContext;
+        } else {
+            this.compContext = compContext;
+        }
         this.node = node;
         if (this.node !== null) {
             this.addVars(this.node.getVars());
@@ -75,7 +81,7 @@ export class EvalContext {
         );
     }
     
-    // getContextContainer(context, key) and getNodeContainer(node, key)
+    // getContextContainer(evalContext, key) and getNodeContainer(node, key)
     // both return { container, content }.
     getContainer(key, getContextContainer, getNodeContainer) {
         const result = getContextContainer(this, key);
@@ -140,7 +146,7 @@ export class EvalContext {
     getVar(name) {
         return this.getContainer(
             name,
-            (context, name) => context.getVarHelper(name),
+            (evalContext, name) => evalContext.getVarHelper(name),
             getNodeVar,
         );
     }
@@ -148,7 +154,7 @@ export class EvalContext {
     getCompartment(discerner) {
         return this.getContainer(
             discerner,
-            (context, discerner) => context.getCompartmentHelper(discerner),
+            (evalContext, discerner) => evalContext.getCompartmentHelper(discerner),
             getNodeCompartment,
         );
     }
@@ -167,7 +173,7 @@ export class EvalContext {
             throw new CompilerError(`Cannot find variable with name "${name}".`);
         }
         if (variable instanceof CompVar) {
-            return new ResultRef(variable.getCompItem());
+            return new ResultRef(variable.getCompItem(this.compContext));
         }
         if (content !== null) {
             return new VarRef(content);

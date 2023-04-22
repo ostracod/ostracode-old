@@ -61,7 +61,7 @@ export class BhvrStmt extends Stmt {
     // Concrete subclasses of BhvrStmt must implement these methods:
     // evaluate
     
-    evaluate(context) {
+    evaluate(evalContext) {
         this.throwError("Evaluation is not yet supported for this type of statement.");
     }
 }
@@ -92,11 +92,11 @@ export class VarStmt extends BhvrStmt {
         return [this.variable];
     }
     
-    getConstraintType() {
+    getConstraintType(compContext) {
         if (this.typeExprSeq !== null) {
-            return this.typeExprSeq.getCompItems()[0];
+            return compContext.getCompItem(this.typeExprSeq);
         } else if (this.initItemExprSeq !== null) {
-            return this.initItemExprSeq.getConstraintTypes()[0];
+            return this.initItemExprSeq.getConstraintType(compContext);
         } else {
             return new ItemType();
         }
@@ -114,18 +114,14 @@ export class CompVarStmt extends VarStmt {
         return StmtCompVar;
     }
     
-    getCompItem() {
+    getCompItem(compContext) {
         if (this.initItemExprSeq === null) {
             this.throwError("Comptime variable has no initialization item.");
         }
-        const [resolution] = this.initItemExprSeq.itemResolutions;
-        if (!resolution.hasResolved) {
-            throw new UnresolvedItemError();
-        }
-        return resolution.item;
+        return compContext.getCompItem(this.initItemExprSeq);
     }
     
-    evaluate(context) {
+    evaluate(evalContext) {
         return { flowControl: FlowControl.None };
     }
     
@@ -140,10 +136,10 @@ export class EvalVarStmt extends VarStmt {
         return StmtEvalVar;
     }
     
-    evaluate(context) {
+    evaluate(evalContext) {
         if (this.initItemExprSeq !== null) {
-            const itemRef = context.getRef(this.name);
-            itemRef.write(this.initItemExprSeq.evaluateToItem(context));
+            const itemRef = evalContext.getRef(this.name);
+            itemRef.write(this.initItemExprSeq.evaluateToItem(evalContext));
         }
         return { flowControl: FlowControl.None };
     }
@@ -189,8 +185,8 @@ export class ExprStmt extends BhvrStmt {
         return false;
     }
     
-    evaluate(context) {
-        this.exprSeq.evaluate(context);
+    evaluate(evalContext) {
+        this.exprSeq.evaluate(evalContext);
         return { flowControl: FlowControl.None };
     }
     
@@ -213,8 +209,8 @@ export class ScopeStmt extends BhvrStmt {
         return false;
     }
     
-    evaluate(context) {
-        return this.stmtSeq.evaluate(context);
+    evaluate(evalContext) {
+        return this.stmtSeq.evaluate(evalContext);
     }
     
     aggregateCompItems(aggregator) {
@@ -282,12 +278,12 @@ export class ReturnStmt extends BhvrStmt {
         this.exprSeq = parser.readExprSeq("return item", true);
     }
     
-    evaluate(context) {
+    evaluate(evalContext) {
         let returnItem;
         if (this.exprSeq === null) {
             returnItem = undefined;
         } else {
-            returnItem = this.exprSeq.evaluateToItem(context);
+            returnItem = this.exprSeq.evaluateToItem(evalContext);
         }
         return { flowControl: FlowControl.Return, returnItem, stmt: this };
     }

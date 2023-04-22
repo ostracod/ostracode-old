@@ -9,16 +9,16 @@ export class Expr extends ResolvedGroup {
     // Concrete subclasses of Expr must implement these methods:
     // getConstraintType, evaluate
     
-    getConstraintType() {
+    getConstraintType(compContext) {
         this.throwError("getConstraintType is not yet implemented for this expression type.");
     }
     
-    evaluate(context) {
+    evaluate(evalContext) {
         this.throwError("Evaluation of this expression type is not yet implemented.");
     }
     
-    evaluateToItem(context) {
-        return this.evaluate(context).read();
+    evaluateToItem(evalContext) {
+        return this.evaluate(evalContext).read();
     }
 }
 
@@ -33,7 +33,7 @@ export class LiteralExpr extends SingleComponentExpr {
     // Concrete subclasses of LiteralExpr must implement these methods:
     // getItem
     
-    evaluate(context) {
+    evaluate(evalContext) {
         return new ResultRef(this.getItem());
     }
     
@@ -57,7 +57,7 @@ export class NumLiteralExpr extends LiteralExpr {
         return this.value;
     }
     
-    getConstraintType() {
+    getConstraintType(compContext) {
         return new NumType();
     }
     
@@ -77,7 +77,7 @@ export class StrLiteralExpr extends LiteralExpr {
         return this.text;
     }
     
-    getConstraintType() {
+    getConstraintType(compContext) {
         return new StrType();
     }
     
@@ -113,14 +113,14 @@ export class IdentifierExpr extends SingleComponentExpr {
         super.buildClosureContext(destContext, srcContext);
     }
     
-    evaluate(context) {
+    evaluate(evalContext) {
         return this.tryOperation(() => (
-            context.getRef(this.name)
+            evalContext.getRef(this.name)
         ));
     }
     
-    getConstraintType() {
-        return this.getNonNullVar().getConstraintType();
+    getConstraintType(compContext) {
+        return this.getNonNullVar().getConstraintType(compContext);
     }
     
     aggregateCompItems(aggregator) {
@@ -160,9 +160,9 @@ export class BinaryExpr extends OperatorExpr {
         this.operand2 = this.addChild(operand2);
     }
     
-    evaluate(context) {
-        const itemRef1 = this.operand1.evaluate(context);
-        const itemRef2 = this.operand2.evaluate(context);
+    evaluate(evalContext) {
+        const itemRef1 = this.operand1.evaluate(evalContext);
+        const itemRef2 = this.operand2.evaluate(evalContext);
         return this.tryOperation(() => (
             this.operator.perform(itemRef1, itemRef2)
         ));
@@ -190,7 +190,7 @@ export class IdentifierAccessExpr extends Expr {
     }
     
     buildClosureContext(destContext, srcContext) {
-        const type = this.operand.getConstraintType();
+        const type = this.operand.getConstraintType(srcContext.compContext);
         if (type instanceof ObjType) {
             const discerner = type.factorType.getDiscerner(this.name);
             const content = srcContext.getCompartmentContent(discerner);
@@ -201,12 +201,12 @@ export class IdentifierAccessExpr extends Expr {
         super.buildClosureContext(destContext, srcContext);
     }
     
-    evaluate(context) {
-        const item = this.operand.evaluateToItem(context);
-        const type = this.operand.getConstraintType();
+    evaluate(evalContext) {
+        const item = this.operand.evaluateToItem(evalContext);
+        const type = this.operand.getConstraintType(evalContext.compContext);
         if (type instanceof ObjType) {
             return this.tryOperation(() => (
-                type.factorType.getObjMember(item, this.name, context)
+                type.factorType.getObjMember(item, this.name, evalContext)
             ));
         } else {
             this.throwError("Item member access is not yet implemented.");
@@ -218,7 +218,7 @@ export class IdentifierAccessExpr extends Expr {
     }
     
     convertToJs(jsConverter) {
-        const type = this.operand.getConstraintType();
+        const type = this.operand.getConstraintType(jsConverter.getCompContext());
         if (type instanceof ObjType) {
             const discerner = this.tryOperation(() => (
                 type.factorType.getDiscerner(this.name)
@@ -238,8 +238,8 @@ export class ExprSeqExpr extends SingleComponentExpr {
         this.exprSeq = this.addChild(exprSeq);
     }
     
-    evaluate(context) {
-        return this.exprSeq.evaluate(context)[0];
+    evaluate(evalContext) {
+        return this.exprSeq.evaluate(evalContext)[0];
     }
     
     aggregateCompItems(aggregator) {
@@ -259,9 +259,9 @@ export class InvocationExpr extends Expr {
         this.argExprSeq = this.addChild(argExprSeq);
     }
     
-    evaluate(context) {
-        const func = this.operand.evaluateToItem(context);
-        const args = this.argExprSeq.evaluateToItems(context);
+    evaluate(evalContext) {
+        const func = this.operand.evaluateToItem(evalContext);
+        const args = this.argExprSeq.evaluateToItems(evalContext);
         return new ResultRef(func.evaluate(args));
     }
     

@@ -48,8 +48,8 @@ export class SpecialExpr extends Expr {
         return nodeUtils.getChildVars(stmtSeq, attrStmtClass);
     }
     
-    evaluate(context) {
-        return new ResultRef(this.evaluateHelper(context));
+    evaluate(evalContext) {
+        return new ResultRef(this.evaluateHelper(evalContext));
     }
 }
 
@@ -59,8 +59,8 @@ export class ExprSpecialExpr extends SpecialExpr {
         this.exprSeq = parser.readExprSeq(true);
     }
     
-    evaluateExpr(context) {
-        return this.exprSeq.evaluateToItem(context);
+    evaluateExpr(evalContext) {
+        return this.exprSeq.evaluateToItem(evalContext);
     }
 }
 
@@ -78,8 +78,8 @@ export class ListExpr extends SpecialExpr {
         this.exprSeq = parser.readExprSeq();
     }
     
-    evaluateHelper(context) {
-        return this.exprSeq.evaluateToItems(context);
+    evaluateHelper(evalContext) {
+        return this.exprSeq.evaluateToItems(evalContext);
     }
     
     aggregateCompItems(aggregator) {
@@ -128,8 +128,8 @@ export class InvocableExpr extends SpecialExpr {
 
 export class FuncExpr extends InvocableExpr {
     
-    evaluateHelper(context) {
-        return new CustomFunc(this.getArgVars(), this.bhvrStmtSeq, context);
+    evaluateHelper(evalContext) {
+        return new CustomFunc(this.getArgVars(), this.bhvrStmtSeq, evalContext);
     }
     
     convertToJs(jsConverter) {
@@ -149,14 +149,14 @@ export class MethodExpr extends InvocableExpr {
     
     resolveVars() {
         super.resolveVars();
-        const featureType = this.getFeatureExpr().getConstraintType();
+        const featureType = this.getFeatureExpr().getConstraintTypeHelper();
         const objType = new ObjType(featureType);
         this.selfVar = new ReflexiveVar("self", objType);
         this.addVar(this.selfVar);
     }
     
-    evaluateHelper(context) {
-        return new UnboundCustomMethod(this, context);
+    evaluateHelper(evalContext) {
+        return new UnboundCustomMethod(this, evalContext);
     }
     
     convertToJs(jsConverter) {
@@ -173,23 +173,29 @@ export class AwaitExpr extends ExprSpecialExpr {}
 export class InterfaceTypeExpr extends AttrsSpecialExpr {}
 
 export class FeatureExpr extends AttrsSpecialExpr {
+    // Concrete subclasses of FeatureExpr must implement these methods:
+    // getConstraintTypeHelper
     
     constructor(components, groupSeqs) {
         super(components, groupSeqs);
         this.itemFieldStmts = this.getAttrStmtChildren(ItemFieldsStmt);
         this.sharedFieldStmts = this.getAttrStmtChildren(SharedFieldsStmt);
     }
+    
+    getConstraintType(compContext) {
+        return this.getConstraintTypeHelper();
+    }
 }
 
 export class FeatureValueExpr extends FeatureExpr {
     
-    evaluateHelper(context) {
-        const output = new Feature(this.itemFieldStmts, this.sharedFieldStmts, context);
-        context.stowTypeId(this, output.typeId);
+    evaluateHelper(evalContext) {
+        const output = new Feature(this.itemFieldStmts, this.sharedFieldStmts, evalContext);
+        evalContext.stowTypeId(this, output.typeId);
         return output;
     }
     
-    getConstraintType() {
+    getConstraintTypeHelper() {
         return new FeatureType(this.itemFieldStmts, this.sharedFieldStmts, this);
     }
     
@@ -231,11 +237,11 @@ return feature;
 
 export class FeatureTypeExpr extends FeatureExpr {
     
-    evaluateHelper(context) {
+    evaluateHelper(evalContext) {
         return new FeatureType(this.fieldStmts, this.methodStmts);
     }
     
-    getConstraintType() {
+    getConstraintTypeHelper() {
         return new TypeType(new FeatureType([], []));
     }
 }
@@ -246,12 +252,12 @@ export class BundleTypeExpr extends AttrsSpecialExpr {}
 
 export class ObjExpr extends ExprSpecialExpr {
     
-    evaluateHelper(context) {
-        return new Obj(this.evaluateExpr(context));
+    evaluateHelper(evalContext) {
+        return new Obj(this.evaluateExpr(evalContext));
     }
     
-    getConstraintType() {
-        const factorType = this.exprSeq.getConstraintTypes()[0];
+    getConstraintType(compContext) {
+        const factorType = this.exprSeq.getConstraintType(compContext);
         return new ObjType(factorType);
     }
     
@@ -266,11 +272,11 @@ export class ObjExpr extends ExprSpecialExpr {
 
 export class ObjTypeExpr extends ExprSpecialExpr {
     
-    evaluateHelper(context) {
-        return new ObjType(this.evaluateExpr(context));
+    evaluateHelper(evalContext) {
+        return new ObjType(this.evaluateExpr(evalContext));
     }
     
-    getConstraintType() {
+    getConstraintType(compContext) {
         return new TypeType(new ObjType());
     }
 }
@@ -293,9 +299,9 @@ export class GenericTypeExpr extends SpecialExpr {
 
 export class DiscernExpr extends ExprSpecialExpr {
     
-    evaluateHelper(context) {
-        const output = this.evaluateExpr(context);
-        context.stowTypeId(this, output.typeId);
+    evaluateHelper(evalContext) {
+        const output = this.evaluateExpr(evalContext);
+        evalContext.stowTypeId(this, output.typeId);
         return output;
     }
     

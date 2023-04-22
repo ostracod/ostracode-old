@@ -1,23 +1,19 @@
 
 import { CompilerError } from "./error.js";
 import * as niceUtils from "./niceUtils.js";
+import { constructors } from "./constructors.js";
 import { Item } from "./item.js";
-
-export const resolveCompItems = (resolvables) => {
-    let resolvedCount = 0;
-    let unresolvedExprs = [];
-    for (const resolvable of resolvables) {
-        const result = resolvable.resolveCompItems();
-        resolvedCount += result.resolvedCount;
-        niceUtils.extendList(unresolvedExprs, result.unresolvedExprs);
-    }
-    return { resolvedCount, unresolvedExprs };
-};
+import { CompContext } from "./compContext.js";
 
 export const resolveAllCompItems = (resolvables) => {
+    const exprSeqs = [];
+    for (const resolvable of resolvables) {
+        niceUtils.extendList(exprSeqs, resolvable.getNodesByClass(constructors.CompExprSeq));
+    }
+    const compContext = new CompContext(exprSeqs);
     let lastResolvedCount = 0;
     while (true) {
-        const { resolvedCount, unresolvedExprs } = resolveCompItems(resolvables);
+        const { resolvedCount, unresolvedExprs } = compContext.resolveCompItems();
         if (unresolvedExprs.length <= 0) {
             break;
         }
@@ -26,6 +22,7 @@ export const resolveAllCompItems = (resolvables) => {
         }
         lastResolvedCount = resolvedCount;
     }
+    return compContext;
 };
 
 export const getNestedItems = (item) => {

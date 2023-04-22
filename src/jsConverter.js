@@ -13,6 +13,10 @@ export class JsConverter {
         this.aggregator = aggregator;
     }
     
+    getCompContext() {
+        return this.aggregator.compContext;
+    }
+    
     convertItemToRefJs(item) {
         const itemId = this.aggregator.itemIdMap.get(item);
         if (typeof itemId === "undefined") {
@@ -56,7 +60,8 @@ export class JsConverter {
     
     convertVarToRefJs(variable) {
         if (variable instanceof CompVar) {
-            return this.convertItemToJs(variable.getCompItem());
+            const item = variable.getCompItem(this.getCompContext());
+            return this.convertItemToJs(item);
         } else if (variable instanceof BuiltInEvalVar) {
             return variable.convertToRefJs();
         } else if (variable instanceof StmtEvalVar) {

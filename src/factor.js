@@ -14,9 +14,9 @@ export class Factor extends Item {
 
 export class FeatureField {
     
-    constructor(fieldStmt, context) {
+    constructor(fieldStmt, evalContext) {
         this.fieldStmt = fieldStmt;
-        this.context = context;
+        this.evalContext = evalContext;
         this.name = this.fieldStmt.name;
         if (this.name === null) {
             this.fieldStmt.throwError("Feature field must use name identifier.");
@@ -28,11 +28,11 @@ export class FeatureField {
         if (initItemExprSeq === null) {
             return undefined;
         }
-        return initItemExprSeq.evaluateToItem(this.context);
+        return initItemExprSeq.evaluateToItem(this.evalContext);
     }
     
     getNestedItems() {
-        const aggregator = new CompItemAggregator();
+        const aggregator = new CompItemAggregator(this.evalContext.compContext);
         this.fieldStmt.aggregateCompItems(aggregator);
         return aggregator.getItems();
     }
@@ -53,14 +53,14 @@ const createItemMap = (fields) => {
 
 export class Feature extends Factor {
     
-    constructor(itemFieldStmts, sharedFieldStmts, context) {
+    constructor(itemFieldStmts, sharedFieldStmts, evalContext) {
         super();
         this.typeId = createTypeId();
         this.itemFields = itemFieldStmts.map((fieldStmt) => (
-            new FeatureField(fieldStmt, context)
+            new FeatureField(fieldStmt, evalContext)
         ));
         const sharedFields = sharedFieldStmts.map((fieldStmt) => (
-            new FeatureField(fieldStmt, context)
+            new FeatureField(fieldStmt, evalContext)
         ));
         this.sharedItemMap = createItemMap(sharedFields);
     }

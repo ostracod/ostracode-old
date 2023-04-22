@@ -47,6 +47,17 @@ export class Node extends CompilerErrorThrower {
         return node;
     }
     
+    getNodesByClass(nodeClass) {
+        const output = [];
+        if (this instanceof nodeClass) {
+            output.push(this);
+        }
+        for (const child of this.children) {
+            niceUtils.extendList(output, child.getNodesByClass(nodeClass));
+        }
+        return output;
+    }
+    
     getOstraCodeFile() {
         return this.getParent(OstraCodeFile);
     }
@@ -175,10 +186,6 @@ export class Node extends CompilerErrorThrower {
         } else {
             return compartments;
         }
-    }
-    
-    resolveCompItems() {
-        return compUtils.resolveCompItems(this.children);
     }
     
     aggregateCompTypeIds(typeIdSet) {

@@ -16,7 +16,8 @@ export class ClosureItem {
 
 export class CompItemAggregator {
     
-    constructor() {
+    constructor(compContext) {
+        this.compContext = compContext;
         // Map from item to ID.
         this.itemIdMap = new Map();
         this.nextItemId = 0;

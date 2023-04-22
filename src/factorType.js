@@ -7,12 +7,12 @@ export class FactorType extends ItemType {
     // Concrete subclasses of FactorType must implement these methods:
     // getDiscerner
     
-    getObjMember(obj, name, context) {
+    getObjMember(obj, name, evalContext) {
         const discerner = this.getDiscerner(name);
         if (discerner === null) {
             throw new CompilerError("Cannot retrieve member of feature without discerned type.");
         }
-        const typeId = context.getTypeId(discerner);
+        const typeId = evalContext.getTypeId(discerner);
         const featureInstance = obj.featureInstances.get(typeId);
         return new FeatureMemberRef(featureInstance, name);
     }

@@ -21,7 +21,7 @@ export class CompVar extends Var {
     // getCompItem
     
     aggregateCompItems(aggregator) {
-        aggregator.addItem(this.getCompItem());
+        aggregator.addItem(this.getCompItem(aggregator.compContext));
     }
 }
 
@@ -33,11 +33,11 @@ export class BuiltInCompVar extends CompVar {
         this.constraintType = constraintType;
     }
     
-    getConstraintType() {
+    getConstraintType(compContext) {
         return this.constraintType;
     }
     
-    getCompItem() {
+    getCompItem(compContext) {
         return this.item;
     }
 }
@@ -49,12 +49,12 @@ export class StmtCompVar extends CompVar {
         this.stmt = stmt;
     }
     
-    getConstraintType() {
-        return this.stmt.getConstraintType();
+    getConstraintType(compContext) {
+        return this.stmt.getConstraintType(compContext);
     }
     
-    getCompItem() {
-        return this.stmt.getCompItem();
+    getCompItem(compContext) {
+        return this.stmt.getCompItem(compContext);
     }
 }
 
@@ -72,7 +72,7 @@ export class BuiltInEvalVar extends EvalVar {
         this.constraintType = constraintType;
     }
     
-    getConstraintType() {
+    getConstraintType(compContext) {
         return this.constraintType;
     }
 }
@@ -92,8 +92,8 @@ export class StmtEvalVar extends EvalVar {
         this.stmt = stmt;
     }
     
-    getConstraintType() {
-        return this.stmt.getConstraintType();
+    getConstraintType(compContext) {
+        return this.stmt.getConstraintType(compContext);
     }
 }
 

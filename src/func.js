@@ -22,20 +22,20 @@ export class InvocableDeclaration {
     constructor(argVars, bhvrStmtSeq, parentContext) {
         this.argVars = argVars;
         this.bhvrStmtSeq = bhvrStmtSeq;
-        this.closureContext = new EvalContext();
+        this.closureContext = new EvalContext({ compContext: parentContext.compContext });
         // TODO: Add closure variables for default arg items.
         this.bhvrStmtSeq.buildClosureContext(this.closureContext, parentContext);
     }
     
     evaluate(parentContext, args) {
-        const context = new EvalContext(parentContext);
+        const evalContext = new EvalContext({ parent: parentContext });
         for (let index = 0; index < args.length; index++) {
             const item = args[index];
             const variable = this.argVars[index];
             // TODO: Populate default arg items.
-            context.addVar(variable, item);
+            evalContext.addVar(variable, item);
         }
-        const result = this.bhvrStmtSeq.evaluate(context);
+        const result = this.bhvrStmtSeq.evaluate(evalContext);
         if (result.flowControl === FlowControl.Return) {
             return result.returnItem;
         } else if (result.flowControl !== FlowControl.None) {
@@ -58,7 +58,8 @@ export class CustomInvocable extends InvocableItem {
     }
     
     getNestedItems() {
-        const aggregator = new CompItemAggregator();
+        const { compContext } = this.getParentContext();
+        const aggregator = new CompItemAggregator(compContext);
         this.getDeclaration().bhvrStmtSeq.aggregateCompItems(aggregator);
         return aggregator.getItems();
     }
@@ -138,7 +139,7 @@ export class BoundCustomMethod extends CustomMethod {
         const { methodExpr } = this.unboundMethod;
         const featureExpr = methodExpr.getFeatureExpr();
         const compartment = featureExpr.getDiscernerCompartment();
-        const output = new EvalContext(super.getParentContext());
+        const output = new EvalContext({ parent: super.getParentContext() });
         output.addVar(methodExpr.selfVar, this.featureInstance.obj);
         output.addCompartment(compartment, this.featureInstance.feature.typeId);
         return output;

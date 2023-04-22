@@ -49,7 +49,8 @@ export class Compiler {
         this.rootPlatformNames = new Set();
         // Set of numbers.
         this.typeIdSet = new Set();
-        this.aggregator = new CompItemAggregator();
+        this.compContext = null;
+        this.aggregator = null;
     }
     
     addOstraCodeFile(codeFile) {
@@ -281,7 +282,8 @@ export class Compiler {
             codeFile.parse();
             console.log(codeFile.getDisplayString());
         }
-        compUtils.resolveAllCompItems(this.ostraCodeFiles);
+        this.compContext = compUtils.resolveAllCompItems(this.ostraCodeFiles);
+        this.aggregator = new CompItemAggregator(this.compContext)
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.aggregateCompTypeIds(this.typeIdSet);
             codeFile.aggregateCompItems(this.aggregator);
