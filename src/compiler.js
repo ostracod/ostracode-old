@@ -283,7 +283,7 @@ export class Compiler {
             console.log(codeFile.getDisplayString());
         }
         this.compContext = compUtils.resolveAllCompItems(this.ostraCodeFiles);
-        this.aggregator = new CompItemAggregator(this.compContext)
+        this.aggregator = new CompItemAggregator(this.compContext);
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.aggregateCompTypeIds(this.typeIdSet);
             codeFile.aggregateCompItems(this.aggregator);

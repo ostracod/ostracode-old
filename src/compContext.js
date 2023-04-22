@@ -6,22 +6,28 @@ export class CompContext {
     
     constructor(compExprSeqs, parent = null) {
         // Map from CompExprSeq to list of item.
-        this.itemsMap = new Map();
+        this.seqItemsMap = new Map();
         for (const exprSeq of compExprSeqs) {
             const items = exprSeq.groups.map((group) => unresolvedItem);
-            this.itemsMap.set(exprSeq, items);
+            this.seqItemsMap.set(exprSeq, items);
         }
+        // Map from CompVar to item.
+        this.varItemMap = new Map();
         this.parent = parent;
+    }
+    
+    setVarItem(compVar, item) {
+        this.varItemMap.set(compVar, item);
     }
     
     resolveCompItems() {
         let resolvedCount = 0;
         const unresolvedExprs = [];
-        for (const [exprSeq, items] of this.itemsMap) {
+        for (const [exprSeq, items] of this.seqItemsMap) {
             for (let index = 0; index < items.length; index++) {
                 let item = items[index];
                 if (item === unresolvedItem) {
-                    const expr = exprSeq.groups[index]
+                    const expr = exprSeq.groups[index];
                     try {
                         item = exprSeq.resolveCompItem(this, expr);
                         items[index] = item;
@@ -41,8 +47,8 @@ export class CompContext {
         return { resolvedCount, unresolvedExprs };
     }
     
-    getCompItems(compExprSeq) {
-        let items = this.itemsMap.get(compExprSeq);
+    getSeqItems(compExprSeq) {
+        let items = this.seqItemsMap.get(compExprSeq);
         if (typeof items === "undefined") {
             items = this.parent.getCompItems(compExprSeq);
         }
@@ -52,8 +58,14 @@ export class CompContext {
         return items;
     }
     
-    getCompItem(compExprSeq) {
-        return this.getCompItems(compExprSeq)[0];
+    getSeqItem(compExprSeq) {
+        return this.getSeqItems(compExprSeq)[0];
+    }
+    
+    getVarItem(compVar) {
+        const hasItem = this.varItemMap.has(compVar);
+        const item = hasItem ? this.varItemMap.get(compVar) : null;
+        return { hasItem, item };
     }
 }
 

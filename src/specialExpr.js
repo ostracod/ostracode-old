@@ -298,6 +298,10 @@ export class GenericExpr extends SpecialExpr {
         this.exprSeq = parser.readExprSeq();
     }
     
+    evaluateHelper(evalContext) {
+        return this.exprSeq.evaluateToItem(evalContext);
+    }
+    
     aggregateCompItems(aggregator) {
         this.exprSeq.aggregateCompItems(aggregator);
     }

@@ -1,6 +1,5 @@
 
-import { FlowControl } from "./constants.js";
-import { UnresolvedItemError } from "./error.js";
+import { FlowControl, unqualifiedItem } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
@@ -94,7 +93,7 @@ export class VarStmt extends BhvrStmt {
     
     getConstraintType(compContext) {
         if (this.typeExprSeq !== null) {
-            return compContext.getCompItem(this.typeExprSeq);
+            return compContext.getSeqItem(this.typeExprSeq);
         } else if (this.initItemExprSeq !== null) {
             return this.initItemExprSeq.getConstraintType(compContext);
         } else {
@@ -118,7 +117,7 @@ export class CompVarStmt extends VarStmt {
         if (this.initItemExprSeq === null) {
             this.throwError("Comptime variable has no initialization item.");
         }
-        return compContext.getCompItem(this.initItemExprSeq);
+        return compContext.getSeqItem(this.initItemExprSeq);
     }
     
     evaluate(evalContext) {
@@ -503,8 +502,11 @@ export class ArgStmt extends ChildAttrStmt {
     }
     
     getCompItem(compContext) {
-        // TODO: Implement.
-        return null;
+        if (this.defaultItemExprSeq === null) {
+            return unqualifiedItem;
+        } else {
+            return compContext.getSeqItem(this.defaultItemExprSeq);
+        }
     }
 }
 

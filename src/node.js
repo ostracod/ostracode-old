@@ -1,6 +1,5 @@
 
 import * as niceUtils from "./niceUtils.js";
-import * as compUtils from "./compUtils.js";
 import { CompilerErrorThrower } from "./error.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 import { CompCompartment, EvalCompartment } from "./compartment.js";

@@ -1,7 +1,5 @@
 
 import { FlowControl } from "./constants.js";
-import { UnresolvedItemError } from "./error.js";
-import * as niceUtils from "./niceUtils.js";
 import { constructors } from "./constructors.js";
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
@@ -242,7 +240,7 @@ export class CompExprSeq extends ExprSeq {
     }
     
     evaluate(evalContext) {
-        const items = evalContext.compContext.getCompItems(this);
+        const items = evalContext.compContext.getSeqItems(this);
         return items.map((item) => new ResultRef(item));
     }
     
@@ -251,13 +249,13 @@ export class CompExprSeq extends ExprSeq {
     }
     
     aggregateCompItems(aggregator) {
-        for (const item of aggregator.compContext.getCompItems(this)) {
+        for (const item of aggregator.compContext.getSeqItems(this)) {
             aggregator.addItem(item);
         }
     }
     
     convertToJsList(jsConverter) {
-        const items = jsConverter.getCompContext().getCompItems(this);
+        const items = jsConverter.getCompContext().getSeqItems(this);
         return items.map((item) => jsConverter.convertItemToJs(item));
     }
 }

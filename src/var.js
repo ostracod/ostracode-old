@@ -18,7 +18,12 @@ export class Var extends Container {
 
 export class CompVar extends Var {
     // Concrete subclasses of CompVar must implement these methods:
-    // getCompItem
+    // getCompItemHelper
+    
+    getCompItem(compContext) {
+        const { hasItem, item } = compContext.getVarItem(this);
+        return hasItem ? item : this.getCompItemHelper(compContext);
+    }
     
     aggregateCompItems(aggregator) {
         aggregator.addItem(this.getCompItem(aggregator.compContext));
@@ -37,7 +42,7 @@ export class BuiltInCompVar extends CompVar {
         return this.constraintType;
     }
     
-    getCompItem(compContext) {
+    getCompItemHelper(compContext) {
         return this.item;
     }
 }
@@ -53,7 +58,7 @@ export class StmtCompVar extends CompVar {
         return this.stmt.getConstraintType(compContext);
     }
     
-    getCompItem(compContext) {
+    getCompItemHelper(compContext) {
         return this.stmt.getCompItem(compContext);
     }
 }
