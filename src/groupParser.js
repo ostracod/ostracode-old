@@ -299,8 +299,8 @@ export class SpecialParser {
         errorComponent.throwError(`Expected ${errorName}.`);
     }
     
-    readExprSeq(expectOneExpression = false) {
-        const output = this.readGroupSeq(ExprSeq, "expression sequence");
+    readExprSeq(expectOneExpression = false, mayReachEnd = false) {
+        const output = this.readGroupSeq(ExprSeq, mayReachEnd ? null : "expression sequence");
         if (expectOneExpression && output.groups.length !== 1) {
             output.throwError("Expression sequence must contain exactly one expression.");
         }

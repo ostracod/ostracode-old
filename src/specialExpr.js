@@ -75,20 +75,30 @@ export class ListExpr extends SpecialExpr {
     
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
-        this.exprSeq = parser.readExprSeq();
+        this.exprSeq = parser.readExprSeq(false, true);
     }
     
     evaluateHelper(evalContext) {
-        return this.exprSeq.evaluateToItems(evalContext);
+        if (this.exprSeq === null) {
+            return [];
+        } else {
+            return this.exprSeq.evaluateToItems(evalContext);
+        }
     }
     
     aggregateCompItems(aggregator) {
-        this.exprSeq.aggregateCompItems(aggregator);
+        if (this.exprSeq !== null) {
+            this.exprSeq.aggregateCompItems(aggregator);
+        }
     }
     
     convertToJs(jsConverter) {
-        const codeList = this.exprSeq.convertToJsList(jsConverter);
-        return `[${codeList.join(", ")}]`;
+        if (this.exprSeq === null) {
+            return "[]";
+        } else {
+            const codeList = this.exprSeq.convertToJsList(jsConverter);
+            return `[${codeList.join(", ")}]`;
+        }
     }
 }
 
@@ -96,7 +106,7 @@ export class ListTypeExpr extends SpecialExpr {
     
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
-        this.exprSeq = parser.readExprSeq();
+        this.exprSeq = parser.readExprSeq(false, true);
     }
 }
 
