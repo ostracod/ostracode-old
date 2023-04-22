@@ -7,7 +7,7 @@ import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
 import { StmtCompVar, StmtEvalVar } from "./var.js";
-import { SpecialExpr, FeatureExpr } from "./specialExpr.js";
+import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
 import { ItemType } from "./itemType.js";
 
 const initItemName = "initialization item";
@@ -440,7 +440,7 @@ export class ParentAttrStmt extends AttrStmt {
     }
     
     getChildVars() {
-        return this.getChildStmts().map((stmt) => stmt.variable);
+        return this.getChildStmts().map((stmt) => stmt.getChildVar());
     }
 }
 
@@ -473,7 +473,6 @@ export class ArgStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.variable = new StmtEvalVar(this.name, this);
         this.typeExprSeq = parser.readExprSeq();
         this.attrStmtSeq = parser.readAttrStmtSeq();
         if (parser.hasReachedEnd()) {
@@ -482,10 +481,30 @@ export class ArgStmt extends ChildAttrStmt {
             parser.readEqualSign();
             this.defaultItemExprSeq = parser.readExprSeq("default item");
         }
+        this.variable = null;
     }
     
     overrideChildCompartments(child) {
         return (child === this.defaultItemExprSeq);
+    }
+    
+    getChildVar() {
+        if (this.variable === null) {
+            const parentSpecial = this.getParent(SpecialExpr);
+            let varConstructor;
+            if (parentSpecial instanceof GenericExpr) {
+                varConstructor = StmtCompVar;
+            } else {
+                varConstructor = StmtEvalVar;
+            }
+            this.variable = new varConstructor(this.name, this);
+        }
+        return this.variable;
+    }
+    
+    getCompItem(compContext) {
+        // TODO: Implement.
+        return null;
     }
 }
 
@@ -671,7 +690,6 @@ export class MemberStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.variable = new StmtEvalVar(this.aliasName, this);
         this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
         if (parser.hasReachedEnd()) {
             this.aliasName = this.name;
@@ -679,6 +697,11 @@ export class MemberStmt extends ChildAttrStmt {
             parser.readKeyword(["as"]);
             this.aliasName = parser.readIdentifierText();
         }
+        this.variable = new StmtEvalVar(this.aliasName, this);
+    }
+    
+    getChildVar() {
+        return this.variable;
     }
 }
 

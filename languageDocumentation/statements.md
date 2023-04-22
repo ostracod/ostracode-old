@@ -193,9 +193,19 @@ Valid contexts:
 * `args` statement in one of the following contexts:
     * `func` special
     * `method` special
-    * `generic` or `genericT` specials
+    * `genericT` special
 
 Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the type of `$defaultItem`. If `= ($defaultItem)` is excluded, then the default item will be `undef`. If both `<$type>` and `= ($defaultItem)` are excluded, then the constraint type of the argument will be `itemT`.
+
+```
+$name <$type> [$attrs] = <$defaultItem>
+```
+
+Valid contexts:
+
+* `args` statement in `generic` special
+
+Declares an argument with name identifier `$name`, constraint type `$type`, and default item `$defaultItem`. If `<$type>` is excluded, then the constraint type of the argument will be the type of `$defaultItem`. If `= <$defaultItem>` is excluded, then the default item will be `undef`. If both `<$type>` and `= <$defaultItem>` are excluded, then the constraint type of the argument will be `itemT`.
 
 ```
 $name ($type) [$attrs]

@@ -297,6 +297,14 @@ export class GenericExpr extends SpecialExpr {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.exprSeq = parser.readExprSeq();
     }
+    
+    aggregateCompItems(aggregator) {
+        this.exprSeq.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(jsConverter) {
+        return this.exprSeq.convertToJs(jsConverter);
+    }
 }
 
 export class GenericTypeExpr extends SpecialExpr {
