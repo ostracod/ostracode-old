@@ -20,6 +20,18 @@ export class CompContext {
         this.varItemMap.set(compVar, item);
     }
     
+    addQualificationVars(qualification) {
+        const { argVars, args } = qualification;
+        if (args === null) {
+            return;
+        }
+        for (let index = 0; index < argVars.length; index++) {
+            const argVar = argVars[index];
+            const arg = args[index];
+            this.setVarItem(argVar, arg);
+        }
+    }
+    
     resolveCompItems() {
         let resolvedCount = 0;
         const unresolvedExprs = [];

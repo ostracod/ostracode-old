@@ -11,6 +11,7 @@ import { ReflexiveVar } from "./var.js";
 import { Feature } from "./factor.js";
 import { FeatureType } from "./factorType.js";
 import { Obj, ObjType } from "./obj.js";
+import { GenericQualification } from "./qualification.js";
 
 export class SpecialExpr extends Expr {
     // Concrete subclasses of SpecialExpr must implement these methods:
@@ -296,6 +297,15 @@ export class GenericExpr extends SpecialExpr {
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.exprSeq = parser.readExprSeq();
+    }
+    
+    getConstraintType(compContext) {
+        const type = this.exprSeq.getConstraintType(compContext);
+        const output = type.copy();
+        const argVars = this.getAttrStmtVars(ArgsStmt);
+        const qualification = new GenericQualification(this.exprSeq, argVars);
+        output.qualifications.push(qualification);
+        return output;
     }
     
     evaluateHelper(evalContext) {
