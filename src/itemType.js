@@ -4,6 +4,7 @@ import { unqualifiedItem } from "./constants.js";
 import { Item } from "./item.js";
 import { CompExprSeq } from "./groupSeq.js";
 import { CompContext } from "./compContext.js";
+import { GenericQualification } from "./qualification.js";
 
 let nextTypeId = 0;
 
@@ -27,6 +28,7 @@ export class ItemType extends Item {
     
     constructor() {
         super();
+        this.genericExpr = null;
         this.qualifications = [];
     }
     
@@ -36,39 +38,33 @@ export class ItemType extends Item {
     
     copy() {
         const output = this.copyHelper();
+        output.genericExpr = this.genericExpr;
         output.qualifications = this.qualifications.map(
             (qualification) => qualification.copy(),
         );
         return output;
     }
     
-    qualify(compContext, inputArgs) {
-        const compExprSeqSet = new Set();
-        for (const qualification of this.qualifications) {
-            const compExprSeqs = qualification.genericExpr.getNodesByClass(CompExprSeq);
-            for (const compExprSeq of compExprSeqs) {
-                compExprSeqSet.add(compExprSeq);
-            }
+    qualify(compContext, args) {
+        if (this.genericExpr === null) {
+            throw new CompilerError("Cannot qualify item which is not generic.");
         }
-        const argsContext = new CompContext(Array.from(compExprSeqSet), compContext);
-        let hasUsedArgs = false;
-        for (let index = this.qualifications.length - 1; index >= 0; index--) {
-            const qualification = this.qualifications[index];
-            let { args } = qualification;
-            if (args === null && !hasUsedArgs) {
-                args = inputArgs;
-                hasUsedArgs = true;
-            }
-            if (args !== null) {
-                argsContext.addGenericArgs(qualification.genericExpr, args);
-            }
-        }
-        if (!hasUsedArgs) {
-            throw new CompilerError("Invalid generic qualification.");
+        const { exprSeq } = this.genericExpr;
+        const compExprSeqs = exprSeq.getNodesByClass(CompExprSeq);
+        const qualifications = this.qualifications.slice();
+        qualifications.push(new GenericQualification(this.genericExpr, args));
+        const argsContext = new CompContext(compExprSeqs, compContext);
+        for (const qualification of qualifications) {
+            argsContext.addQualificationVars(qualification);
         }
         argsContext.resolveCompItems();
-        const lastGenericExpr = this.qualifications.at(-1).genericExpr;
-        return lastGenericExpr.getConstraintType(argsContext);
+        const output = exprSeq.getConstraintType(argsContext).copy();
+        for (const oldQualification of qualifications) {
+            if (!output.qualifications.some((qualification) => (oldQualification.genericExpr === qualification.genericExpr))) {
+                output.qualifications.push(oldQualification);
+            }
+        }
+        return output;
     }
 }
 

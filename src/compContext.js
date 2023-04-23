@@ -13,8 +13,6 @@ export class CompContext {
         }
         // Map from CompVar to item.
         this.varItemMap = new Map();
-        // Set of GenericExpr.
-        this.qualifiedGenerics = new Set();
         this.parent = parent;
     }
     
@@ -22,14 +20,13 @@ export class CompContext {
         this.varItemMap.set(compVar, item);
     }
     
-    addGenericArgs(genericExpr, args) {
-        const argVars = genericExpr.getArgVars();
+    addQualificationVars(qualification) {
+        const argVars = qualification.genericExpr.getArgVars();
         for (let index = 0; index < argVars.length; index++) {
             const argVar = argVars[index];
-            const arg = args[index];
+            const arg = qualification.args[index];
             this.setVarItem(argVar, arg);
         }
-        this.qualifiedGenerics.add(genericExpr);
     }
     
     resolveCompItems() {
@@ -82,13 +79,6 @@ export class CompContext {
             return this.varItemMap.get(compVar);
         }
         return (this.parent === null) ? unqualifiedItem : this.parent.getVarItem(compVar);
-    }
-    
-    genericIsQualified(genericExpr) {
-        if (this.qualifiedGenerics.has(genericExpr)) {
-            return true;
-        }
-        return (this.parent === null) ? false : this.parent.genericIsQualified(genericExpr);
     }
 }
 
