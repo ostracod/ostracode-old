@@ -160,6 +160,10 @@ export class BinaryExpr extends OperatorExpr {
         this.operand2 = this.addChild(operand2);
     }
     
+    getConstraintType(compContext) {
+        return this.operator.getConstraintType(compContext, this.operand1, this.operand2);
+    }
+    
     evaluate(evalContext) {
         const itemRef1 = this.operand1.evaluate(evalContext);
         const itemRef2 = this.operand2.evaluate(evalContext);

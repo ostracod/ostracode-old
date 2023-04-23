@@ -1,6 +1,6 @@
 
 import { UnresolvedItemError } from "./error.js";
-import { unresolvedItem } from "./constants.js";
+import { unresolvedItem, unqualifiedItem } from "./constants.js";
 
 export class CompContext {
     
@@ -13,6 +13,8 @@ export class CompContext {
         }
         // Map from CompVar to item.
         this.varItemMap = new Map();
+        // Set of GenericExpr.
+        this.qualifiedGenerics = new Set();
         this.parent = parent;
     }
     
@@ -20,16 +22,14 @@ export class CompContext {
         this.varItemMap.set(compVar, item);
     }
     
-    addQualificationVars(qualification) {
-        const { argVars, args } = qualification;
-        if (args === null) {
-            return;
-        }
+    addGenericArgs(genericExpr, args) {
+        const argVars = genericExpr.getArgVars();
         for (let index = 0; index < argVars.length; index++) {
             const argVar = argVars[index];
             const arg = args[index];
             this.setVarItem(argVar, arg);
         }
+        this.qualifiedGenerics.add(genericExpr);
     }
     
     resolveCompItems() {
@@ -78,12 +78,17 @@ export class CompContext {
     }
     
     getVarItem(compVar) {
-        const hasItem = this.varItemMap.has(compVar);
-        if (!hasItem && this.parent !== null) {
-            return this.parent.getVarItem(compVar);
+        if (this.varItemMap.has(compVar)) {
+            return this.varItemMap.get(compVar);
         }
-        const item = hasItem ? this.varItemMap.get(compVar) : null;
-        return { hasItem, item };
+        return (this.parent === null) ? unqualifiedItem : this.parent.getVarItem(compVar);
+    }
+    
+    genericIsQualified(genericExpr) {
+        if (this.qualifiedGenerics.has(genericExpr)) {
+            return true;
+        }
+        return (this.parent === null) ? false : this.parent.genericIsQualified(genericExpr);
     }
 }
 

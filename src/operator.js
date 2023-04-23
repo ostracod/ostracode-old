@@ -24,7 +24,7 @@ export const binaryOperatorMap = new Map();
 
 export class BinaryOperator extends Operator {
     // Concrete subclasses of BinaryOperator must implement these methods:
-    // perform
+    // getConstraintType, perform
     
     constructor(text, precedence) {
         super(text);
@@ -64,6 +64,23 @@ export class SubscriptOperator extends BinaryOperator {
         const code1 = expr1.convertToJs(jsConverter);
         const code2 = expr2.convertToJs(jsConverter);
         return `${code1}[${code2}]`;
+    }
+}
+
+export class QualificationOperator extends BinaryOperator {
+    
+    constructor() {
+        super("+:", 0);
+    }
+    
+    getConstraintType(compContext, expr1, expr2) {
+        const type = expr1.getConstraintType(compContext);
+        const args = compContext.getSeqItems(expr2.exprSeq);
+        return type.qualify(compContext, args);
+    }
+    
+    perform(itemRef1, itemRef2) {
+        return itemRef1;
     }
 }
 
@@ -108,7 +125,7 @@ new BinaryOperator("^^", 12);
 new SubscriptOperator();
 new BinaryOperator(":", 0);
 new BinaryOperator("::", 0);
-new BinaryOperator("+:", 0);
+new QualificationOperator();
 new AssignOperator();
 new BinaryOperator("+=", 14);
 new BinaryOperator("-=", 14);

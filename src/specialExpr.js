@@ -1,11 +1,11 @@
 
 import * as nodeUtils from "./nodeUtils.js";
 import { AttrStmtSeq } from "./groupSeq.js";
-import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt } from "./stmt.js";
+import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt, ElemTypeStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc, UnboundCustomMethod } from "./func.js";
-import { TypeType } from "./itemType.js";
+import { TypeType, ListType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
 import { ReflexiveVar } from "./var.js";
 import { Feature } from "./factor.js";
@@ -38,15 +38,23 @@ export class SpecialExpr extends Expr {
         return null;
     }
     
-    getAttrStmtChildren(attrStmtClass) {
+    getAttrStmt(attrStmtClass) {
         const stmtSeq = this.getAttrStmtSeq();
-        const stmt = nodeUtils.getAttrStmt(stmtSeq, attrStmtClass);
+        return nodeUtils.getAttrStmt(stmtSeq, attrStmtClass);
+    }
+    
+    getAttrStmtChildren(attrStmtClass) {
+        const stmt = this.getAttrStmt(attrStmtClass);
         return (stmt === null) ? [] : stmt.getChildStmts();
     }
     
     getAttrStmtVars(attrStmtClass) {
         const stmtSeq = this.getAttrStmtSeq();
         return nodeUtils.getChildVars(stmtSeq, attrStmtClass);
+    }
+    
+    getArgVars() {
+        return this.getAttrStmtVars(ArgsStmt);
     }
     
     evaluate(evalContext) {
@@ -77,6 +85,17 @@ export class ListExpr extends SpecialExpr {
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.exprSeq = parser.readExprSeq(false, true);
+    }
+    
+    getConstraintType(compContext) {
+        const elemTypeStmt = this.getAttrStmt(ElemTypeStmt);
+        let elemType;
+        if (elemTypeStmt === null) {
+            elemType = null;
+        } else {
+            elemType = compContext.getSeqItem(elemTypeStmt.exprSeq);
+        }
+        return new ListType(elemType);
     }
     
     evaluateHelper(evalContext) {
@@ -120,10 +139,6 @@ export class InvocableExpr extends SpecialExpr {
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.bhvrStmtSeq = parser.readBhvrStmtSeq();
-    }
-    
-    getArgVars() {
-        return this.getAttrStmtVars(ArgsStmt);
     }
     
     aggregateCompItems(aggregator) {
@@ -302,8 +317,14 @@ export class GenericExpr extends SpecialExpr {
     getConstraintType(compContext) {
         const type = this.exprSeq.getConstraintType(compContext);
         const output = type.copy();
-        const argVars = this.getAttrStmtVars(ArgsStmt);
-        const qualification = new GenericQualification(this.exprSeq, argVars);
+        let args;
+        if (compContext.genericIsQualified(this)) {
+            const argVars = this.getArgVars();
+            args = argVars.map((argVar) => compContext.getVarItem(argVar));
+        } else {
+            args = null;
+        }
+        const qualification = new GenericQualification(this, args);
         output.qualifications.push(qualification);
         return output;
     }

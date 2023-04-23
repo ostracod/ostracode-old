@@ -1,5 +1,7 @@
 
 import { Item } from "./item.js";
+import { CompExprSeq } from "./groupSeq.js";
+import { CompContext } from "./compContext.js";
 
 let nextTypeId = 0;
 
@@ -23,9 +25,29 @@ export class ItemType extends Item {
     copy() {
         const output = this.copyHelper();
         output.qualifications = this.qualifications.map(
-            (qualification) => qualification.copy()
+            (qualification) => qualification.copy(),
         );
         return output;
+    }
+    
+    qualify(compContext, inputArgs) {
+        const { genericExpr } = this.qualifications.at(-1);
+        const compExprSeqs = genericExpr.getNodesByClass(CompExprSeq);
+        const argsContext = new CompContext(compExprSeqs, compContext);
+        let hasUsedArgs = false;
+        for (let index = this.qualifications.length - 1; index >= 0; index--) {
+            const qualification = this.qualifications[index];
+            let { args } = qualification;
+            if (args === null && !hasUsedArgs) {
+                args = inputArgs;
+                hasUsedArgs = true;
+            }
+            if (args !== null) {
+                argsContext.addGenericArgs(qualification.genericExpr, args);
+            }
+        }
+        argsContext.resolveCompItems();
+        return genericExpr.getConstraintType(argsContext);
     }
 }
 
@@ -102,6 +124,19 @@ export class StrType extends ValueType {
     
     copyHelper() {
         return new StrType(this.value);
+    }
+}
+
+export class ListType extends ValueType {
+    
+    constructor(elemType = null) {
+        super();
+        this.elemType = elemType;
+    }
+    
+    copyHelper() {
+        const elemType = (this.elemType === null) ? null : this.elemType.copy();
+        return new ListType(elemType);
     }
 }
 

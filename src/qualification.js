@@ -1,14 +1,13 @@
 
 export class GenericQualification {
     
-    constructor(exprSeq, argVars, args = null) {
-        this.exprSeq = exprSeq;
-        this.argVars = argVars;
+    constructor(genericExpr, args) {
+        this.genericExpr = genericExpr;
         this.args = args;
     }
     
     copy() {
-        return new GenericQualification(this.exprSeq, this.argVars, this.args);
+        return new GenericQualification(this.genericExpr, this.args);
     }
 }
 

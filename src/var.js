@@ -1,4 +1,5 @@
 
+import { unqualifiedItem } from "./constants.js";
 import * as compUtils from "./compUtils.js";
 import { Container } from "./container.js";
 
@@ -21,8 +22,8 @@ export class CompVar extends Var {
     // getCompItemHelper
     
     getCompItem(compContext) {
-        const { hasItem, item } = compContext.getVarItem(this);
-        return hasItem ? item : this.getCompItemHelper(compContext);
+        const item = compContext.getVarItem(this);
+        return (item === unqualifiedItem) ? this.getCompItemHelper(compContext) : item;
     }
     
     aggregateCompItems(aggregator) {
