@@ -65,7 +65,7 @@ export class CompContext {
             if (this.parent === null) {
                 throw new Error("CompContext is missing CompExprSeq.");
             }
-            items = this.parent.getCompItems(compExprSeq);
+            items = this.parent.getSeqItems(compExprSeq);
         }
         if (items.some((item) => (item === unresolvedItem))) {
             throw new UnresolvedItemError();

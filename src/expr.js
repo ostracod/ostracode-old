@@ -161,7 +161,9 @@ export class BinaryExpr extends OperatorExpr {
     }
     
     getConstraintType(compContext) {
-        return this.operator.getConstraintType(compContext, this.operand1, this.operand2);
+        return this.tryOperation(() => (
+            this.operator.getConstraintType(compContext, this.operand1, this.operand2)
+        ));
     }
     
     evaluate(evalContext) {

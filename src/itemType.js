@@ -1,4 +1,6 @@
 
+import { CompilerError } from "./error.js";
+import { unqualifiedItem } from "./constants.js";
 import { Item } from "./item.js";
 import { CompExprSeq } from "./groupSeq.js";
 import { CompContext } from "./compContext.js";
@@ -9,6 +11,16 @@ export const createTypeId = () => {
     const output = nextTypeId;
     nextTypeId += 1;
     return output;
+};
+
+const copyType = (type) => {
+    if (type instanceof ItemType) {
+        return type.copy();
+    } else if (type === null || type === unqualifiedItem) {
+        return type;
+    } else {
+        throw new Error("Found invalid type.");
+    }
 };
 
 export class ItemType extends Item {
@@ -31,9 +43,14 @@ export class ItemType extends Item {
     }
     
     qualify(compContext, inputArgs) {
-        const { genericExpr } = this.qualifications.at(-1);
-        const compExprSeqs = genericExpr.getNodesByClass(CompExprSeq);
-        const argsContext = new CompContext(compExprSeqs, compContext);
+        const compExprSeqSet = new Set();
+        for (const qualification of this.qualifications) {
+            const compExprSeqs = qualification.genericExpr.getNodesByClass(CompExprSeq);
+            for (const compExprSeq of compExprSeqs) {
+                compExprSeqSet.add(compExprSeq);
+            }
+        }
+        const argsContext = new CompContext(Array.from(compExprSeqSet), compContext);
         let hasUsedArgs = false;
         for (let index = this.qualifications.length - 1; index >= 0; index--) {
             const qualification = this.qualifications[index];
@@ -46,8 +63,12 @@ export class ItemType extends Item {
                 argsContext.addGenericArgs(qualification.genericExpr, args);
             }
         }
+        if (!hasUsedArgs) {
+            throw new CompilerError("Invalid generic qualification.");
+        }
         argsContext.resolveCompItems();
-        return genericExpr.getConstraintType(argsContext);
+        const lastGenericExpr = this.qualifications.at(-1).genericExpr;
+        return lastGenericExpr.getConstraintType(argsContext);
     }
 }
 
@@ -66,7 +87,7 @@ export class TypeType extends ItemType {
     }
     
     copyHelper() {
-        return new TypeType(this.type.copy());
+        return new TypeType(copyType(this.type));
     }
 }
 
@@ -129,14 +150,20 @@ export class StrType extends ValueType {
 
 export class ListType extends ValueType {
     
-    constructor(elemType = null) {
+    constructor(elemType = null, elemTypes = null) {
         super();
         this.elemType = elemType;
+        this.elemTypes = elemTypes;
     }
     
     copyHelper() {
-        const elemType = (this.elemType === null) ? null : this.elemType.copy();
-        return new ListType(elemType);
+        let elemTypes;
+        if (this.elemTypes === null) {
+            elemTypes = null;
+        } else {
+            elemTypes = this.elemTypes.map(copyType);
+        }
+        return new ListType(copyType(this.elemType), elemTypes);
     }
 }
 

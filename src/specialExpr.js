@@ -95,7 +95,13 @@ export class ListExpr extends SpecialExpr {
         } else {
             elemType = compContext.getSeqItem(elemTypeStmt.exprSeq);
         }
-        return new ListType(elemType);
+        let elemTypes;
+        if (this.exprSeq === null) {
+            elemTypes = null;
+        } else {
+            elemTypes = this.exprSeq.getConstraintTypes(compContext);
+        }
+        return new ListType(elemType, elemTypes);
     }
     
     evaluateHelper(evalContext) {
