@@ -101,6 +101,16 @@ export class VarStmt extends BhvrStmt {
         }
     }
     
+    validateTypes(compContext) {
+        if (this.typeExprSeq !== null && this.initItemExprSeq !== null) {
+            const varType = compContext.getSeqItem(this.typeExprSeq);
+            const initItemType = this.initItemExprSeq.getConstraintType(compContext);
+            if (!varType.contains(initItemType)) {
+                this.throwError("Initialization item type does not conform to variable type.");
+            }
+        }
+        super.validateTypes(compContext);
+    }
 }
 
 export class CompVarStmt extends VarStmt {

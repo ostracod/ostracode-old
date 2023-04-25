@@ -200,6 +200,12 @@ export class Node extends CompilerErrorThrower {
             child.aggregateCompTypeIds(typeIdSet);
         }
     }
+    
+    validateTypes(compContext) {
+        for (const child of this.children) {
+            child.validateTypes(compContext);
+        }
+    }
 }
 
 

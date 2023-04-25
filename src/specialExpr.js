@@ -5,7 +5,7 @@ import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt, ElemTypeStmt } from "./stmt
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc, UnboundCustomMethod } from "./func.js";
-import { TypeType, ListType } from "./itemType.js";
+import { ItemType, TypeType, ListType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
 import { ReflexiveVar } from "./var.js";
 import { Feature } from "./factor.js";
@@ -90,7 +90,7 @@ export class ListExpr extends SpecialExpr {
         const elemTypeStmt = this.getAttrStmt(ElemTypeStmt);
         let elemType;
         if (elemTypeStmt === null) {
-            elemType = null;
+            elemType = new ItemType();
         } else {
             elemType = compContext.getSeqItem(elemTypeStmt.exprSeq);
         }
@@ -132,6 +132,37 @@ export class ListTypeExpr extends SpecialExpr {
     init(parser) {
         this.attrStmtSeq = parser.readAttrStmtSeq();
         this.exprSeq = parser.readExprSeq(false, true);
+    }
+    
+    getConstraintType(compContext) {
+        return new TypeType(new ListType());
+    }
+    
+    evaluateHelper(evalContext) {
+        const elemTypeStmt = this.getAttrStmt(ElemTypeStmt);
+        let elemType;
+        if (elemTypeStmt === null) {
+            elemType = new ItemType();
+        } else {
+            elemType = elemTypeStmt.exprSeq.evaluateToItem(evalContext);
+        }
+        let elemTypes;
+        if (this.exprSeq === null) {
+            elemTypes = null;
+        } else {
+            elemTypes = this.exprSeq.evaluateToItems(evalContext);
+        }
+        return new ListType(elemType, elemTypes);
+    }
+    
+    aggregateCompItems(aggregator) {
+        const elemTypeStmt = this.getAttrStmt(ElemTypeStmt);
+        if (elemTypeStmt !== null) {
+            elemTypeStmt.exprSeq.aggregateCompItems(aggregator);
+        }
+        if (this.exprSeq !== null) {
+            this.exprSeq.aggregateCompItems(aggregator);
+        }
     }
 }
 

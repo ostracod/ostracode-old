@@ -213,6 +213,7 @@ export class CompExprSeq extends ExprSeq {
     }
     
     resolveCompItem(compContext, expr) {
+        expr.validateTypes(compContext);
         // TODO: Use `hasFactorType`.
         if (this.useConstraintTypes) {
             return expr.getConstraintType(compContext);
@@ -237,6 +238,10 @@ export class CompExprSeq extends ExprSeq {
             }
         }
         return output;
+    }
+    
+    validateTypes(compContext) {
+        // Do nothing. Types have already been validated during comp item resolution.
     }
     
     evaluate(evalContext) {

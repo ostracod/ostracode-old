@@ -62,6 +62,7 @@ export class OstraCodeFile extends Node {
     }
     
     createJsFile(jsConverter) {
+        this.validateTypes(jsConverter.getCompContext());
         niceUtils.ensureDirectoryExists(pathUtils.dirname(this.destPath));
         const codeList = this.bhvrStmtSeq.convertToJsList(jsConverter);
         const code = [
