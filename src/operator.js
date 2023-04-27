@@ -82,6 +82,14 @@ export class QualificationOperator extends BinaryOperator {
     perform(itemRef1, itemRef2) {
         return itemRef1;
     }
+    
+    aggregateCompItems(expr1, expr2, aggregator) {
+        expr1.aggregateCompItems(aggregator);
+    }
+    
+    convertToJs(expr1, expr2, jsConverter) {
+        return expr1.convertToJs(jsConverter);
+    }
 }
 
 export class AssignOperator extends BinaryOperator {
