@@ -5,9 +5,11 @@ import { CompilerError } from "./error.js";
 import { baseImportStmt } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
+import { constructors } from "./constructors.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 import { BuiltInNode } from "./builtIn.js";
+import { CompContext } from "./compContext.js";
 import { CompItemAggregator } from "./aggregator.js";
 import { BuildJsConverter, SupportJsConverter } from "./jsConverter.js";
 
@@ -241,6 +243,17 @@ export class Compiler {
         fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");
     }
     
+    resolveAllCompItems() {
+        const exprSeqs = [];
+        for (const codeFile of this.ostraCodeFiles) {
+            niceUtils.extendList(
+                exprSeqs, codeFile.getNodesByClass(constructors.CompExprSeq),
+            );
+        }
+        this.compContext = new CompContext(exprSeqs);
+        this.compContext.resolveCompItems();
+    }
+    
     createTypeIdsFile() {
         const codeList = [];
         for (const typeId of this.typeIdSet) {
@@ -282,7 +295,7 @@ export class Compiler {
             codeFile.parse();
             console.log(codeFile.getDisplayString());
         }
-        this.compContext = compUtils.resolveAllCompItems(this.ostraCodeFiles);
+        this.resolveAllCompItems();
         this.aggregator = new CompItemAggregator(this.compContext);
         for (const codeFile of this.ostraCodeFiles) {
             codeFile.aggregateCompTypeIds(this.typeIdSet);

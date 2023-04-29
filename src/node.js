@@ -187,6 +187,12 @@ export class Node extends CompilerErrorThrower {
         }
     }
     
+    aggregateCompItems(aggregator) {
+        this.iterateCompItems(aggregator.compContext, (item) => {
+            aggregator.addItem(item);
+        });
+    }
+    
     aggregateCompTypeIds(typeIdSet) {
         for (const compartment of this.compartmentMap.values()) {
             if (compartment instanceof CompCompartment) {

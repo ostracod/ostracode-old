@@ -1,10 +1,8 @@
 
 import { CompilerError } from "./error.js";
-import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { createTypeId } from "./itemType.js";
 import { UnboundCustomMethod, BoundCustomMethod } from "./func.js";
-import { CompItemAggregator } from "./aggregator.js";
 import { Item } from "./item.js";
 
 export class Factor extends Item {
@@ -31,10 +29,9 @@ export class FeatureField {
         return initItemExprSeq.evaluateToItem(this.evalContext);
     }
     
-    getNestedItems() {
-        const aggregator = new CompItemAggregator(this.evalContext.compContext);
-        this.fieldStmt.aggregateCompItems(aggregator);
-        return aggregator.getItems();
+    iterateNestedItems(handle) {
+        const { compContext } = this.evalContext;
+        this.fieldStmt.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {
@@ -69,15 +66,17 @@ export class Feature extends Factor {
         return [this];
     }
     
-    getNestedItems() {
-        const output = [];
+    iterateNestedItems(handle) {
         for (const field of this.itemFields) {
-            niceUtils.extendList(output, field.getNestedItems());
+            field.iterateNestedItems(handle);
         }
-        for (const item of this.sharedItemMap.values()) {
-            output.push(item);
+        for (const name of this.sharedItemMap.keys()) {
+            let item = this.sharedItemMap.get(name);
+            const result = handle(item);
+            if (typeof result !== "undefined") {
+                this.sharedItemMap.set(name, item);
+            }
         }
-        return output;
     }
     
     getClosureItems() {

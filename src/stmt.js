@@ -1,5 +1,5 @@
 
-import { FlowControl, unqualifiedItem } from "./constants.js";
+import { FlowControl } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
@@ -7,6 +7,7 @@ import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
 import { StmtCompVar, StmtEvalVar } from "./var.js";
 import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
+import { AbsentItem } from "./item.js";
 import { ItemType } from "./itemType.js";
 
 const initItemName = "initialization item";
@@ -51,7 +52,7 @@ export class Stmt extends ResolvedGroup {
         return [];
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         // Do nothing.
     }
 }
@@ -130,6 +131,13 @@ export class CompVarStmt extends VarStmt {
         return compContext.getSeqItem(this.initItemExprSeq);
     }
     
+    setCompItem(compContext, item) {
+        if (this.initItemExprSeq === null) {
+            this.throwError("Cannot modify comptime variable which has no initialization item.");
+        }
+        return compContext.setSeqItem(this.initItemExprSeq, item);
+    }
+    
     evaluate(evalContext) {
         return { flowControl: FlowControl.None };
     }
@@ -153,9 +161,9 @@ export class EvalVarStmt extends VarStmt {
         return { flowControl: FlowControl.None };
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         if (this.initItemExprSeq !== null) {
-            this.initItemExprSeq.aggregateCompItems(aggregator);
+            this.initItemExprSeq.iterateCompItems(compContext, handle);
         }
     }
     
@@ -199,8 +207,8 @@ export class ExprStmt extends BhvrStmt {
         return { flowControl: FlowControl.None };
     }
     
-    aggregateCompItems(aggregator) {
-        this.exprSeq.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.exprSeq.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {
@@ -222,8 +230,8 @@ export class ScopeStmt extends BhvrStmt {
         return this.stmtSeq.evaluate(evalContext);
     }
     
-    aggregateCompItems(aggregator) {
-        this.stmtSeq.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.stmtSeq.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {
@@ -297,9 +305,9 @@ export class ReturnStmt extends BhvrStmt {
         return { flowControl: FlowControl.Return, returnItem, stmt: this };
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         if (this.exprSeq !== null) {
-            this.exprSeq.aggregateCompItems(aggregator);
+            this.exprSeq.iterateCompItems(compContext, handle);
         }
     }
     
@@ -513,9 +521,19 @@ export class ArgStmt extends ChildAttrStmt {
     
     getCompItem(compContext) {
         if (this.defaultItemExprSeq === null) {
-            return unqualifiedItem;
+            return new AbsentItem();
         } else {
             return compContext.getSeqItem(this.defaultItemExprSeq);
+        }
+    }
+    
+    getConstraintType(compContext) {
+        if (this.typeExprSeq !== null) {
+            return compContext.getSeqItem(this.typeExprSeq);
+        } else if (this.defaultItemExprSeq !== null) {
+            return this.defaultItemExprSeq.getConstraintType(compContext);
+        } else {
+            return new ItemType();
         }
     }
 }
@@ -566,9 +584,9 @@ export class FieldStmt extends ChildAttrStmt {
         return compUtils.getJsIdentifier(this.name);
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         if (this.initItemExprSeq !== null) {
-            this.initItemExprSeq.aggregateCompItems(aggregator);
+            this.initItemExprSeq.iterateCompItems(compContext, handle);
         }
     }
     

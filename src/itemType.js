@@ -1,7 +1,6 @@
 
 import { CompilerError } from "./error.js";
-import { unqualifiedItem } from "./constants.js";
-import { Item } from "./item.js";
+import { Item, AbsentItem } from "./item.js";
 import { CompExprSeq } from "./groupSeq.js";
 import { CompContext } from "./compContext.js";
 import { GenericQualification } from "./qualification.js";
@@ -17,7 +16,7 @@ export const createTypeId = () => {
 const copyType = (type) => {
     if (type instanceof ItemType) {
         return type.copy();
-    } else if (type === unqualifiedItem) {
+    } else if (type instanceof AbsentItem) {
         return type;
     } else {
         throw new Error("Found invalid type.");

@@ -111,9 +111,9 @@ export class ListExpr extends SpecialExpr {
         }
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         if (this.exprSeq !== null) {
-            this.exprSeq.aggregateCompItems(aggregator);
+            this.exprSeq.iterateCompItems(compContext, handle);
         }
     }
     
@@ -155,13 +155,13 @@ export class ListTypeExpr extends SpecialExpr {
         return new ListType(elemType, elemTypes);
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         const elemTypeStmt = this.getAttrStmt(ElemTypeStmt);
         if (elemTypeStmt !== null) {
-            elemTypeStmt.exprSeq.aggregateCompItems(aggregator);
+            elemTypeStmt.exprSeq.iterateCompItems(compContext, handle);
         }
         if (this.exprSeq !== null) {
-            this.exprSeq.aggregateCompItems(aggregator);
+            this.exprSeq.iterateCompItems(compContext, handle);
         }
     }
 }
@@ -177,8 +177,8 @@ export class InvocableExpr extends SpecialExpr {
         this.bhvrStmtSeq = parser.readBhvrStmtSeq();
     }
     
-    aggregateCompItems(aggregator) {
-        this.bhvrStmtSeq.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.bhvrStmtSeq.iterateCompItems(compContext, handle);
     }
     
     getArgIdentifiers() {
@@ -265,12 +265,12 @@ export class FeatureValueExpr extends FeatureExpr {
         return true;
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         for (const fieldStmt of this.itemFieldStmts) {
-            fieldStmt.aggregateCompItems(aggregator);
+            fieldStmt.iterateCompItems(compContext, handle);
         }
         for (const fieldStmt of this.sharedFieldStmts) {
-            fieldStmt.aggregateCompItems(aggregator);
+            fieldStmt.iterateCompItems(compContext, handle);
         }
     }
     
@@ -323,8 +323,8 @@ export class ObjExpr extends ExprSpecialExpr {
         return new ObjType(factorType);
     }
     
-    aggregateCompItems(aggregator) {
-        this.exprSeq.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.exprSeq.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {
@@ -361,8 +361,8 @@ export class GenericExpr extends SpecialExpr {
         return this.exprSeq.evaluateToItem(evalContext);
     }
     
-    aggregateCompItems(aggregator) {
-        this.exprSeq.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.exprSeq.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {

@@ -4,7 +4,6 @@ import { FlowControl } from "./constants.js";
 import * as nodeUtils from "./nodeUtils.js";
 import { EvalContext } from "./evalContext.js";
 import { ArgsStmt } from "./stmt.js";
-import { CompItemAggregator } from "./aggregator.js";
 import { Item } from "./item.js";
 
 export class InvocableItem extends Item {
@@ -57,11 +56,9 @@ export class CustomInvocable extends InvocableItem {
         return this.getDeclaration().evaluate(parentContext, args);
     }
     
-    getNestedItems() {
+    iterateNestedItems(handle) {
         const { compContext } = this.getParentContext();
-        const aggregator = new CompItemAggregator(compContext);
-        this.getDeclaration().bhvrStmtSeq.aggregateCompItems(aggregator);
-        return aggregator.getItems();
+        this.getDeclaration().bhvrStmtSeq.iterateCompItems(compContext, handle);
     }
     
     getClosureItems() {

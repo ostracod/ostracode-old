@@ -37,8 +37,12 @@ export class LiteralExpr extends SingleComponentExpr {
         return new ResultRef(this.getItem());
     }
     
-    aggregateCompItems(aggregator) {
-        aggregator.addItem(this.getItem());
+    iterateCompItems(compContext, handle) {
+        const item = this.getItem();
+        const result = handle(item);
+        if (typeof result !== "undefined" && result.item !== item) {
+            throw new Error("Cannot replace item of literal expression.");
+        }
     }
     
     convertToJs(jsConverter) {
@@ -123,8 +127,8 @@ export class IdentifierExpr extends SingleComponentExpr {
         return this.getNonNullVar().getConstraintType(compContext);
     }
     
-    aggregateCompItems(aggregator) {
-        this.getNonNullVar().aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.getNonNullVar().iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {
@@ -174,8 +178,8 @@ export class BinaryExpr extends OperatorExpr {
         ));
     }
     
-    aggregateCompItems(aggregator) {
-        this.operator.aggregateCompItems(this.operand1, this.operand2, aggregator);
+    iterateCompItems(compContext, handle) {
+        this.operator.iterateCompItems(compContext, this.operand1, this.operand2, handle);
     }
     
     convertToJs(jsConverter) {
@@ -219,8 +223,8 @@ export class IdentifierAccessExpr extends Expr {
         }
     }
     
-    aggregateCompItems(aggregator) {
-        this.operand.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.operand.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {
@@ -248,8 +252,8 @@ export class ExprSeqExpr extends SingleComponentExpr {
         return this.exprSeq.evaluate(evalContext)[0];
     }
     
-    aggregateCompItems(aggregator) {
-        this.exprSeq.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.exprSeq.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {
@@ -271,9 +275,9 @@ export class InvocationExpr extends Expr {
         return new ResultRef(func.evaluate(args));
     }
     
-    aggregateCompItems(aggregator) {
-        this.argExprSeq.aggregateCompItems(aggregator);
-        this.operand.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.argExprSeq.iterateCompItems(compContext, handle);
+        this.operand.iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {

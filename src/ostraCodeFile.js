@@ -57,8 +57,8 @@ export class OstraCodeFile extends Node {
         this.bhvrStmtSeq.resolveCompartments();
     }
     
-    aggregateCompItems(aggregator) {
-        this.bhvrStmtSeq.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, handle) {
+        this.bhvrStmtSeq.iterateCompItems(compContext, handle);
     }
     
     createJsFile(jsConverter) {

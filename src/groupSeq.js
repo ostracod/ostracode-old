@@ -80,9 +80,9 @@ export class BhvrStmtSeq extends StmtSeq {
         return { flowControl: FlowControl.None };
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         for (const stmt of this.groups) {
-            stmt.aggregateCompItems(aggregator);
+            stmt.iterateCompItems(compContext, handle);
         }
     }
     
@@ -121,7 +121,7 @@ export class AttrStmtSeq extends StmtSeq {
 // ExprSeq = Expression sequence
 export class ExprSeq extends GroupSeq {
     // Concrete subclasses of ExprSeq must implement these methods:
-    // evaluate, aggregateCompItems, convertToJsList
+    // evaluate, iterateCompItems, convertToJsList
     
     constructor(hasFactorType, exprs) {
         super(exprs);
@@ -170,9 +170,9 @@ export class EvalExprSeq extends ExprSeq {
         return this.groups.map((group) => group.evaluate(evalContext));
     }
     
-    aggregateCompItems(aggregator) {
+    iterateCompItems(compContext, handle) {
         for (const expr of this.groups) {
-            expr.aggregateCompItems(aggregator);
+            expr.iterateCompItems(compContext, handle);
         }
     }
     
@@ -253,10 +253,8 @@ export class CompExprSeq extends ExprSeq {
         // Do nothing.
     }
     
-    aggregateCompItems(aggregator) {
-        for (const item of aggregator.compContext.getSeqItems(this)) {
-            aggregator.addItem(item);
-        }
+    iterateCompItems(compContext, handle) {
+        compContext.iterateSeqItems(this, handle);
     }
     
     convertToJsList(jsConverter) {

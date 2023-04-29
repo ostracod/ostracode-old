@@ -1,6 +1,7 @@
 
-import { UnresolvedItemError } from "./error.js";
-import { unresolvedItem, unqualifiedItem } from "./constants.js";
+import { UnknownItemError } from "./error.js";
+import * as compUtils from "./compUtils.js";
+import { UnresolvedItem, AbsentItem } from "./item.js";
 
 export class CompContext {
     
@@ -8,7 +9,9 @@ export class CompContext {
         // Map from CompExprSeq to list of items.
         this.seqItemsMap = new Map();
         for (const exprSeq of compExprSeqs) {
-            const items = exprSeq.groups.map((group) => unresolvedItem);
+            const items = exprSeq.groups.map((expr, index) => (
+                new UnresolvedItem(exprSeq, index)
+            ));
             this.seqItemsMap.set(exprSeq, items);
         }
         // Map from CompVar to item.
@@ -16,37 +19,34 @@ export class CompContext {
         this.parent = parent;
     }
     
-    setVarItem(compVar, item) {
-        this.varItemMap.set(compVar, item);
-    }
-    
     addQualificationVars(qualification) {
         const argVars = qualification.genericExpr.getArgVars();
         for (let index = 0; index < argVars.length; index++) {
             const argVar = argVars[index];
             const arg = qualification.args[index];
-            this.setVarItem(argVar, arg);
+            this.varItemMap.set(argVar, arg);
         }
     }
     
-    resolveCompItems() {
+    resolveCompItemsHelper() {
         let resolvedCount = 0;
         const unresolvedExprs = [];
         for (const [exprSeq, items] of this.seqItemsMap) {
+            this.replaceUnresolvedItems();
             for (let index = 0; index < items.length; index++) {
                 let item = items[index];
-                if (item === unresolvedItem) {
+                if (item instanceof UnresolvedItem) {
                     const expr = exprSeq.groups[index];
                     try {
                         item = exprSeq.resolveCompItem(this, expr);
                         items[index] = item;
                     } catch (error) {
-                        if (!(error instanceof UnresolvedItemError)) {
+                        if (!(error instanceof UnknownItemError)) {
                             throw error;
                         }
                     }
                 }
-                if (item === unresolvedItem) {
+                if (item instanceof UnresolvedItem) {
                     unresolvedExprs.push(exprSeq.groups[index]);
                 } else {
                     resolvedCount += 1;
@@ -54,6 +54,54 @@ export class CompContext {
             }
         }
         return { resolvedCount, unresolvedExprs };
+    }
+    
+    replaceUnresolvedItemsHelper(item, seenItems) {
+        if (seenItems.has(item)) {
+            return item;
+        }
+        if (item instanceof UnresolvedItem) {
+            const items = this.getSeqItems(item.compExprSeq);
+            item = items[item.index];
+        }
+        seenItems.add(item);
+        compUtils.iterateNestedItems(item, (nestedItem) => ({
+            item: this.replaceUnresolvedItemsHelper(nestedItem, seenItems),
+        }));
+        return item;
+    }
+    
+    replaceUnresolvedItems(seenItems = new Set()) {
+        for (const items of this.seqItemsMap.values()) {
+            for (let index = 0; index < items.length; index++) {
+                let item = items[index];
+                item = this.replaceUnresolvedItemsHelper(item, seenItems);
+                items[index] = item;
+            }
+        }
+        for (const variable of this.varItemMap.keys()) {
+            let item = this.varItemMap.get(variable);
+            item = this.replaceUnresolvedItemsHelper(item, seenItems);
+            this.varItemMap.set(variable, item);
+        }
+        if (this.parent !== null) {
+            this.parent.replaceUnresolvedItems(seenItems);
+        }
+    }
+    
+    resolveCompItems() {
+        let lastResolvedCount = 0;
+        while (true) {
+            const { resolvedCount, unresolvedExprs } = this.resolveCompItemsHelper();
+            if (unresolvedExprs.length <= 0) {
+                break;
+            }
+            if (resolvedCount <= lastResolvedCount) {
+                unresolvedExprs[0].throwError("Could not resolve expression to item.");
+            }
+            lastResolvedCount = resolvedCount;
+        }
+        this.replaceUnresolvedItems();
     }
     
     getSeqItems(compExprSeq) {
@@ -64,9 +112,6 @@ export class CompContext {
             }
             items = this.parent.getSeqItems(compExprSeq);
         }
-        if (items.some((item) => (item === unresolvedItem))) {
-            throw new UnresolvedItemError();
-        }
         return items;
     }
     
@@ -74,11 +119,43 @@ export class CompContext {
         return this.getSeqItems(compExprSeq)[0];
     }
     
-    getVarItem(compVar) {
-        if (this.varItemMap.has(compVar)) {
-            return this.varItemMap.get(compVar);
+    setSeqItem(compExprSeq, item) {
+        this.getSeqItems(compExprSeq)[0] = item;
+    }
+    
+    iterateSeqItems(compExprSeq, handle) {
+        const items = this.getSeqItems(compExprSeq);
+        for (let index = 0; index < items.length; index++) {
+            const item = items[index];
+            const result = handle(item);
+            if (typeof result !== "undefined") {
+                items[index] = result.item;
+            }
         }
-        return (this.parent === null) ? unqualifiedItem : this.parent.getVarItem(compVar);
+    }
+    
+    getVarItemMap(compVar) {
+        if (this.varItemMap.has(compVar)) {
+            return this.varItemMap;
+        }
+        return (this.parent === null) ? null : this.parent.getVarItemMap(compVar);
+    }
+    
+    hasVar(compVar) {
+        return (this.getVarItemMap() !== null);
+    }
+    
+    getVarItem(compVar) {
+        const varItemMap = this.getVarItemMap(compVar);
+        return (varItemMap === null) ? new AbsentItem() : varItemMap.get(compVar);
+    }
+    
+    setVarItem(compVar, item) {
+        const varItemMap = this.getVarItemMap(compVar);
+        if (varItemMap === null) {
+            throw new Error(`Could not find comptime var "${compVar.name}".`);
+        }
+        varItemMap.set(compVar, item);
     }
 }
 

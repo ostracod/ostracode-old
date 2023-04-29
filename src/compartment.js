@@ -1,5 +1,5 @@
 
-import { UnresolvedItemError } from "./error.js";
+import { UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { Container } from "./container.js";
 
@@ -22,7 +22,7 @@ export class CompCompartment extends Compartment {
     
     getCompTypeId() {
         if (this.typeId === null) {
-            throw new UnresolvedItemError();
+            throw new UnknownItemError();
         }
         return this.typeId;
     }

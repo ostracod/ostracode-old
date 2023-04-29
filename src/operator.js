@@ -36,9 +36,9 @@ export class BinaryOperator extends Operator {
         throw new CompilerError(`"${this.text}" operator is not yet implemented.`);
     }
     
-    aggregateCompItems(expr1, expr2, aggregator) {
-        expr1.aggregateCompItems(aggregator);
-        expr2.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, expr1, expr2, handle) {
+        expr1.iterateCompItems(compContext, handle);
+        expr2.iterateCompItems(compContext, handle);
     }
     
     convertToJs(expr1, expr2, jsConverter) {
@@ -83,8 +83,8 @@ export class QualificationOperator extends BinaryOperator {
         return itemRef1;
     }
     
-    aggregateCompItems(expr1, expr2, aggregator) {
-        expr1.aggregateCompItems(aggregator);
+    iterateCompItems(compContext, expr1, expr2, handle) {
+        expr1.iterateCompItems(compContext, handle);
     }
     
     convertToJs(expr1, expr2, jsConverter) {

@@ -55,8 +55,12 @@ export class CompilerErrorThrower {
     }
 }
 
-export class UnresolvedItemError extends Error {
+export class UnknownItemError extends Error {
     
+    constructor(item = null) {
+        super();
+        this.item = item;
+    }
 }
 
 
