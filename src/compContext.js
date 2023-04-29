@@ -28,6 +28,60 @@ export class CompContext {
         }
     }
     
+    getResolvedItem(inputItem) {
+        let item = inputItem;
+        const seenItems = new Set();
+        while (item instanceof UnresolvedItem) {
+            seenItems.add(item);
+            const items = this.getSeqItems(item.compExprSeq);
+            item = items[item.index];
+            if (seenItems.has(item)) {
+                return inputItem;
+            }
+        }
+        return item;
+    }
+    
+    replaceNestedItems(item, visitedItems) {
+        if (visitedItems.has(item)) {
+            return item;
+        }
+        visitedItems.add(item);
+        if (item instanceof UnresolvedItem) {
+            return item;
+        }
+        compUtils.iterateNestedItems(item, (nestedItem) => ({
+            item: this.getResolvedItem(nestedItem),
+        }));
+        compUtils.iterateNestedItems(item, (nestedItem) => {
+            this.replaceNestedItems(nestedItem, visitedItems);
+        });
+    }
+    
+    replaceUnresolvedItemsHelper(item, visitedItems) {
+        item = this.getResolvedItem(item);
+        this.replaceNestedItems(item, visitedItems);
+        return item;
+    }
+    
+    replaceUnresolvedItems(visitedItems = new Set()) {
+        for (const items of this.seqItemsMap.values()) {
+            for (let index = 0; index < items.length; index++) {
+                let item = items[index];
+                item = this.replaceUnresolvedItemsHelper(item, visitedItems);
+                items[index] = item;
+            }
+        }
+        for (const variable of this.varItemMap.keys()) {
+            let item = this.varItemMap.get(variable);
+            item = this.replaceUnresolvedItemsHelper(item, visitedItems);
+            this.varItemMap.set(variable, item);
+        }
+        if (this.parent !== null) {
+            this.parent.replaceUnresolvedItems(visitedItems);
+        }
+    }
+    
     resolveCompItemsHelper() {
         let resolvedCount = 0;
         const unresolvedExprs = [];
@@ -54,39 +108,6 @@ export class CompContext {
             }
         }
         return { resolvedCount, unresolvedExprs };
-    }
-    
-    replaceUnresolvedItemsHelper(item, seenItems) {
-        if (seenItems.has(item)) {
-            return item;
-        }
-        if (item instanceof UnresolvedItem) {
-            const items = this.getSeqItems(item.compExprSeq);
-            item = items[item.index];
-        }
-        seenItems.add(item);
-        compUtils.iterateNestedItems(item, (nestedItem) => ({
-            item: this.replaceUnresolvedItemsHelper(nestedItem, seenItems),
-        }));
-        return item;
-    }
-    
-    replaceUnresolvedItems(seenItems = new Set()) {
-        for (const items of this.seqItemsMap.values()) {
-            for (let index = 0; index < items.length; index++) {
-                let item = items[index];
-                item = this.replaceUnresolvedItemsHelper(item, seenItems);
-                items[index] = item;
-            }
-        }
-        for (const variable of this.varItemMap.keys()) {
-            let item = this.varItemMap.get(variable);
-            item = this.replaceUnresolvedItemsHelper(item, seenItems);
-            this.varItemMap.set(variable, item);
-        }
-        if (this.parent !== null) {
-            this.parent.replaceUnresolvedItems(seenItems);
-        }
     }
     
     resolveCompItems() {
