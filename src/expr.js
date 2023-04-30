@@ -272,7 +272,7 @@ export class InvocationExpr extends Expr {
     evaluate(evalContext) {
         const func = this.operand.evaluateToItem(evalContext);
         const args = this.argExprSeq.evaluateToItems(evalContext);
-        compUtils.validateKnownItems([func, args]);
+        compUtils.validateKnownItems([func, ...args]);
         return new ResultRef(func.evaluate(args));
     }
     

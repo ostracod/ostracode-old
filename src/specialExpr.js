@@ -1,10 +1,12 @@
 
+import { UnknownItemError } from "./error.js";
 import * as nodeUtils from "./nodeUtils.js";
 import { AttrStmtSeq } from "./groupSeq.js";
 import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt, ElemTypeStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc, UnboundCustomMethod } from "./func.js";
+import { UnresolvedItem } from "./item.js";
 import { ItemType, TypeType, ListType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
 import { ReflexiveVar } from "./var.js";
@@ -351,7 +353,16 @@ export class GenericExpr extends SpecialExpr {
     }
     
     getConstraintType(compContext) {
-        const type = this.exprSeq.getConstraintType(compContext);
+        const argsContext = this.exprSeq.createCompContext(compContext);
+        for (const argStmt of this.getAttrStmtChildren(ArgsStmt)) {
+            const item = argStmt.getDefaultCompItem(compContext);
+            if (item instanceof UnresolvedItem) {
+                throw new UnknownItemError(item);
+            }
+            argsContext.varItemMap.set(argStmt.variable, item);
+        }
+        argsContext.resolveCompItems();
+        const type = this.exprSeq.getConstraintType(argsContext);
         const output = type.copy();
         output.genericExpr = this;
         return output;

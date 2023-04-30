@@ -524,6 +524,14 @@ export class ArgStmt extends ChildAttrStmt {
         return new AbsentItem();
     }
     
+    getDefaultCompItem(compContext) {
+        if (this.defaultItemExprSeq === null) {
+            return new AbsentItem();
+        } else {
+            return compContext.getSeqItem(this.defaultItemExprSeq);
+        }
+    }
+    
     getConstraintType(compContext) {
         if (this.typeExprSeq !== null) {
             return compContext.getSeqItem(this.typeExprSeq);

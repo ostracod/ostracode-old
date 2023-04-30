@@ -1,5 +1,6 @@
 
 import { CompilerError } from "./error.js";
+import * as compUtils from "./compUtils.js";
 import { ResultRef, SubscriptRef } from "./itemRef.js";
 
 export class Operator {
@@ -76,6 +77,7 @@ export class QualificationOperator extends BinaryOperator {
     getConstraintType(compContext, expr1, expr2) {
         const type = expr1.getConstraintType(compContext);
         const args = compContext.getSeqItems(expr2.exprSeq);
+        compUtils.validateKnownItems([type, ...args]);
         return type.qualify(compContext, args);
     }
     

@@ -1,4 +1,6 @@
 
+import { CompilerError } from "./error.js";
+
 export class Item {
     // Concrete subclasses of Item must implement these methods:
     // convertToJs
@@ -22,6 +24,9 @@ export class UnknownItem extends Item {
 // unassigned arguments of generic items.
 export class AbsentItem extends UnknownItem {
     
+    convertToJs(jsConverter) {
+        throw new CompilerError("Cannot convert absent item to JS.");
+    }
 }
 
 // Unresolved items are currently not known, but may become known
