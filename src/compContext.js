@@ -1,7 +1,7 @@
 
 import { CompilerError, UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
-import { UnresolvedItem, UnresolvedExprItem, AbsentItem } from "./item.js";
+import { UnresolvedItem, UnresolvedExprItem, UnresolvedVarItem, AbsentItem } from "./item.js";
 
 const handleUnknownItem = (unresolvedItem, operation) => {
     try {
@@ -19,6 +19,7 @@ const handleUnknownItem = (unresolvedItem, operation) => {
 export class CompContext {
     
     constructor(compExprSeqs, compVars, parent = null) {
+        this.parent = parent;
         // Map from CompExprSeq to list of items.
         this.seqItemsMap = new Map();
         for (const exprSeq of compExprSeqs) {
@@ -30,9 +31,8 @@ export class CompContext {
         // Map from CompVar to item.
         this.varItemMap = new Map();
         for (const variable of compVars) {
-            this.varItemMap.set(variable, variable.getUnknownItem());
+            this.varItemMap.set(variable, new UnresolvedVarItem(variable));
         }
-        this.parent = parent;
     }
     
     setQualificationVars(qualification) {

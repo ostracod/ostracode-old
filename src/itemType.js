@@ -72,6 +72,12 @@ export class ItemType extends Item {
         return output;
     }
     
+    nominate() {
+        const output = this.copy();
+        output.nominalType = new NominalType(output.nominalType);
+        return output;
+    }
+    
     containsHelper(type) {
         return true;
     }

@@ -1,5 +1,5 @@
 
-import { NominalType, ItemType, TypeType, ValueType, MissingType, UndefType, NullType, BoolType, NumType, StrType } from "./itemType.js";
+import { ItemType, TypeType, ValueType, MissingType, UndefType, NullType, BoolType, NumType, StrType } from "./itemType.js";
 import { BuiltInFunc } from "./func.js";
 import { BuiltInCompVar } from "./var.js";
 import { Node } from "./node.js";
@@ -30,9 +30,7 @@ class PrintFunc extends BuiltInFunc {
 class NominalTypeFunc extends BuiltInFunc {
     
     evaluate(args) {
-        const output = args[0].copy();
-        output.nominalType = new NominalType(output.nominalType);
-        return output;
+        return args[0].nominate();
     }
 }
 

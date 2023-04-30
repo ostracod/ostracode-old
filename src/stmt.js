@@ -7,8 +7,8 @@ import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
 import { StmtCompVar, StmtEvalVar } from "./var.js";
 import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
-import { AbsentItem, UnresolvedVarItem } from "./item.js";
-import { ItemType } from "./itemType.js";
+import { AbsentItem } from "./item.js";
+import { ItemType, TypeType } from "./itemType.js";
 
 const initItemName = "initialization item";
 
@@ -106,6 +106,7 @@ export class VarStmt extends BhvrStmt {
         if (this.typeExprSeq !== null && this.initItemExprSeq !== null) {
             const varType = compContext.getSeqItem(this.typeExprSeq);
             const initItemType = this.initItemExprSeq.getConstraintType(compContext);
+            compUtils.validateKnownItems([varType, initItemType]);
             if (!varType.contains(initItemType)) {
                 this.throwError("Initialization item type does not conform to variable type.");
             }
@@ -122,10 +123,6 @@ export class CompVarStmt extends VarStmt {
     
     getVarConstructor() {
         return StmtCompVar;
-    }
-    
-    getUnknownItem() {
-        return new UnresolvedVarItem(this.variable);
     }
     
     resolveCompItem(compContext) {
@@ -516,12 +513,16 @@ export class ArgStmt extends ChildAttrStmt {
         return this.variable;
     }
     
-    getUnknownItem() {
-        return new AbsentItem();
-    }
-    
     resolveCompItem(compContext) {
-        return new AbsentItem();
+        const type = this.getConstraintType(compContext);
+        compUtils.validateKnownItems([type]);
+        if (type instanceof TypeType) {
+            const nestedType = type.type;
+            compUtils.validateKnownItems([nestedType]);
+            return nestedType.nominate();
+        } else {
+            return new AbsentItem();
+        }
     }
     
     getDefaultCompItem(compContext) {

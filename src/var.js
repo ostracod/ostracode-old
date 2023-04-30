@@ -1,7 +1,6 @@
 
 import * as compUtils from "./compUtils.js";
 import { Container } from "./container.js";
-import { UnresolvedVarItem } from "./item.js";
 
 export class Var extends Container {
     // Concrete subclasses of Var must implement these methods:
@@ -19,7 +18,7 @@ export class Var extends Container {
 
 export class CompVar extends Var {
     // Concrete subclasses of CompVar must implement these methods:
-    // getUnknownItem, resolveCompItem
+    // resolveCompItem
     
     iterateCompItems(compContext, handle) {
         const item = compContext.getVarItem(this);
@@ -42,10 +41,6 @@ export class BuiltInCompVar extends CompVar {
         return this.constraintType;
     }
     
-    getUnknownItem() {
-        return new UnresolvedVarItem(this);
-    }
-    
     resolveCompItem(compContext) {
         return this.item;
     }
@@ -60,10 +55,6 @@ export class StmtCompVar extends CompVar {
     
     getConstraintType(compContext) {
         return this.stmt.getConstraintType(compContext);
-    }
-    
-    getUnknownItem() {
-        return this.stmt.getUnknownItem();
     }
     
     resolveCompItem(compContext) {
