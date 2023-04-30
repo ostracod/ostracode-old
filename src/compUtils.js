@@ -43,7 +43,7 @@ export const validateKnownItems = (items) => {
     if (unresolvedItem !== null) {
         throw new UnknownItemError(unresolvedItem);
     }
-}
+};
 
 export const getJsIdentifier = (name, prefix = "_") => (
     "$" + prefix + name.replace("$", "$$$$")

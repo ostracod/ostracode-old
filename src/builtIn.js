@@ -1,5 +1,5 @@
 
-import { ItemType, TypeType, ValueType, MissingType, UndefType, NullType, BoolType, NumType, StrType } from "./itemType.js";
+import { NominalType, ItemType, TypeType, ValueType, MissingType, UndefType, NullType, BoolType, NumType, StrType } from "./itemType.js";
 import { BuiltInFunc } from "./func.js";
 import { BuiltInCompVar } from "./var.js";
 import { Node } from "./node.js";
@@ -27,6 +27,15 @@ class PrintFunc extends BuiltInFunc {
     }
 }
 
+class NominalTypeFunc extends BuiltInFunc {
+    
+    evaluate(args) {
+        const output = args[0].copy();
+        output.nominalType = new NominalType(output.nominalType);
+        return output;
+    }
+}
+
 createBuiltInVar("undef", undefined, new UndefType());
 createBuiltInVar("null", null, new NullType());
 createBuiltInVar("true", true, new BoolType());
@@ -40,8 +49,9 @@ createBuiltInTypeVar("nullT", new NullType());
 createBuiltInTypeVar("boolT", new BoolType());
 createBuiltInTypeVar("numT", new NumType());
 createBuiltInTypeVar("strT", new StrType());
-// TODO: Add constaint type.
+// TODO: Add constaint types of built-in functions.
 createBuiltInVar("print", new PrintFunc());
+createBuiltInVar("nominalT", new NominalTypeFunc());
 
 export class BuiltInNode extends Node {
     

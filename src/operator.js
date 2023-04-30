@@ -68,18 +68,7 @@ export class SubscriptOperator extends BinaryOperator {
     }
 }
 
-export class QualificationOperator extends BinaryOperator {
-    
-    constructor() {
-        super("+:", 0);
-    }
-    
-    getConstraintType(compContext, expr1, expr2) {
-        const type = expr1.getConstraintType(compContext);
-        const args = compContext.getSeqItems(expr2.exprSeq);
-        compUtils.validateKnownItems([type, ...args]);
-        return type.qualify(compContext, args);
-    }
+export class TypeChangeOperator extends BinaryOperator {
     
     perform(itemRef1, itemRef2) {
         return itemRef1;
@@ -91,6 +80,33 @@ export class QualificationOperator extends BinaryOperator {
     
     convertToJs(expr1, expr2, jsConverter) {
         return expr1.convertToJs(jsConverter);
+    }
+}
+
+export class ForceCastOperator extends TypeChangeOperator {
+    
+    constructor() {
+        super("::", 0);
+    }
+    
+    getConstraintType(compContext, expr1, expr2) {
+        const type = compContext.getSeqItem(expr2.exprSeq);
+        compUtils.validateKnownItems([type]);
+        return type;
+    }
+}
+
+export class QualificationOperator extends TypeChangeOperator {
+    
+    constructor() {
+        super("+:", 0);
+    }
+    
+    getConstraintType(compContext, expr1, expr2) {
+        const type = expr1.getConstraintType(compContext);
+        const args = compContext.getSeqItems(expr2.exprSeq);
+        compUtils.validateKnownItems([type, ...args]);
+        return type.qualify(compContext, args);
     }
 }
 
@@ -134,7 +150,7 @@ new BinaryOperator("&&", 11);
 new BinaryOperator("^^", 12);
 new SubscriptOperator();
 new BinaryOperator(":", 0);
-new BinaryOperator("::", 0);
+new ForceCastOperator();
 new QualificationOperator();
 new AssignOperator();
 new BinaryOperator("+=", 14);

@@ -21,12 +21,20 @@ const copyType = (type) => {
     }
 };
 
+export class NominalType {
+    
+    constructor(parent = null) {
+        this.parent = parent;
+    }
+}
+
 export class ItemType extends Item {
     
     constructor() {
         super();
         this.genericExpr = null;
         this.qualifications = [];
+        this.nominalType = null;
     }
     
     copyHelper() {
@@ -39,6 +47,7 @@ export class ItemType extends Item {
         output.qualifications = this.qualifications.map(
             (qualification) => qualification.copy(),
         );
+        output.nominalType = this.nominalType;
         return output;
     }
     
@@ -63,8 +72,19 @@ export class ItemType extends Item {
         return output;
     }
     
-    contains(type) {
+    containsHelper(type) {
         return true;
+    }
+    
+    contains(type) {
+        let { nominalType } = type;
+        while (nominalType !== this.nominalType) {
+            if (nominalType === null) {
+                return false;
+            }
+            nominalType = nominalType.parent;
+        }
+        return this.containsHelper(type);
     }
 }
 
@@ -74,7 +94,7 @@ export class ValueType extends ItemType {
         return new ValueType();
     }
     
-    contains(type) {
+    containsHelper(type) {
         return (type instanceof ValueType);
     }
 }
@@ -90,7 +110,7 @@ export class TypeType extends ItemType {
         return new TypeType(copyType(this.type));
     }
     
-    contains(type) {
+    containsHelper(type) {
         return (type instanceof TypeType) ? this.type.contains(type.type) : false;
     }
 }
@@ -101,7 +121,7 @@ export class MissingType extends ValueType {
         return new MissingType();
     }
     
-    contains(type) {
+    containsHelper(type) {
         return (type instanceof MissingType);
     }
 }
@@ -112,7 +132,7 @@ export class UndefType extends MissingType {
         return new UndefType();
     }
     
-    contains(type) {
+    containsHelper(type) {
         return (type instanceof UndefType);
     }
 }
@@ -123,7 +143,7 @@ export class NullType extends MissingType {
         return new NullType();
     }
     
-    contains(type) {
+    containsHelper(type) {
         return (type instanceof NullType);
     }
 }
@@ -139,7 +159,7 @@ export class BoolType extends ValueType {
         return new BoolType(this.value);
     }
     
-    contains(type) {
+    containsHelper(type) {
         if (type instanceof BoolType) {
             return (this.value === null) ? true : (this.value === type.value);
         } else {
@@ -159,7 +179,7 @@ export class NumType extends ValueType {
         return new NumType(this.value);
     }
     
-    contains(type) {
+    containsHelper(type) {
         if (type instanceof NumType) {
             return (this.value === null) ? true : (this.value === type.value);
         } else {
@@ -179,7 +199,7 @@ export class StrType extends ValueType {
         return new StrType(this.value);
     }
     
-    contains(type) {
+    containsHelper(type) {
         if (type instanceof StrType) {
             return (this.value === null) ? true : (this.value === type.value);
         } else {
@@ -217,7 +237,7 @@ export class ListType extends ValueType {
         }
     }
     
-    contains(type) {
+    containsHelper(type) {
         if (!(type instanceof ListType)) {
             return false;
         }
