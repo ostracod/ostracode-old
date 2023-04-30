@@ -173,7 +173,7 @@ export class EvalContext {
             throw new CompilerError(`Cannot find variable with name "${name}".`);
         }
         if (variable instanceof CompVar) {
-            return new ResultRef(variable.getCompItem(this.compContext));
+            return new ResultRef(this.compContext.getVarItem(variable));
         }
         if (content !== null) {
             return new VarRef(content);

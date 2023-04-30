@@ -1,8 +1,11 @@
 
 import * as niceUtils from "./niceUtils.js";
+import { constructors } from "./constructors.js";
 import { CompilerErrorThrower } from "./error.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
+import { CompVar } from "./var.js";
 import { CompCompartment, EvalCompartment } from "./compartment.js";
+import { CompContext } from "./compContext.js";
 
 let nextNodeId = 0;
 
@@ -90,6 +93,20 @@ export class Node extends CompilerErrorThrower {
     
     getVars() {
         return Array.from(this.varMap.values());
+    }
+    
+    getCompVars() {
+        const output = [];
+        for (const variable of this.varMap.values()) {
+            if (variable instanceof CompVar) {
+                output.push(variable);
+            }
+        }
+        for (const child of this.children) {
+            const compVars = child.getCompVars();
+            niceUtils.extendList(output, compVars);
+        }
+        return output;
     }
     
     addCompartment(compartment) {
@@ -185,6 +202,12 @@ export class Node extends CompilerErrorThrower {
         } else {
             return compartments;
         }
+    }
+    
+    createCompContext(parent = null) {
+        const compExprSeqs = this.getNodesByClass(constructors.CompExprSeq);
+        const compVars = this.getCompVars();
+        return new CompContext(compExprSeqs, compVars, parent);
     }
     
     aggregateCompItems(aggregator) {

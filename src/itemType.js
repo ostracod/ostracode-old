@@ -1,8 +1,6 @@
 
 import { CompilerError } from "./error.js";
 import { Item, AbsentItem } from "./item.js";
-import { CompExprSeq } from "./groupSeq.js";
-import { CompContext } from "./compContext.js";
 import { GenericQualification } from "./qualification.js";
 
 let nextTypeId = 0;
@@ -49,12 +47,11 @@ export class ItemType extends Item {
             throw new CompilerError("Cannot qualify item which is not generic.");
         }
         const { exprSeq } = this.genericExpr;
-        const compExprSeqs = exprSeq.getNodesByClass(CompExprSeq);
+        const argsContext = exprSeq.createCompContext(compContext);
         const qualifications = this.qualifications.slice();
         qualifications.push(new GenericQualification(this.genericExpr, args));
-        const argsContext = new CompContext(compExprSeqs, compContext);
         for (const qualification of qualifications) {
-            argsContext.addQualificationVars(qualification);
+            argsContext.setQualificationVars(qualification);
         }
         argsContext.resolveCompItems();
         const output = exprSeq.getConstraintType(argsContext).copy();
@@ -207,6 +204,17 @@ export class ListType extends ValueType {
             elemTypes = this.elemTypes.map(copyType);
         }
         return new ListType(copyType(this.elemType), elemTypes);
+    }
+    
+    iterateNestedItems(handle) {
+        let result = handle(this.elemType);
+        if (typeof result !== "undefined") {
+            this.elemType = result.item;
+        }
+        result = handle(this.elemTypes);
+        if (typeof result !== "undefined") {
+            this.elemTypes = result.item;
+        }
     }
     
     contains(type) {

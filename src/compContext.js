@@ -1,25 +1,41 @@
 
-import { UnknownItemError } from "./error.js";
+import { CompilerError, UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
-import { UnresolvedItem, AbsentItem } from "./item.js";
+import { UnresolvedItem, UnresolvedExprItem, AbsentItem } from "./item.js";
+
+const handleUnknownItem = (unresolvedItem, operation) => {
+    try {
+        return operation();
+    } catch (error) {
+        if (error instanceof UnknownItemError) {
+            const unknownItem = error.item;
+            return (unknownItem instanceof AbsentItem) ? unknownItem : unresolvedItem;
+        } else {
+            throw error;
+        }
+    }
+};
 
 export class CompContext {
     
-    constructor(compExprSeqs, parent = null) {
+    constructor(compExprSeqs, compVars, parent = null) {
         // Map from CompExprSeq to list of items.
         this.seqItemsMap = new Map();
         for (const exprSeq of compExprSeqs) {
             const items = exprSeq.groups.map((expr, index) => (
-                new UnresolvedItem(exprSeq, index)
+                new UnresolvedExprItem(exprSeq, index)
             ));
             this.seqItemsMap.set(exprSeq, items);
         }
         // Map from CompVar to item.
         this.varItemMap = new Map();
+        for (const variable of compVars) {
+            this.varItemMap.set(variable, variable.getUnknownItem());
+        }
         this.parent = parent;
     }
     
-    addQualificationVars(qualification) {
+    setQualificationVars(qualification) {
         const argVars = qualification.genericExpr.getArgVars();
         for (let index = 0; index < argVars.length; index++) {
             const argVar = argVars[index];
@@ -33,8 +49,7 @@ export class CompContext {
         const seenItems = new Set();
         while (item instanceof UnresolvedItem) {
             seenItems.add(item);
-            const items = this.getSeqItems(item.compExprSeq);
-            item = items[item.index];
+            item = item.read(this);
             if (seenItems.has(item)) {
                 return inputItem;
             }
@@ -85,40 +100,55 @@ export class CompContext {
     resolveCompItemsHelper() {
         let resolvedCount = 0;
         const unresolvedExprs = [];
+        const unresolvedVars = [];
         for (const [exprSeq, items] of this.seqItemsMap) {
             this.replaceUnresolvedItems();
             for (let index = 0; index < items.length; index++) {
+                const expr = exprSeq.groups[index];
                 let item = items[index];
                 if (item instanceof UnresolvedItem) {
-                    const expr = exprSeq.groups[index];
-                    try {
-                        item = exprSeq.resolveCompItem(this, expr);
-                        items[index] = item;
-                    } catch (error) {
-                        if (!(error instanceof UnknownItemError)) {
-                            throw error;
-                        }
-                    }
+                    item = handleUnknownItem(item, () => exprSeq.resolveCompItem(this, expr));
+                    items[index] = item;
                 }
                 if (item instanceof UnresolvedItem) {
-                    unresolvedExprs.push(exprSeq.groups[index]);
+                    unresolvedExprs.push(expr);
                 } else {
                     resolvedCount += 1;
                 }
             }
         }
-        return { resolvedCount, unresolvedExprs };
+        for (const variable of this.varItemMap.keys()) {
+            this.replaceUnresolvedItems();
+            let item = this.varItemMap.get(variable);
+            if (item instanceof UnresolvedItem) {
+                item = handleUnknownItem(item, () => variable.resolveCompItem(this));
+                this.varItemMap.set(variable, item);
+            }
+            if (item instanceof UnresolvedItem) {
+                unresolvedVars.push(variable);
+            } else {
+                resolvedCount += 1;
+            }
+        }
+        return { resolvedCount, unresolvedExprs, unresolvedVars };
     }
     
     resolveCompItems() {
         let lastResolvedCount = 0;
         while (true) {
-            const { resolvedCount, unresolvedExprs } = this.resolveCompItemsHelper();
-            if (unresolvedExprs.length <= 0) {
+            const {
+                resolvedCount, unresolvedExprs, unresolvedVars,
+            } = this.resolveCompItemsHelper();
+            if (unresolvedExprs.length <= 0 && unresolvedVars.length <= 0) {
                 break;
             }
             if (resolvedCount <= lastResolvedCount) {
-                unresolvedExprs[0].throwError("Could not resolve expression to item.");
+                if (unresolvedExprs.length > 0) {
+                    unresolvedExprs[0].throwError("Could not resolve expression to item.");
+                } else {
+                    const { name } = unresolvedVars[0];
+                    throw new CompilerError(`Could not resolve comptime variable "${name}".`);
+                }
             }
             lastResolvedCount = resolvedCount;
         }

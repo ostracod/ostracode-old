@@ -60,7 +60,7 @@ export class JsConverter {
     
     convertVarToRefJs(variable) {
         if (variable instanceof CompVar) {
-            const item = variable.getCompItem(this.getCompContext());
+            const item = this.getCompContext().getVarItem(variable);
             return this.convertItemToJs(item);
         } else if (variable instanceof BuiltInEvalVar) {
             return variable.convertToRefJs();

@@ -1,7 +1,7 @@
 
 import * as compUtils from "./compUtils.js";
 import { Container } from "./container.js";
-import { AbsentItem } from "./item.js";
+import { UnresolvedVarItem } from "./item.js";
 
 export class Var extends Container {
     // Concrete subclasses of Var must implement these methods:
@@ -19,26 +19,13 @@ export class Var extends Container {
 
 export class CompVar extends Var {
     // Concrete subclasses of CompVar must implement these methods:
-    // getCompItemHelper, setCompItemHelper
-    
-    getCompItem(compContext) {
-        const item = compContext.getVarItem(this);
-        return (item instanceof AbsentItem) ? this.getCompItemHelper(compContext) : item;
-    }
-    
-    setCompItem(compContext, item) {
-        if (compContext.hasVar(this)) {
-            compContext.setVarItem(this, item);
-        } else {
-            this.setCompItemHelper(compContext, item);
-        }
-    }
+    // getUnknownItem, resolveCompItem
     
     iterateCompItems(compContext, handle) {
-        const item = this.getCompItem(compContext);
+        const item = compContext.getVarItem(this);
         const result = handle(item);
         if (typeof result !== "undefined") {
-            this.setCompItem(compContext, result.item);
+            compContext.setVarItem(this, result.item);
         }
     }
 }
@@ -55,12 +42,12 @@ export class BuiltInCompVar extends CompVar {
         return this.constraintType;
     }
     
-    getCompItemHelper(compContext) {
-        return this.item;
+    getUnknownItem() {
+        return new UnresolvedVarItem(this);
     }
     
-    setCompItemHelper(compContext, item) {
-        this.item = item;
+    resolveCompItem(compContext) {
+        return this.item;
     }
 }
 
@@ -75,12 +62,12 @@ export class StmtCompVar extends CompVar {
         return this.stmt.getConstraintType(compContext);
     }
     
-    getCompItemHelper(compContext) {
-        return this.stmt.getCompItem(compContext);
+    getUnknownItem() {
+        return this.stmt.getUnknownItem();
     }
     
-    setCompItemHelper(compContext, item) {
-        this.stmt.setCompItem(compContext, item);
+    resolveCompItem(compContext) {
+        return this.stmt.resolveCompItem(compContext);
     }
 }
 

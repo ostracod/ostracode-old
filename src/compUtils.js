@@ -1,11 +1,11 @@
 
-import { CompilerError } from "./error.js";
-import { Item } from "./item.js";
+import { CompilerError, UnknownItemError } from "./error.js";
+import { Item, UnknownItem, UnresolvedItem } from "./item.js";
 
 // `handle` may return `{ item: any }` or undefined. If `handle` returns `{ item: any }`,
 // then the old nested item in `item` will be replaced.
 export const iterateNestedItems = (item, handle) => {
-    if (typeof item === "object") {
+    if (typeof item === "object" && item !== null) {
         if (Array.isArray(item)) {
             for (let index = 0; index < item.length; index++) {
                 const result = handle(item[index]);
@@ -28,6 +28,22 @@ export const getNestedItems = (item) => {
     });
     return output;
 };
+
+export const validateKnownItems = (items) => {
+    let unresolvedItem = null;
+    for (const item of items) {
+        if (item instanceof UnknownItem) {
+            if (item instanceof UnresolvedItem) {
+                unresolvedItem = item;
+            } else {
+                throw new UnknownItemError(item);
+            }
+        }
+    }
+    if (unresolvedItem !== null) {
+        throw new UnknownItemError(unresolvedItem);
+    }
+}
 
 export const getJsIdentifier = (name, prefix = "_") => (
     "$" + prefix + name.replace("$", "$$$$")

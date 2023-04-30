@@ -7,7 +7,7 @@ import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
 import { StmtCompVar, StmtEvalVar } from "./var.js";
 import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
-import { AbsentItem } from "./item.js";
+import { AbsentItem, UnresolvedVarItem } from "./item.js";
 import { ItemType } from "./itemType.js";
 
 const initItemName = "initialization item";
@@ -124,18 +124,15 @@ export class CompVarStmt extends VarStmt {
         return StmtCompVar;
     }
     
-    getCompItem(compContext) {
+    getUnknownItem() {
+        return new UnresolvedVarItem(this.variable);
+    }
+    
+    resolveCompItem(compContext) {
         if (this.initItemExprSeq === null) {
             this.throwError("Comptime variable has no initialization item.");
         }
         return compContext.getSeqItem(this.initItemExprSeq);
-    }
-    
-    setCompItem(compContext, item) {
-        if (this.initItemExprSeq === null) {
-            this.throwError("Cannot modify comptime variable which has no initialization item.");
-        }
-        return compContext.setSeqItem(this.initItemExprSeq, item);
     }
     
     evaluate(evalContext) {
@@ -519,12 +516,12 @@ export class ArgStmt extends ChildAttrStmt {
         return this.variable;
     }
     
-    getCompItem(compContext) {
-        if (this.defaultItemExprSeq === null) {
-            return new AbsentItem();
-        } else {
-            return compContext.getSeqItem(this.defaultItemExprSeq);
-        }
+    getUnknownItem() {
+        return new AbsentItem();
+    }
+    
+    resolveCompItem(compContext) {
+        return new AbsentItem();
     }
     
     getConstraintType(compContext) {
