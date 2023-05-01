@@ -119,7 +119,7 @@ export class EvalContext {
             }
         }
         if (parentContext === null) {
-            return { variable: null, content: null };
+            return { container: null, content: null };
         } else {
             return parentContext.getContainer(key, getContextContainer, getNodeContainer);
         }

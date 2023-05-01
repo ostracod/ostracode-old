@@ -197,7 +197,7 @@ export class CompExprSeq extends ExprSeq {
     stowCompTypeId(discerner, typeId) {
         let node = this.parent;
         while (node !== null) {
-            const compartment = node.getCompartment(discerner);
+            const compartment = node.getCompartment(discerner, false);
             if (compartment !== null) {
                 compartment.typeId = typeId;
             }
