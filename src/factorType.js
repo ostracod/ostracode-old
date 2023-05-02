@@ -27,6 +27,10 @@ export class FeatureType extends FactorType {
         this.discerner = discerner;
     }
     
+    copyHelper() {
+        return new FeatureType(this.itemFieldStmts, this.sharedFieldStmts, this.discerner);
+    }
+    
     getDiscerner(name) {
         return this.discerner;
     }

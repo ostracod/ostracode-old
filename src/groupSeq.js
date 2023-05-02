@@ -188,10 +188,6 @@ export class CompExprSeq extends ExprSeq {
     constructor(hasFactorType, useConstraintTypes, exprs) {
         super(hasFactorType, exprs);
         this.useConstraintTypes = useConstraintTypes;
-        this.itemResolutions = [];
-        while (this.itemResolutions.length < this.groups.length) {
-            this.itemResolutions.push({ hasResolved: false, item: undefined });
-        }
     }
     
     stowCompTypeId(compContext, discerner, typeId) {
