@@ -2,6 +2,7 @@
 import { CompilerError, UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { UnresolvedItem, UnresolvedExprItem, UnresolvedVarItem, AbsentItem } from "./item.js";
+import { CompExprSeq } from "./groupSeq.js";
 
 const handleUnknownItem = (unresolvedItem, operation) => {
     try {
@@ -18,10 +19,12 @@ const handleUnknownItem = (unresolvedItem, operation) => {
 
 export class CompContext {
     
-    constructor(compExprSeqs, compVars, parent = null) {
+    constructor(node, parent = null) {
+        this.node = node;
         this.parent = parent;
         // Map from CompExprSeq to list of items.
         this.seqItemsMap = new Map();
+        const compExprSeqs = this.node.getNodesByClass(CompExprSeq);
         for (const exprSeq of compExprSeqs) {
             const items = exprSeq.groups.map((expr, index) => (
                 new UnresolvedExprItem(exprSeq, index)
@@ -30,8 +33,15 @@ export class CompContext {
         }
         // Map from CompVar to item.
         this.varItemMap = new Map();
+        const compVars = this.node.getCompVars();
         for (const variable of compVars) {
             this.varItemMap.set(variable, new UnresolvedVarItem(variable));
+        }
+        // Map from CompCompartment to type ID.
+        this.typeIdMap = new Map();
+        const compCompartments = this.node.getCompCompartments();
+        for (const compartment of compCompartments) {
+            this.typeIdMap.set(compartment, null);
         }
     }
     
@@ -207,6 +217,20 @@ export class CompContext {
             throw new Error(`Could not find comptime var "${compVar.name}".`);
         }
         varItemMap.set(compVar, item);
+    }
+    
+    getTypeId(compCompartment) {
+        const typeId = this.typeIdMap.get(compCompartment);
+        if (typeof typeId !== "undefined") {
+            return typeId;
+        }
+        return (this.parent === null) ? null : this.parent.getTypeId(compCompartment);
+    }
+    
+    stowTypeId(compCompartment, typeId) {
+        if (this.typeIdMap.has(compCompartment)) {
+            this.typeIdMap.set(compCompartment, typeId);
+        }
     }
 }
 

@@ -8,6 +8,7 @@ import * as compUtils from "./compUtils.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 import { BuiltInNode } from "./builtIn.js";
+import { CompContext } from "./compContext.js";
 import { CompItemAggregator } from "./aggregator.js";
 import { BuildJsConverter, SupportJsConverter } from "./jsConverter.js";
 
@@ -282,11 +283,11 @@ export class Compiler {
             codeFile.parse();
             console.log(codeFile.getDisplayString());
         }
-        this.compContext = this.builtInNode.createCompContext();
+        this.compContext = new CompContext(this.builtInNode);
         this.compContext.resolveCompItems();
         this.aggregator = new CompItemAggregator(this.compContext);
         for (const codeFile of this.ostraCodeFiles) {
-            codeFile.aggregateCompTypeIds(this.typeIdSet);
+            codeFile.aggregateCompTypeIds(this.compContext, this.typeIdSet);
             codeFile.aggregateCompItems(this.aggregator);
         }
         this.aggregator.addNestedItems();

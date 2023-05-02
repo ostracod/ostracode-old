@@ -234,7 +234,7 @@ export class IdentifierAccessExpr extends Expr {
                 type.factorType.getDiscerner(this.name)
             ));
             const compartment = this.getCompartment(discerner);
-            return `${this.operand.convertToJs(jsConverter)}[${compartment.convertToJs()}].${compUtils.getJsIdentifier(this.name)}`;
+            return `${this.operand.convertToJs(jsConverter)}[${compartment.convertToJs(jsConverter)}].${compUtils.getJsIdentifier(this.name)}`;
         } else {
             this.throwError("Item member access is not yet implemented.");
         }

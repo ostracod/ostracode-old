@@ -2,6 +2,7 @@
 import { CompilerError } from "./error.js";
 import { Item, AbsentItem } from "./item.js";
 import { GenericQualification } from "./qualification.js";
+import { CompContext } from "./compContext.js";
 
 let nextTypeId = 0;
 
@@ -56,7 +57,7 @@ export class ItemType extends Item {
             throw new CompilerError("Cannot qualify item which is not generic.");
         }
         const { exprSeq } = this.genericExpr;
-        const argsContext = exprSeq.createCompContext(compContext);
+        const argsContext = new CompContext(exprSeq, compContext);
         const qualifications = this.qualifications.slice();
         qualifications.push(new GenericQualification(this.genericExpr, args));
         for (const qualification of qualifications) {

@@ -191,7 +191,7 @@ export class EvalContext {
     getTypeId(discerner) {
         const { container: compartment, content } = this.getCompartment(discerner);
         if (compartment instanceof CompCompartment) {
-            return compartment.getCompTypeId();
+            return this.compContext.getTypeId(compartment);
         }
         return (content === null) ? null : content.typeId;
     }

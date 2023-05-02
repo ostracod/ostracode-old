@@ -90,7 +90,7 @@ export class BhvrStmtSeq extends StmtSeq {
         const output = [];
         for (const compartment of this.getCompartments()) {
             if (compartment instanceof EvalCompartment) {
-                output.push(`let ${compartment.convertToJs()};`);
+                output.push(`let ${compartment.convertToJs(jsConverter)};`);
             }
         }
         this.groups.forEach((stmt) => {
@@ -194,12 +194,12 @@ export class CompExprSeq extends ExprSeq {
         }
     }
     
-    stowCompTypeId(discerner, typeId) {
+    stowCompTypeId(compContext, discerner, typeId) {
         let node = this.parent;
         while (node !== null) {
             const compartment = node.getCompartment(discerner, false);
-            if (compartment !== null) {
-                compartment.typeId = typeId;
+            if (compartment instanceof CompCompartment) {
+                compContext.stowTypeId(compartment, typeId);
             }
             node = node.parent;
         }
@@ -208,7 +208,7 @@ export class CompExprSeq extends ExprSeq {
     stowCompTypeIds(evalContext) {
         for (const content of evalContext.compartmentContentMap.values()) {
             const { compartment: { discerner }, typeId } = content;
-            this.stowCompTypeId(discerner, typeId);
+            this.stowCompTypeId(evalContext.compContext, discerner, typeId);
         }
     }
     
@@ -249,7 +249,7 @@ export class CompExprSeq extends ExprSeq {
         return items.map((item) => new ResultRef(item));
     }
     
-    aggregateCompTypeIds(typeIdSet) {
+    aggregateCompTypeIds(compContext, typeIdSet) {
         // Do nothing.
     }
     

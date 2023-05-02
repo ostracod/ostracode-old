@@ -1,5 +1,4 @@
 
-import { UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { Container } from "./container.js";
 
@@ -15,26 +14,15 @@ export class Compartment extends Container {
 
 export class CompCompartment extends Compartment {
     
-    constructor(discerner) {
-        super(discerner);
-        this.typeId = null;
-    }
-    
-    getCompTypeId() {
-        if (this.typeId === null) {
-            throw new UnknownItemError();
-        }
-        return this.typeId;
-    }
-    
-    convertToJs() {
-        return "typeIds." + compUtils.getJsTypeIdIdentifier(this.typeId);
+    convertToJs(jsConverter) {
+        const typeId = jsConverter.getCompContext().getTypeId(this);
+        return "typeIds." + compUtils.getJsTypeIdIdentifier(typeId);
     }
 }
 
 export class EvalCompartment extends Compartment {
     
-    convertToJs() {
+    convertToJs(jsConverter) {
         return compUtils.getJsIdentifier(`${this.discerner.id}`, "D");
     }
 }

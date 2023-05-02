@@ -13,6 +13,7 @@ import { ReflexiveVar } from "./var.js";
 import { Feature } from "./factor.js";
 import { FeatureType } from "./factorType.js";
 import { Obj, ObjType } from "./obj.js";
+import { CompContext } from "./compContext.js";
 
 export class SpecialExpr extends Expr {
     // Concrete subclasses of SpecialExpr must implement these methods:
@@ -293,7 +294,7 @@ ${itemFieldCodeList.join("\n")}
 }
 ${sharedFieldCodeList.join("\n")}
 };
-${compartment.convertToJs()} = feature.typeId;
+${compartment.convertToJs(jsConverter)} = feature.typeId;
 return feature;
 })()`;
     }
@@ -353,7 +354,7 @@ export class GenericExpr extends SpecialExpr {
     }
     
     getConstraintType(compContext) {
-        const argsContext = this.exprSeq.createCompContext(compContext);
+        const argsContext = new CompContext(this.exprSeq, compContext);
         for (const argStmt of this.getAttrStmtChildren(ArgsStmt)) {
             const item = argStmt.getDefaultCompItem(compContext);
             if (item instanceof UnresolvedItem) {
