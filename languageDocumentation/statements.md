@@ -104,16 +104,16 @@ Throws error item `$item` which will be handled by a `try` statement.
 ### Import Statements:
 
 ```
-importPath [$attrs] <$path>
+importPath <$path> as $moduleName <$type> [$attrs]
 ```
 
-Imports the module located at file path `$path`.
+Imports the module located at file path `$path` in the current package. The module will be exposed as a comptime variable with name identifier `$moduleName` and type `$type`. `$type` must conform to `moduleT`. If `<$type>` is excluded, then the type of the module will depend on its code. If `as $moduleName` is excluded, then the module will not be exposed as a variable.
 
 ```
-importPackage [$attrs] <$name>
+importPackage <$packageName> as $moduleName <$type> [$attrs]
 ```
 
-Imports the package with name `$name`.
+Imports the entry point module of the package with name `$packageName`, and otherwise uses the same rules as described above.
 
 ## Attribute Statements
 
@@ -600,6 +600,37 @@ Valid contexts:
 
 Asserts that the parent bundle type includes features which satisfy factor types `$factorTypes`.
 
+### Module Members Statements:
+
+Valid contexts for module members statements:
+
+* `moduleT` special
+
+```
+comptimeMembers
+```
+
+Declares the compile-time variables which are exported by the parent module.
+
+```
+runtimeMembers
+```
+
+Declares the runtime variables which are exported by the parent module.
+
+### Module Member Statement:
+
+```
+$name ($type)
+```
+
+Valid contexts:
+
+* `comptimeMembers` statement
+* `runtimeMembers` statement
+
+Declares a module member with name identifier `$name` and type `$type`. If `($type)` is excluded, then the type of the member will be `itemT`.
+
 ### Exported Statement:
 
 ```
@@ -609,15 +640,16 @@ exported
 Valid contexts:
 
 * Variable statement at top level of module
+* `importPath` and `importPackage` statements
+* Import member statement
 
-Asserts that the parent variable may be imported by other modules.
+Asserts that the parent member may be imported by other modules from the current module.
 
 ### Import Attribute Statements:
 
 Valid contexts for import attribute statements:
 
-* `importPath` statement
-* `importPackage` statement
+* `importPath` and `importPackage` statements
 
 ```
 foreign
@@ -626,27 +658,21 @@ foreign
 Asserts that the imported module contains JavaScript rather than OstraCode.
 
 ```
-as $name
-```
-
-Declares that the imported module will be referenced with name identifier `$name` in the current module.
-
-```
 members [$members]
 ```
 
 Declares the members to import from the external module.
 
-### Member Statement:
+### Import Member Statement:
 
 ```
-$name1 <$type> as $name2
+$name1 as $name2 <$type> [$attrs]
 ```
 
 Valid contexts:
 
 * `members` statement
 
-Declares that the member with name identifier `$name1` in the external module will use name identifier `$name2` in the current module, and has constraint type `$type`. If `as $name2` is excluded, then the member will use name identifier `$name1` in the current module. If `<$type>` is excluded and the import is foreign, then the constraint type of the member will be `itemT`. If `<$type>` is excluded and the import is not foreign, then the member will have the same constraint type as defined in the external module.
+Declares that the member with name identifier `$name1` in the external module will be exposed with name identifier `$name2` in the current module, and has constraint type `$type`. If `as $name2` is excluded, then the member will use name identifier `$name1` in the current module. If `<$type>` is excluded and the import is foreign, then the constraint type of the member will be `itemT`. If `<$type>` is excluded and the import is not foreign, then the member will have the same constraint type as defined in the external module.
 
 

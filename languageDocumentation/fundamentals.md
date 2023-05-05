@@ -39,6 +39,7 @@ OstraCode has the following data types:
 * `featureT` is the type of a feature. A feature defines fields and methods, and may implement an interface.
 * `bundleT` is the type of a bundle. A bundle contains one or more features.
 * `objT` is the type of an object. An object contains one or more feature instances.
+* `moduleT` is the type of a code file. A module may export one or more variables.
 
 Data types may be categorized into the following supertypes:
 

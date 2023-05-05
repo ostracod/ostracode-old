@@ -182,14 +182,14 @@ comp ThenT = <genericT [
             args [
                 onResolve (funcT [
                     args [result (resultT)]
-                    returns ((*ThenT:+(nextResultT)) | nextResultT)
+                    returns ((*ThenT+:(nextResultT)) | nextResultT)
                 ])
                 onReject (funcT [
                     args [error]
-                    returns ((*ThenT:+(nextResultT)) | nextResultT)
+                    returns ((*ThenT+:(nextResultT)) | nextResultT)
                 ]) [optional]
             ]
-            returns (*ThenT:+(nextResultT))
+            returns (*ThenT+:(nextResultT))
         ])) [publicGet, vis (2)]
     ]
 ])>

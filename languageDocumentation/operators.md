@@ -234,3 +234,13 @@ discern ($feature)
 ```
 
 Accepts feature value `$feature`, and returns the same feature with a discerned type.
+
+### Module Special:
+
+```
+moduleT [$attrs]
+```
+
+Creates a module type whose member types are described by `$attrs`.
+
+

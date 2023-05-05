@@ -185,24 +185,24 @@ The example below demonstrates usage of import statements:
 
 ```
 // Imports the module at path "./myModule.ostc" as `myModule`.
-importPath [as myModule] <"./myModule.ostc">
+importPath <"./myModule.ostc"> as myModule
 // Invokes the member `performJob` in `myModule`.
 (myModule.performJob())
 
 // Imports the member named `generateMessage` from the module at path
 // "./myUtils.ostc", and renames the member to `createMessage`.
-importPath [members [
+importPath <"./myUtils.ostc"> [members [
     generateMessage as createMessage
-]] <"./myUtils.ostc">
+]]
 // Prints the item returned by invoking `createMessage`.
 (print(createMessage())
 
 // Imports the member named `myNum` from the foreign module at path
 // "./myConstants.js", and asserts that the constraint type of
 // `myNum` is `numT`.
-importPath [foreign, members [
+importPath <"./myConstants.js"> [foreign, members [
     myNum <numT>
-]] <"./myConstants.js">
+]]
 // Stores the sum of `myNum` and 1.
 const myResult = (myNum + 1)
 ```
