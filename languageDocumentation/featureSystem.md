@@ -153,7 +153,7 @@ const createCoinFeature = (func [
 ] {
     return (feature [sharedFields [
         flip [publicGet] = (method [returns <boolT>] {
-            return (mathUtils.random() < probability)
+            return (mathUtils@random() < probability)
         })
     ]])
 })

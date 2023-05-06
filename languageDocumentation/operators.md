@@ -52,13 +52,17 @@ OstraCode has the following member access operators:
 * `$item.$identifier` = Field of discerned feature in `$item` with name `$identifier`
     * `$item` is an expression with type `itemT`
     * `$identifier` is an identifier
-* `$module.$identifier` = Member of `$module` with name `$identifier`
-    * `$module` is an imported module
+* `$module@$identifier` = Member of `$module` with name `$identifier`
+    * `$module` is an expression with type `moduleT`
     * `$identifier` is an identifier
-* `$collection @ $subscript` = Member of `$collection` located at `$subscript`
+* `$collection@$identifier` = Member of `$collection` with name `$identifier`
+    * `$collection` is an expression with type `(*SubscriptGetT+:(strT, $memberType))`
+    * `$identifier` is an identifier
+    * The type of `$collection@$identifier` is `$memberType`
+* `$collection@/$subscript` = Member of `$collection` located at `$subscript`
     * `$collection` is an expression with type `(*SubscriptGetT+:($subscriptType, $memberType))`
     * `$subscript` is an expression with type `$subscriptType`
-    * The type of `$collection @ $subscript` is `$memberType`
+    * The type of `$collection@/$subscript` is `$memberType`
 
 OstraCode has the following type operators:
 

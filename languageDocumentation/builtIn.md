@@ -87,7 +87,7 @@ comp SubscriptGetT = <genericT [
 ])>
 ```
 
-The `getMember` method retrieves the member located at `subscript`. Strings, lists, and dictionaries implement `SubscriptGetT`. The `SubscriptGetT` interface interoperates with the subscript operator (`@`).
+The `getMember` method retrieves the member located at `subscript`. Strings, lists, and dictionaries implement `SubscriptGetT`. The `SubscriptGetT` interface interoperates with the subscript operators (`@` and `@/`).
 
 ### Subscript Set Interface:
 
@@ -103,8 +103,7 @@ comp SubscriptSetT = <genericT [
 ])>
 ```
 
-The `setMember` method modifies the member located at `subscript`. Lists and dictionaries implement `SubscriptSetT`. The `SubscriptSetT` interface interoperates with the subscript operator (`@`).
-
+The `setMember` method modifies the member located at `subscript`. Lists and dictionaries implement `SubscriptSetT`. The `SubscriptSetT` interface interoperates with the subscript operators (`@` and `@/`).
 
 ### Subscript Delete Interface:
 
@@ -227,12 +226,12 @@ OstraCode has the following built-in modules:
 
 The `mathUtils` module exports the following members:
 
-* `mathUtils.random()` returns a random floating-point number between 0 and 1.
+* `mathUtils@random()` returns a random floating-point number between 0 and 1.
 
 ### Time Utils:
 
 The `timeUtils` module exports the following members:
 
-* `timeUtils.afterWait($delay, $callback)` invokes function `$callback` after waiting `$delay` seconds.
+* `timeUtils@afterWait($delay, $callback)` invokes function `$callback` after waiting `$delay` seconds.
 
 

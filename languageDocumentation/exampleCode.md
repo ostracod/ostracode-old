@@ -41,12 +41,12 @@ while (true) {
     var isSorted = (true)
     var index = (1)
     while (index #lt nums.length) {
-        const num1 = (nums @ (index - 1))
-        const num2 = (nums @ index)
+        const num1 = (nums@/(index - 1))
+        const num2 = (nums@/index)
         if (num1 > num2) {
             (isSorted = false)
-            (nums @ (index - 1) = num2)
-            (nums @ index = num1)
+            (nums@/(index - 1) = num2)
+            (nums@/index = num1)
         }
         (index += 1)
     }
@@ -120,7 +120,7 @@ The example below demonstrates type checking at runtime:
 
 ```
 var myType <typeT>
-if (mathUtils.random() > 0.5) {
+if (mathUtils@random() > 0.5) {
     (myType = numT)
 } else {
     (myType = strT)
@@ -187,7 +187,7 @@ The example below demonstrates usage of import statements:
 // Imports the module at path "./myModule.ostc" as `myModule`.
 importPath <"./myModule.ostc"> as myModule
 // Invokes the member `performJob` in `myModule`.
-(myModule.performJob())
+(myModule@performJob())
 
 // Imports the member named `generateMessage` from the module at path
 // "./myUtils.ostc", and renames the member to `createMessage`.
@@ -219,7 +219,7 @@ const sleep = (func [
     return ((obj (Promise)).init(func [
         args [resolve <funcT>]
     ] {
-        timeUtils.afterWait(delay, resolve)
+        timeUtils@afterWait(delay, resolve)
     }))
 })
 
