@@ -1,6 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import * as compUtils from "./compUtils.js";
+import { ObjType } from "./obj.js";
 import { ResultRef, SubscriptRef } from "./itemRef.js";
 
 export class Operator {
@@ -14,9 +15,72 @@ export class Operator {
 export const unaryOperatorMap = new Map();
 
 export class UnaryOperator extends Operator {
+    
     constructor(text) {
         super(text);
         unaryOperatorMap.set(this.text, this);
+    }
+}
+
+export const identifierOperatorMap = new Map();
+
+export class IdentifierOperator extends Operator {
+    
+    constructor(text) {
+        super(text);
+        identifierOperatorMap.set(this.text, this);
+    }
+    
+    buildClosureContext(destContext, srcContext, expr, name) {
+        // Do nothing.
+    }
+}
+
+export class FeatureFieldOperator extends IdentifierOperator {
+    // Concrete subclasses of BinaryOperator must implement these methods:
+    // perform, convertToJs
+    
+    constructor() {
+        super(".");
+    }
+    
+    buildClosureContext(destContext, srcContext, expr, name) {
+        const type = expr.getConstraintType(srcContext.compContext);
+        if (type instanceof ObjType) {
+            const discerner = type.factorType.getDiscerner(name);
+            const content = srcContext.getCompartmentContent(discerner);
+            if (content !== null) {
+                destContext.addCompartmentContent(content);
+            }
+        }
+    }
+    
+    perform(evalContext, expr, name) {
+        const item = expr.evaluateToItem(evalContext);
+        const type = expr.getConstraintType(evalContext.compContext);
+        if (type instanceof ObjType) {
+            return type.factorType.getObjMember(item, name, evalContext);
+        } else {
+            throw new Error("Item member access is not yet implemented.");
+        }
+    }
+    
+    convertToJs(expr, name, jsConverter) {
+        const type = expr.getConstraintType(jsConverter.getCompContext());
+        if (type instanceof ObjType) {
+            const discerner = type.factorType.getDiscerner(name);
+            const compartment = expr.getCompartment(discerner);
+            return `${expr.convertToJs(jsConverter)}[${compartment.convertToJs(jsConverter)}].${compUtils.getJsIdentifier(name)}`;
+        } else {
+            throw new Error("Item member access is not yet implemented.");
+        }
+    }
+}
+
+export class IdentifierSubscriptOperator extends IdentifierOperator {
+    
+    constructor() {
+        super("@");
     }
 }
 
@@ -49,10 +113,10 @@ export class BinaryOperator extends Operator {
     }
 }
 
-export class SubscriptOperator extends BinaryOperator {
+export class ExprSubscriptOperator extends BinaryOperator {
     
     constructor() {
-        super("@", 1);
+        super("@/", 1);
     }
     
     perform(itemRef1, itemRef2) {
@@ -127,6 +191,9 @@ new UnaryOperator("-");
 new UnaryOperator("~");
 new UnaryOperator("!");
 
+new FeatureFieldOperator();
+new IdentifierSubscriptOperator();
+
 new BinaryOperator("+", 4);
 new BinaryOperator("-", 4);
 new BinaryOperator("*", 3);
@@ -148,7 +215,7 @@ new BinaryOperator("#neq", 7);
 new BinaryOperator("||", 13);
 new BinaryOperator("&&", 11);
 new BinaryOperator("^^", 12);
-new SubscriptOperator();
+new ExprSubscriptOperator();
 new BinaryOperator(":", 0);
 new ForceCastOperator();
 new QualificationOperator();

@@ -3,7 +3,6 @@ import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
-import { ObjType } from "./obj.js";
 
 export class Expr extends ResolvedGroup {
     // Concrete subclasses of Expr must implement these methods:
@@ -156,6 +155,41 @@ export class UnaryExpr extends OperatorExpr {
     }
 }
 
+export class IdentifierAccessExpr extends OperatorExpr {
+    
+    constructor(components, operator, operand, name) {
+        super(components);
+        this.operator = operator;
+        this.operand = this.addChild(operand);
+        this.name = name;
+    }
+    
+    getDisplayStringDetail() {
+        return this.name;
+    }
+    
+    buildClosureContext(destContext, srcContext) {
+        this.operator.buildClosureContext(destContext, srcContext, this.operand, this.name);
+        super.buildClosureContext(destContext, srcContext);
+    }
+    
+    evaluate(evalContext) {
+        return this.tryOperation(() => (
+            this.operator.perform(evalContext, this.operand, this.name)
+        ));
+    }
+    
+    iterateCompItems(compContext, handle) {
+        this.operand.iterateCompItems(compContext, handle);
+    }
+    
+    convertToJs(jsConverter) {
+        return this.tryOperation(() => (
+            this.operator.convertToJs(this.operand, this.name, jsConverter)
+        ));
+    }
+}
+
 export class BinaryExpr extends OperatorExpr {
     
     constructor(components, operator, operand1, operand2) {
@@ -184,60 +218,6 @@ export class BinaryExpr extends OperatorExpr {
     
     convertToJs(jsConverter) {
         return this.operator.convertToJs(this.operand1, this.operand2, jsConverter);
-    }
-}
-
-export class IdentifierAccessExpr extends Expr {
-    
-    constructor(components, operand, name) {
-        super(components);
-        this.operand = this.addChild(operand);
-        this.name = name;
-    }
-    
-    getDisplayStringDetail() {
-        return this.name;
-    }
-    
-    buildClosureContext(destContext, srcContext) {
-        const type = this.operand.getConstraintType(srcContext.compContext);
-        if (type instanceof ObjType) {
-            const discerner = type.factorType.getDiscerner(this.name);
-            const content = srcContext.getCompartmentContent(discerner);
-            if (content !== null) {
-                destContext.addCompartmentContent(content);
-            }
-        }
-        super.buildClosureContext(destContext, srcContext);
-    }
-    
-    evaluate(evalContext) {
-        const item = this.operand.evaluateToItem(evalContext);
-        const type = this.operand.getConstraintType(evalContext.compContext);
-        if (type instanceof ObjType) {
-            return this.tryOperation(() => (
-                type.factorType.getObjMember(item, this.name, evalContext)
-            ));
-        } else {
-            this.throwError("Item member access is not yet implemented.");
-        }
-    }
-    
-    iterateCompItems(compContext, handle) {
-        this.operand.iterateCompItems(compContext, handle);
-    }
-    
-    convertToJs(jsConverter) {
-        const type = this.operand.getConstraintType(jsConverter.getCompContext());
-        if (type instanceof ObjType) {
-            const discerner = this.tryOperation(() => (
-                type.factorType.getDiscerner(this.name)
-            ));
-            const compartment = this.getCompartment(discerner);
-            return `${this.operand.convertToJs(jsConverter)}[${compartment.convertToJs(jsConverter)}].${compUtils.getJsIdentifier(this.name)}`;
-        } else {
-            this.throwError("Item member access is not yet implemented.");
-        }
     }
 }
 

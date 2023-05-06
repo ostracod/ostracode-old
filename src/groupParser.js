@@ -4,7 +4,7 @@ import { WordToken, NumToken, StrToken, OperatorToken } from "./token.js";
 import { GroupSeq, BhvrStmtSeq, AttrStmtSeq, ExprSeq, CompExprSeq } from "./groupSeq.js";
 import { NumLiteralExpr, StrLiteralExpr, IdentifierExpr, UnaryExpr, BinaryExpr, IdentifierAccessExpr, ExprSeqExpr, InvocationExpr } from "./expr.js";
 import { specialConstructorMap } from "./specialExpr.js";
-import { unaryOperatorMap, binaryOperatorMap } from "./operator.js";
+import { unaryOperatorMap, identifierOperatorMap, binaryOperatorMap } from "./operator.js";
 
 class IfClause {
     
@@ -233,20 +233,23 @@ export class ExprParser extends GroupParser {
             const components = this.getComponents(startIndex);
             if (component instanceof OperatorToken) {
                 const operatorText = component.text;
-                if (operatorText === ".") {
+                const identifierOperator = identifierOperatorMap.get(operatorText);
+                if (typeof identifierOperator !== "undefined") {
                     this.index += 1;
                     const name = this.readIdentifierText();
-                    output = new IdentifierAccessExpr(components, output, name);
+                    output = new IdentifierAccessExpr(
+                        components, identifierOperator, output, name,
+                    );
                     continue;
                 }
-                const operator = binaryOperatorMap.get(operatorText);
-                if (typeof operator !== "undefined") {
-                    if (operator.precedence >= precedence) {
+                const binaryOperator = binaryOperatorMap.get(operatorText);
+                if (typeof binaryOperator !== "undefined") {
+                    if (binaryOperator.precedence >= precedence) {
                         break;
                     }
                     this.index += 1;
-                    const expr = this.readExpr(operator.precedence);
-                    output = new BinaryExpr(components, operator, output, expr);
+                    const expr = this.readExpr(binaryOperator.precedence);
+                    output = new BinaryExpr(components, binaryOperator, output, expr);
                     continue;
                 }
             } else if (component instanceof ExprSeq) {
