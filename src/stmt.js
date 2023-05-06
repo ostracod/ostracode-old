@@ -358,17 +358,25 @@ export class ImportStmt extends BhvrStmt {
     // getExprErrorName
     
     init(parser) {
-        this.attrStmtSeq = parser.readAttrStmtSeq();
         this.exprSeq = parser.readCompExprSeq(this.getExprErrorName());
+        const hasKeyword = parser.readAsKeyword();
+        if (hasKeyword) {
+            this.name = parser.readIdentifierText();
+            this.variable = new StmtEvalVar(this.name, this);
+        } else {
+            this.name = null;
+            this.variable = null;
+        }
+        this.typeExprSeq = parser.readCompExprSeq("module type", false, true);
+        this.attrStmtSeq = parser.readAttrStmtSeq();
     }
     
     getParentVars() {
         const output = [];
-        const asStmt = this.getAttrStmt(AsStmt);
-        if (asStmt !== null) {
-            output.push(asStmt.variable);
+        if (this.variable !== null) {
+            output.push(this.variable);
         }
-        const membersStmt = this.getAttrStmt(MembersStmt);
+        const membersStmt = this.getAttrStmt(ImportMembersStmt);
         if (membersStmt !== null) {
             niceUtils.extendList(output, membersStmt.getChildVars());
         }
@@ -699,6 +707,29 @@ export class ImplementsStmt extends ExprAttrStmt {
     }
 }
 
+export class ModuleMembersStmt extends ParentAttrStmt {
+    
+    getChildConstructor() {
+        return ModuleMemberStmt;
+    }
+}
+
+export class ComptimeMembersStmt extends ModuleMembersStmt {
+    
+}
+
+export class RuntimeMembersStmt extends ModuleMembersStmt {
+    
+}
+
+export class ModuleMemberStmt extends ChildAttrStmt {
+    
+    init(parser) {
+        this.name = parser.readIdentifierText();
+        this.typeExprSeq = parser.readExprSeq("constraint type", true);
+    }
+}
+
 export class ExportedStmt extends AttrStmt {
     
 }
@@ -707,33 +738,26 @@ export class ForeignStmt extends AttrStmt {
     
 }
 
-export class AsStmt extends AttrStmt {
-    
-    init(parser) {
-        this.name = parser.readIdentifierText();
-        this.variable = new StmtEvalVar(this.name, this);
-    }
-}
-
-export class MembersStmt extends ParentAttrStmt {
+export class ImportMembersStmt extends ParentAttrStmt {
     
     getChildConstructor() {
-        return MemberStmt;
+        return ImportMemberStmt;
     }
 }
 
-export class MemberStmt extends ChildAttrStmt {
+export class ImportMemberStmt extends ChildAttrStmt {
     
     init(parser) {
         this.name = parser.readIdentifierText();
-        this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
-        if (parser.hasReachedEnd()) {
-            this.aliasName = this.name;
-        } else {
-            parser.readKeyword(["as"]);
+        const hasKeyword = parser.readAsKeyword();
+        if (hasKeyword) {
             this.aliasName = parser.readIdentifierText();
+        } else {
+            this.aliasName = this.name;
         }
         this.variable = new StmtEvalVar(this.aliasName, this);
+        this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
+        this.attrStmtSeq = parser.readAttrStmtSeq();
     }
     
     getChildVar() {
@@ -767,10 +791,11 @@ export const attrStmtConstructors = {
     vis: VisStmt,
     shield: ShieldStmt,
     implements: ImplementsStmt,
+    comptimeMembers: ComptimeMembersStmt,
+    runtimeMembers: RuntimeMembersStmt,
     exported: ExportedStmt,
     foreign: ForeignStmt,
-    as: AsStmt,
-    members: MembersStmt,
+    members: ImportMembersStmt,
 };
 
 

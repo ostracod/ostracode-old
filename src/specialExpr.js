@@ -403,6 +403,8 @@ export class DiscernExpr extends ExprSpecialExpr {
     }
 }
 
+export class ModuleTypeExpr extends AttrsSpecialExpr {}
+
 export const specialConstructorMap = {
     list: ListExpr,
     listT: ListTypeExpr,
@@ -423,6 +425,7 @@ export const specialConstructorMap = {
     generic: GenericExpr,
     genericT: GenericTypeExpr,
     discern: DiscernExpr,
+    moduleT: ModuleTypeExpr,
 };
 
 

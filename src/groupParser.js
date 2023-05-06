@@ -131,6 +131,19 @@ export class StmtParser extends GroupParser {
         );
     }
     
+    readAsKeyword() {
+        const token = this.peekByClass(WordToken, null, true);
+        if (token === null) {
+            return false;
+        }
+        if (token.text === "as") {
+            this.index += 1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
     readExprSeq(errorName = null, mayReachEnd = false) {
         const output = this.readChildSeq(ExprSeq, errorName, mayReachEnd);
         if (output !== null && output.groups.length !== 1) {
