@@ -8,6 +8,7 @@ import * as compUtils from "./compUtils.js";
 import { parseVersionRange } from "./version.js";
 import { OstraCodeFile } from "./ostraCodeFile.js";
 import { BuiltInNode } from "./builtIn.js";
+import { Package } from "./package.js";
 import { CompContext } from "./compContext.js";
 import { CompItemAggregator } from "./aggregator.js";
 import { BuildJsConverter, SupportJsConverter } from "./jsConverter.js";
@@ -29,8 +30,6 @@ export class Compiler {
         } catch (error) {
             throw new CompilerError("ostraConfig.json contains malformed JSON.\n" + error.message);
         }
-        this.srcPath = pathUtils.join(this.packagePath, "src");
-        this.buildPath = pathUtils.join(this.packagePath, "build");
         this.supportPath = pathUtils.join(this.packagePath, "support");
     }
     
@@ -42,6 +41,8 @@ export class Compiler {
         // Map from constant name to value.
         this.constants = new Map();
         this.builtInNode = new BuiltInNode();
+        this.package = new Package(this.packagePath);
+        this.builtInNode.addChild(this.package);
         this.ostraCodeFiles = [];
         // Map from src path to list of OstraCodeFile.
         this.srcPathMap = new Map();
@@ -59,7 +60,7 @@ export class Compiler {
         const oldCodeFile = this.buildPathMap.get(destPath);
         if (typeof oldCodeFile === "undefined") {
             this.ostraCodeFiles.push(codeFile);
-            this.builtInNode.addChild(codeFile);
+            this.package.addChild(codeFile);
             let codeFiles = this.srcPathMap.get(srcPath);
             if (typeof codeFiles === "undefined") {
                 codeFiles = [];
@@ -75,10 +76,10 @@ export class Compiler {
     // platformNames is a set of strings.
     addOstraCodeFiles(relativeSrcPath, relativeDestPath, platformNames) {
         const srcPath = pathUtils.resolve(
-            pathUtils.join(this.srcPath, relativeSrcPath),
+            pathUtils.join(this.package.srcPath, relativeSrcPath),
         );
         const destPath = pathUtils.resolve(
-            pathUtils.join(this.buildPath, relativeDestPath),
+            pathUtils.join(this.package.buildPath, relativeDestPath),
         );
         if (srcPath.endsWith(ostraCodeExtension)) {
             this.addOstraCodeFile(new OstraCodeFile(srcPath, destPath, platformNames));
@@ -214,7 +215,7 @@ export class Compiler {
             const relativeEntryPoint = nodePlatform.entryPoint;
             if (typeof relativeEntryPoint !== "undefined") {
                 const entryPoint = pathUtils.resolve(
-                    pathUtils.join(this.srcPath, relativeEntryPoint),
+                    pathUtils.join(this.package.srcPath, relativeEntryPoint),
                 );
                 let entryPointFile;
                 try {

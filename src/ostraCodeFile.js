@@ -1,6 +1,7 @@
 
 import * as fs from "fs";
 import * as pathUtils from "path";
+import { CompilerError } from "./error.js";
 import { baseImportStmt } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import { Node } from "./node.js";
@@ -58,7 +59,14 @@ export class OstraCodeFile extends Node {
     }
     
     getExportedVar(name) {
-        // TODO: Implement.
+        const variable = this.bhvrStmtSeq.getVar(name, false);
+        if (variable === null) {
+            throw new CompilerError(`Module does not contain variable with name "${name}".`);
+        }
+        if (!variable.isExported()) {
+            throw new CompilerError(`Variable with name "${name}" is not exported.`);
+        }
+        return variable;
     }
     
     iterateCompItems(compContext, handle) {

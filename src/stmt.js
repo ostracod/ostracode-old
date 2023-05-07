@@ -1,4 +1,6 @@
 
+import * as pathUtils from "path";
+import { UnknownItemError } from "./error.js";
 import { FlowControl } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
@@ -6,8 +8,9 @@ import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
 import { StmtCompVar, StmtEvalVar, ImportVar } from "./var.js";
+import { Package } from "./package.js";
 import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
-import { AbsentItem } from "./item.js";
+import { UnknownItem, AbsentItem } from "./item.js";
 import { ItemType, TypeType } from "./itemType.js";
 
 const initItemName = "initialization item";
@@ -50,6 +53,10 @@ export class Stmt extends ResolvedGroup {
     
     getParentVars() {
         return [];
+    }
+    
+    hasExportStmt() {
+        return (this.getAttrStmt(ExportedStmt) !== null);
     }
     
     iterateCompItems(compContext, handle) {
@@ -391,7 +398,18 @@ export class ImportPathStmt extends ImportStmt {
     }
     
     getImportedFile(compContext) {
-        // TODO: Implement.
+        const path = compContext.getSeqItem(this.exprSeq);
+        if (path instanceof UnknownItem) {
+            throw new UnknownItemError(path);
+        }
+        const packageNode = this.getParent(Package);
+        const srcPath = pathUtils.resolve(pathUtils.join(packageNode.srcPath, path));
+        for (const ostraCodeFile of packageNode.children) {
+            if (ostraCodeFile.srcPath === srcPath) {
+                return ostraCodeFile;
+            }
+        }
+        this.throwError(`Could not find source file with path "${path}".`);
     }
 }
 
@@ -774,6 +792,10 @@ export class ImportMemberStmt extends ChildAttrStmt {
     
     getImportStmt() {
         return this.getParent(ImportStmt);
+    }
+    
+    getConstraintType(compContext) {
+        return (this.typeExprSeq === null) ? null : compContext.getSeqItem(this.typeExprSeq);
     }
 }
 

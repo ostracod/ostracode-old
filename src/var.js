@@ -11,6 +11,10 @@ export class Var extends Container {
         this.name = name;
     }
     
+    isExported() {
+        return false;
+    }
+    
     getJsIdentifier() {
         return compUtils.getJsIdentifier(this.name);
     }
@@ -24,17 +28,30 @@ export class ImportVar extends Var {
         this.variable = null;
     }
     
-    unwrap(compContext) {
+    getNonNullVar(compContext) {
         if (this.variable === null) {
             const importStmt = this.stmt.getImportStmt();
             const ostraCodeFile = importStmt.getImportedFile(compContext);
             this.variable = ostraCodeFile.getExportedVar(this.stmt.name);
         }
-        return this.variable.unwrap();
+        return this.variable;
+    }
+    
+    unwrap(compContext) {
+        return this.getNonNullVar(compContext).unwrap();
+    }
+    
+    isExported() {
+        return this.stmt.hasExportStmt();
     }
     
     getConstraintType(compContext) {
-        // TODO: Implement.
+        const type = this.stmt.getConstraintType(compContext);
+        if (type === null) {
+            return this.getNonNullVar(compContext).getConstraintType(compContext);
+        } else {
+            return type;
+        }
     }
 }
 
@@ -66,6 +83,10 @@ export class BuiltInCompVar extends CompVar {
         super(name);
         this.item = item;
         this.constraintType = constraintType;
+    }
+    
+    isExported() {
+        return this.stmt.hasExportStmt();
     }
     
     getConstraintType(compContext) {
@@ -125,6 +146,10 @@ export class StmtEvalVar extends EvalVar {
     constructor(name, stmt) {
         super(name);
         this.stmt = stmt;
+    }
+    
+    isExported() {
+        return this.stmt.hasExportStmt();
     }
     
     getConstraintType(compContext) {
