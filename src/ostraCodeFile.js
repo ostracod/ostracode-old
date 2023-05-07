@@ -57,6 +57,10 @@ export class OstraCodeFile extends Node {
         this.bhvrStmtSeq.resolveCompartments();
     }
     
+    getExportedVar(name) {
+        // TODO: Implement.
+    }
+    
     iterateCompItems(compContext, handle) {
         this.bhvrStmtSeq.iterateCompItems(compContext, handle);
     }

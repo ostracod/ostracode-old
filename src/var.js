@@ -4,7 +4,7 @@ import { Container } from "./container.js";
 
 export class Var extends Container {
     // Concrete subclasses of Var must implement these methods:
-    // getConstraintType, iterateCompItems
+    // unwrap, getConstraintType
     
     constructor(name) {
         super();
@@ -16,7 +16,38 @@ export class Var extends Container {
     }
 }
 
-export class CompVar extends Var {
+export class ImportVar extends Var {
+    
+    constructor(name, stmt) {
+        super(name);
+        this.stmt = stmt;
+        this.variable = null;
+    }
+    
+    unwrap(compContext) {
+        if (this.variable === null) {
+            const importStmt = this.stmt.getImportStmt();
+            const ostraCodeFile = importStmt.getImportedFile(compContext);
+            this.variable = ostraCodeFile.getExportedVar(this.stmt.name);
+        }
+        return this.variable.unwrap();
+    }
+    
+    getConstraintType(compContext) {
+        // TODO: Implement.
+    }
+}
+
+export class UnwrappedVar extends Var {
+    // Concrete subclasses of UnwrappedVar must implement these methods:
+    // iterateCompItems
+    
+    unwrap() {
+        return this;
+    }
+}
+
+export class CompVar extends UnwrappedVar {
     // Concrete subclasses of CompVar must implement these methods:
     // resolveCompItem
     
@@ -62,7 +93,7 @@ export class StmtCompVar extends CompVar {
     }
 }
 
-export class EvalVar extends Var {
+export class EvalVar extends UnwrappedVar {
     
     iterateCompItems(compContext, handle) {
         // Do nothing.

@@ -108,6 +108,11 @@ export class IdentifierExpr extends SingleComponentExpr {
         return variable;
     }
     
+    getUnwrappedVar(compContext) {
+        const variable = this.getNonNullVar();
+        return variable.unwrap(compContext);
+    }
+    
     buildClosureContext(destContext, srcContext) {
         const content = srcContext.getVarContent(this.name);
         if (content !== null) {
@@ -127,7 +132,7 @@ export class IdentifierExpr extends SingleComponentExpr {
     }
     
     iterateCompItems(compContext, handle) {
-        this.getNonNullVar().iterateCompItems(compContext, handle);
+        this.getUnwrappedVar(compContext).iterateCompItems(compContext, handle);
     }
     
     convertToJs(jsConverter) {

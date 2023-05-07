@@ -5,7 +5,7 @@ import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
-import { StmtCompVar, StmtEvalVar } from "./var.js";
+import { StmtCompVar, StmtEvalVar, ImportVar } from "./var.js";
 import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
 import { AbsentItem } from "./item.js";
 import { ItemType, TypeType } from "./itemType.js";
@@ -355,7 +355,7 @@ export class ThrowStmt extends BhvrStmt {
 
 export class ImportStmt extends BhvrStmt {
     // Concrete subclasses of ImportStmt must implement these methods:
-    // getExprErrorName
+    // getExprErrorName, getImportedFile
     
     init(parser) {
         this.exprSeq = parser.readCompExprSeq(this.getExprErrorName());
@@ -389,12 +389,20 @@ export class ImportPathStmt extends ImportStmt {
     getExprErrorName() {
         return "file path";
     }
+    
+    getImportedFile(compContext) {
+        // TODO: Implement.
+    }
 }
 
 export class ImportPackageStmt extends ImportStmt {
     
     getExprErrorName() {
         return "package name";
+    }
+    
+    getImportedFile(compContext) {
+        // TODO: Implement.
     }
 }
 
@@ -755,13 +763,17 @@ export class ImportMemberStmt extends ChildAttrStmt {
         } else {
             this.aliasName = this.name;
         }
-        this.variable = new StmtEvalVar(this.aliasName, this);
+        this.variable = new ImportVar(this.aliasName, this);
         this.typeExprSeq = parser.readCompExprSeq("constraint type", false, true);
         this.attrStmtSeq = parser.readAttrStmtSeq();
     }
     
     getChildVar() {
         return this.variable;
+    }
+    
+    getImportStmt() {
+        return this.getParent(ImportStmt);
     }
 }
 
