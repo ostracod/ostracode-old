@@ -107,13 +107,13 @@ Throws error item `$item` which will be handled by a `try` statement.
 importPath <$path> as $moduleName <$type> [$attrs]
 ```
 
-Imports the module located at file path `$path` in the current package. The module will be exposed as a comptime variable with name identifier `$moduleName` and type `$type`. `$type` must conform to `moduleT`. If `<$type>` is excluded, then the type of the module will depend on its code. If `as $moduleName` is excluded, then the module will not be exposed as a variable. `$path` is relative to the `src` directory of the parent package.
+Imports the module located at file path `$path` in the current package. The module will be exposed as a comptime variable with name identifier `$moduleName` and type `$type`. `$type` must conform to `moduleT`. If `<$type>` is excluded, then the type of the module will depend on its code. If `as $moduleName` is excluded, then the module will not be exposed as a variable. `$path` is relative to the `src` directory of the current package.
 
 ```
-importPackage <$packageName> as $moduleName <$type> [$attrs]
+importPackage <$specifier> as $moduleName <$type> [$attrs]
 ```
 
-Imports the entry point module of the package with name `$packageName`, and otherwise uses the same rules as described above.
+Imports the module with specifier string `$specifier` from an external package. If `$specifier` has the format `$packageName/$exportName`, then `importPackage` imports the module named `$exportName` from the package named `$packageName`. If `$specifier` has the format `$packageName`, then `importPackage` imports the module named `default` from the package named `$packageName`. `importPackage` otherwise follows the same rules as `importPath`.
 
 ## Attribute Statements
 
