@@ -9,6 +9,15 @@ export const extendList = (destination, elements) => {
     }
 };
 
+// `extension` must begin with a period.
+export const replaceExtension = (path, extension) => {
+    const dirPath = pathUtils.dirname(path);
+    const fileName = pathUtils.basename(path);
+    const periodIndex = fileName.lastIndexOf(".");
+    const baseName = (periodIndex >= 0) ? fileName.substring(0, periodIndex) : fileName;
+    return pathUtils.join(dirPath, baseName + extension);
+};
+
 const walkFilesHelper = (rootPath, relativePath, handle) => {
     const path = pathUtils.join(rootPath, relativePath);
     if (fs.lstatSync(path).isDirectory()) {

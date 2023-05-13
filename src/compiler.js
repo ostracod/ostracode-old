@@ -44,11 +44,8 @@ export class Compiler {
         this.package = new Package(this.packagePath);
         this.builtInNode.addChild(this.package);
         this.ostraCodeFiles = [];
-        // Map from src path to list of OstraCodeFile.
+        // Map from src path to OstraCodeFile.
         this.srcPathMap = new Map();
-        // Map from build path to OstraCodeFile.
-        this.buildPathMap = new Map();
-        this.rootPlatformNames = new Set();
         // Set of numbers.
         this.typeIdSet = new Set();
         this.compContext = null;
@@ -56,41 +53,39 @@ export class Compiler {
     }
     
     addOstraCodeFile(codeFile) {
-        const { srcPath, destPath } = codeFile;
-        const oldCodeFile = this.buildPathMap.get(destPath);
+        const { srcPath } = codeFile;
+        const oldCodeFile = this.srcPathMap.get(srcPath);
         if (typeof oldCodeFile === "undefined") {
             this.ostraCodeFiles.push(codeFile);
             this.package.addChild(codeFile);
-            let codeFiles = this.srcPathMap.get(srcPath);
-            if (typeof codeFiles === "undefined") {
-                codeFiles = [];
-                this.srcPathMap.set(srcPath, codeFiles);
-            }
-            codeFiles.push(codeFile);
-            this.buildPathMap.set(destPath, codeFile);
+            this.srcPathMap.set(srcPath, codeFile);
         } else if (!oldCodeFile.equals(codeFile)) {
-            throw new CompilerError(`Conflicting rules for build path "${destPath}".`);
+            throw new CompilerError(`Conflicting rules for build path "${srcPath}".`);
         }
     }
     
     // platformNames is a set of strings.
-    addOstraCodeFiles(relativeSrcPath, relativeDestPath, platformNames) {
+    addOstraCodeFiles(relativeSrcPath, platformNames) {
         const srcPath = pathUtils.resolve(
             pathUtils.join(this.package.srcPath, relativeSrcPath),
         );
-        const destPath = pathUtils.resolve(
-            pathUtils.join(this.package.buildPath, relativeDestPath),
-        );
         if (srcPath.endsWith(ostraCodeExtension)) {
+            const relativeDestPath = niceUtils.replaceExtension(
+                relativeSrcPath, javaScriptExtension,
+            );
+            const destPath = pathUtils.resolve(
+                pathUtils.join(this.package.buildPath, relativeDestPath),
+            );
             this.addOstraCodeFile(new OstraCodeFile(srcPath, destPath, platformNames));
         } else {
+            const destPath = pathUtils.resolve(
+                pathUtils.join(this.package.buildPath, relativeSrcPath),
+            );
             niceUtils.walkFiles(srcPath, (path) => {
                 if (!path.endsWith(ostraCodeExtension)) {
                     return;
                 }
-                const javaScriptPath = path.substring(
-                    0, path.length - ostraCodeExtension.length,
-                ) + javaScriptExtension;
+                const javaScriptPath = niceUtils.replaceExtension(path, javaScriptExtension);
                 this.addOstraCodeFile(new OstraCodeFile(
                     pathUtils.join(srcPath, path),
                     pathUtils.join(destPath, javaScriptPath),
@@ -106,14 +101,14 @@ export class Compiler {
             throw new CompilerError(`ostraConfig.json has no rule with name "${ruleName}".`);
         }
         const rule = {
-            compile: null,
+            srcPaths: [],
             dependencies: {},
             constants: {},
             includeRules: [],
-            platformNames: inheritedPlatformNames,
+            platforms: inheritedPlatformNames,
             ...ruleWithoutDefaults,
         };
-        const platformNames = new Set(rule.platformNames);
+        const platformNames = new Set(rule.platforms);
         if (platformNames.size <= 0) {
             throw new CompilerError(`Rule with name "${ruleName}" was included with zero platforms.`);
         }
@@ -124,16 +119,8 @@ export class Compiler {
             }
             return;
         }
-        if (rule.compile !== null) {
-            let relativeSrcPath = rule.compile.src;
-            let relativeDestPath = rule.compile.dest;
-            if (typeof relativeSrcPath === "undefined") {
-                throw new CompilerError(`Missing source path for rule with name "${ruleName}".`);
-            }
-            if (typeof relativeDestPath === "undefined") {
-                relativeDestPath = relativeSrcPath;
-            }
-            this.addOstraCodeFiles(relativeSrcPath, relativeDestPath, platformNames);
+        for (const relativeSrcPath of rule.srcPaths) {
+            this.addOstraCodeFiles(relativeSrcPath, platformNames);
         }
         this.rulePlatformsMap.set(ruleName, platformNames);
         for (const name in rule.dependencies) {
@@ -160,48 +147,6 @@ export class Compiler {
         }
     }
     
-    includePlatformMainRule(platformName) {
-        const platformDefinition = this.config.platforms[platformName];
-        if (typeof platformDefinition === "undefined") {
-            throw new CompilerError(`ostraConfig.json has no platform definition with name "${platformName}".`);
-        }
-        const ruleName = platformDefinition.mainRule;
-        if (typeof ruleName === "undefined") {
-            throw new CompilerError(`ostraConfig.json does not specify main rule for platform "${platformName}".`);
-        }
-        this.includeRule(ruleName, new Set([platformName]));
-        this.rootPlatformNames.add(platformName);
-    }
-    
-    // parentPlatforms is a set of strings.
-    getOstraCodeFile(srcPath, parentPlatforms) {
-        const codeFiles = this.srcPathMap.get(srcPath);
-        if (typeof codeFiles === "undefined") {
-            throw new CompilerError(`Could not find source file for "${srcPath}"`);
-        }
-        const possibleCodeFiles = [];
-        for (const codeFile of codeFiles) {
-            const filePlatforms = codeFile.platformNames;
-            if (parentPlatforms.every((name) => filePlatforms.has(name))) {
-                if (parentPlatforms.size === filePlatforms.size) {
-                    return codeFile;
-                }
-                possibleCodeFiles.push(codeFile);
-            }
-        }
-        if (possibleCodeFiles.length < 1) {
-            throw new CompilerError(`Could not find compatible source file for "${srcPath}"`);
-        }
-        if (possibleCodeFiles.length > 1) {
-            throw new CompilerError(`Found ambiguous source files for "${srcPath}"`);
-        }
-        return possibleCodeFiles[0];
-    }
-    
-    getIncludedRuleCount() {
-        return this.rulePlatformsMap.size;
-    }
-    
     initPackage() {
         console.log("Creating package.json file...");
         const config = {
@@ -209,35 +154,23 @@ export class Compiler {
             version: this.config.version,
             type: "module",
         };
-        const nodePlatformName = "node";
-        if (this.rootPlatformNames.has(nodePlatformName)) {
-            const nodePlatform = this.config.platforms[nodePlatformName];
-            const relativeEntryPoint = nodePlatform.entryPoint;
-            if (typeof relativeEntryPoint !== "undefined") {
-                const entryPoint = pathUtils.resolve(
-                    pathUtils.join(this.package.srcPath, relativeEntryPoint),
-                );
-                let entryPointFile;
-                try {
-                    entryPointFile = this.getOstraCodeFile(
-                        entryPoint, [nodePlatformName],
-                    );
-                } catch (error) {
-                    if (error instanceof CompilerError) {
-                        throw new CompilerError("Could not resolve entry point: " + error.message);
-                    } else {
-                        throw error;
-                    }
-                }
-                config.main = pathUtils.relative(this.packagePath, entryPointFile.destPath);
-            }
-        }
         if (this.dependencies.size > 0) {
             const dependencies = {};
             this.dependencies.forEach((versionRange, name) => {
                 dependencies[name] = versionRange.toString();
             });
             config.dependencies = dependencies;
+        }
+        const { exports } = this.config;
+        if (typeof exports !== "undefined") {
+            config.exports = {};
+            for (const name in exports) {
+                const srcPath = exports[name];
+                const key = (name === "default") ? "." : name;
+                config.exports[key] = pathUtils.join(
+                    "build", niceUtils.replaceExtension(srcPath, javaScriptExtension),
+                );
+            }
         }
         const destPath = pathUtils.join(this.packagePath, "package.json");
         fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");

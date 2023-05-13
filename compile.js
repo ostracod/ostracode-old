@@ -45,10 +45,6 @@ const optionDefinitions = [
         "rule", "r", "NAME",
         "Use rule with given name.",
     ),
-    new LabelDefinition(
-        "platform", "p", "NAME",
-        "Use main rule for given platform name.",
-    ),
 ];
 
 const printUsage = () => {
@@ -121,20 +117,9 @@ const main = () => {
     const compiler = new Compiler(packagePath);
     
     compiler.init();
-    const ruleNames = labeledArgs.get("rule");
-    if (typeof ruleNames !== "undefined") {
-        for (const ruleName of ruleNames) {
-            compiler.includeRule(ruleName);
-        }
-    }
-    const platformNames = labeledArgs.get("platform");
-    if (typeof platformNames !== "undefined") {
-        for (const platformName of platformNames) {
-            compiler.includePlatformMainRule(platformName);
-        }
-    }
-    if (compiler.getIncludedRuleCount() <= 0) {
-        throw new UsageError("No rules or platforms specified.");
+    const ruleNames = labeledArgs.get("rule") ?? ["main"];
+    for (const ruleName of ruleNames) {
+        compiler.includeRule(ruleName);
     }
     if (flags.has("init")) {
         compiler.initPackage();

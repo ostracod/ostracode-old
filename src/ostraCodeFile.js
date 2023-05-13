@@ -23,7 +23,7 @@ export class OstraCodeFile extends Node {
     }
     
     equals(codeFile) {
-        if (codeFile.srcPath !== this.srcPath || codeFile.destPath !== codeFile.destPath) {
+        if (codeFile.srcPath !== this.srcPath) {
             return false;
         }
         return niceUtils.nameSetsAreEqual(this.platformNames, codeFile.platformNames);
