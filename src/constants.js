@@ -39,4 +39,7 @@ export const FlowControl = {
 
 export const baseImportStmt = "import { classes, utils } from \"ostracode-base\";";
 
+export const ostraCodeExtension = ".ostc";
+export const javaScriptExtension = ".js";
+
 

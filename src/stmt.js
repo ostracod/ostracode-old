@@ -1,7 +1,7 @@
 
 import * as pathUtils from "path";
 import { UnknownItemError } from "./error.js";
-import { FlowControl } from "./constants.js";
+import { FlowControl, javaScriptExtension } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
@@ -169,7 +169,11 @@ export class EvalVarStmt extends VarStmt {
     }
     
     convertToJs(jsConverter) {
-        const codeList = [this.getJsKeyword() + " " + this.variable.getJsIdentifier()];
+        const codeList = [];
+        if (this.variable.isExported()) {
+            codeList.push("export ");
+        }
+        codeList.push(this.getJsKeyword() + " " + this.variable.getJsIdentifier());
         if (this.initItemExprSeq !== null) {
             codeList.push(" = ");
             codeList.push(this.initItemExprSeq.convertToJs(jsConverter));
@@ -362,10 +366,10 @@ export class ThrowStmt extends BhvrStmt {
 
 export class ImportStmt extends BhvrStmt {
     // Concrete subclasses of ImportStmt must implement these methods:
-    // getExprErrorName, getImportedFile
+    // getExprErrorName, getImportedFile, getJsSpecifier
     
     init(parser) {
-        this.exprSeq = parser.readCompExprSeq(this.getExprErrorName());
+        this.specifierExprSeq = parser.readCompExprSeq(this.getExprErrorName());
         const hasKeyword = parser.readAsKeyword();
         if (hasKeyword) {
             this.name = parser.readIdentifierText();
@@ -389,6 +393,37 @@ export class ImportStmt extends BhvrStmt {
         }
         return output;
     }
+    
+    getSpecifier(compContext) {
+        const specifier = compContext.getSeqItem(this.specifierExprSeq);
+        if (specifier instanceof UnknownItem) {
+            throw new UnknownItemError(specifier);
+        }
+        return specifier;
+    }
+    
+    convertToJs(jsConverter) {
+        const compContext = jsConverter.getCompContext();
+        const specifier = this.getJsSpecifier(compContext);
+        const lines = [];
+        if (this.variable !== null) {
+            lines.push(`import * as ${this.variable.getJsIdentifier()} from "${specifier}";`);
+        }
+        const membersStmt = this.getAttrStmt(ImportMembersStmt);
+        if (membersStmt !== null) {
+            const memberStmts = membersStmt.getChildStmts();
+            if (memberStmts.length > 0) {
+                const phrases = memberStmts.map(
+                    (memberStmt) => memberStmt.convertToJs(jsConverter),
+                );
+                lines.push(`import { ${phrases.join(", ")} } from "${specifier}";`);
+            }
+        }
+        if (lines.length <= 0) {
+            lines.push(`import "${specifier}";`);
+        }
+        return lines.join("\n");
+    }
 }
 
 export class ImportPathStmt extends ImportStmt {
@@ -397,19 +432,29 @@ export class ImportPathStmt extends ImportStmt {
         return "file path";
     }
     
-    getImportedFile(compContext) {
-        const path = compContext.getSeqItem(this.exprSeq);
-        if (path instanceof UnknownItem) {
-            throw new UnknownItemError(path);
-        }
+    getImportedPath(compContext) {
+        const path = this.getSpecifier(compContext);
         const packageNode = this.getParent(Package);
-        const srcPath = pathUtils.resolve(pathUtils.join(packageNode.srcPath, path));
+        return pathUtils.resolve(pathUtils.join(packageNode.srcPath, path));
+    }
+    
+    getImportedFile(compContext) {
+        const srcPath = this.getImportedPath(compContext);
+        const packageNode = this.getParent(Package);
         for (const ostraCodeFile of packageNode.children) {
             if (ostraCodeFile.srcPath === srcPath) {
                 return ostraCodeFile;
             }
         }
         this.throwError(`Could not find source file with path "${path}".`);
+    }
+    
+    getJsSpecifier(compContext) {
+        const srcPath = this.getImportedPath(compContext);
+        const codeFile = this.getOstraCodeFile();
+        const dirPath = pathUtils.dirname(codeFile.srcPath);
+        const relativePath = pathUtils.relative(dirPath, srcPath);
+        return "./" + niceUtils.replaceExtension(relativePath, javaScriptExtension);
     }
 }
 
@@ -796,6 +841,15 @@ export class ImportMemberStmt extends ChildAttrStmt {
     
     getConstraintType(compContext) {
         return (this.typeExprSeq === null) ? null : compContext.getSeqItem(this.typeExprSeq);
+    }
+    
+    convertToJs(jsConverter) {
+        const jsIdentifier = this.variable.getJsIdentifier();
+        if (this.name === this.aliasName) {
+            return jsIdentifier;
+        } else {
+            return compUtils.getJsIdentifier(this.name) + " as " + jsIdentifier;
+        }
     }
 }
 

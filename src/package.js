@@ -2,7 +2,7 @@
 import * as fs from "fs";
 import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
-import { baseImportStmt } from "./constants.js";
+import { baseImportStmt, ostraCodeExtension, javaScriptExtension } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
 import * as compUtils from "./compUtils.js";
 import { parseVersionRange } from "./version.js";
@@ -12,9 +12,6 @@ import { OstraCodeFile } from "./ostraCodeFile.js";
 import { CompContext } from "./compContext.js";
 import { CompItemAggregator } from "./aggregator.js";
 import { BuildJsConverter, SupportJsConverter } from "./jsConverter.js";
-
-const ostraCodeExtension = ".ostc";
-const javaScriptExtension = ".js";
 
 export class Package extends Node {
     

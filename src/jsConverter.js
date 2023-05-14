@@ -1,7 +1,7 @@
 
 import { CompilerError } from "./error.js";
 import * as compUtils from "./compUtils.js";
-import { CompVar, BuiltInEvalVar, StmtEvalVar } from "./var.js";
+import { CompVar, EvalVar, BuiltInEvalVar } from "./var.js";
 import { Item } from "./item.js";
 import { ListNest } from "./itemNest.js";
 
@@ -59,13 +59,15 @@ export class JsConverter {
     }
     
     convertVarToRefJs(variable) {
-        if (variable instanceof CompVar) {
-            const item = this.getCompContext().getVarItem(variable);
-            return this.convertItemToJs(item);
-        } else if (variable instanceof BuiltInEvalVar) {
+        if (variable instanceof BuiltInEvalVar) {
             return variable.convertToRefJs();
-        } else if (variable instanceof StmtEvalVar) {
-            return this.convertStmtEvalVar(variable);
+        }
+        const unwrappedVar = variable.unwrap(this.getCompContext());
+        if (unwrappedVar instanceof CompVar) {
+            const item = this.getCompContext().getVarItem(unwrappedVar);
+            return this.convertItemToJs(item);
+        } else if (unwrappedVar instanceof EvalVar) {
+            return this.convertEvalVar(variable);
         } else {
             throw new Error("Unexpected variable type.");
         }
@@ -79,7 +81,7 @@ export class BuildJsConverter extends JsConverter {
         return (refCode === null) ? null : "compItems." + refCode;
     }
     
-    convertStmtEvalVar(variable) {
+    convertEvalVar(variable) {
         return variable.getJsIdentifier();
     }
 }
@@ -107,7 +109,7 @@ export class SupportJsConverter extends JsConverter {
         }
     }
     
-    convertStmtEvalVar(variable) {
+    convertEvalVar(variable) {
         throw new Error("Unexpected evaltime variable.");
     }
 }
@@ -119,7 +121,7 @@ export class ClosureJsConverter extends JsConverter {
         this.closureItemMap = closureItemMap;
     }
     
-    convertStmtEvalVar(variable) {
+    convertEvalVar(variable) {
         const closureItem = this.closureItemMap.get(variable);
         if (closureItem === null) {
             return variable.getJsIdentifier();
