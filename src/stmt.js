@@ -7,7 +7,7 @@ import * as nodeUtils from "./nodeUtils.js";
 import * as compUtils from "./compUtils.js";
 import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
-import { StmtCompVar, StmtEvalVar, ImportVar } from "./var.js";
+import { CompVar, StmtCompVar, StmtEvalVar, ImportVar } from "./var.js";
 import { Package } from "./package.js";
 import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
 import { UnknownItem, AbsentItem } from "./item.js";
@@ -55,7 +55,7 @@ export class Stmt extends ResolvedGroup {
         return [];
     }
     
-    hasExportStmt() {
+    hasExportedStmt() {
         return (this.getAttrStmt(ExportedStmt) !== null);
     }
     
@@ -412,10 +412,14 @@ export class ImportStmt extends BhvrStmt {
         const membersStmt = this.getAttrStmt(ImportMembersStmt);
         if (membersStmt !== null) {
             const memberStmts = membersStmt.getChildStmts();
-            if (memberStmts.length > 0) {
-                const phrases = memberStmts.map(
-                    (memberStmt) => memberStmt.convertToJs(jsConverter),
-                );
+            const phrases = [];
+            for (const memberStmt of memberStmts) {
+                const phrase = memberStmt.convertToJs(jsConverter);
+                if (phrase !== null) {
+                    phrases.push(phrase);
+                }
+            }
+            if (phrases.length > 0) {
                 lines.push(`import { ${phrases.join(", ")} } from "${specifier}";`);
             }
         }
@@ -844,6 +848,10 @@ export class ImportMemberStmt extends ChildAttrStmt {
     }
     
     convertToJs(jsConverter) {
+        const unwrappedVar = this.variable.unwrap(jsConverter.getCompContext());
+        if (unwrappedVar instanceof CompVar) {
+            return null;
+        }
         const jsIdentifier = this.variable.getJsIdentifier();
         if (this.name === this.aliasName) {
             return jsIdentifier;

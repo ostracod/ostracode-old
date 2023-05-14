@@ -42,7 +42,7 @@ export class ImportVar extends Var {
     }
     
     isExported() {
-        return this.stmt.hasExportStmt();
+        return this.stmt.hasExportedStmt();
     }
     
     getConstraintType(compContext) {
@@ -59,7 +59,7 @@ export class UnwrappedVar extends Var {
     // Concrete subclasses of UnwrappedVar must implement these methods:
     // iterateCompItems
     
-    unwrap() {
+    unwrap(compContext) {
         return this;
     }
 }
@@ -85,10 +85,6 @@ export class BuiltInCompVar extends CompVar {
         this.constraintType = constraintType;
     }
     
-    isExported() {
-        return this.stmt.hasExportStmt();
-    }
-    
     getConstraintType(compContext) {
         return this.constraintType;
     }
@@ -103,6 +99,10 @@ export class StmtCompVar extends CompVar {
     constructor(name, stmt) {
         super(name);
         this.stmt = stmt;
+    }
+    
+    isExported() {
+        return this.stmt.hasExportedStmt();
     }
     
     getConstraintType(compContext) {
@@ -149,7 +149,7 @@ export class StmtEvalVar extends EvalVar {
     }
     
     isExported() {
-        return this.stmt.hasExportStmt();
+        return this.stmt.hasExportedStmt();
     }
     
     getConstraintType(compContext) {
