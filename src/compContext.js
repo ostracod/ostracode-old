@@ -1,6 +1,7 @@
 
 import { CompilerError, UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
+import { constructors } from "./constructors.js";
 import { UnresolvedItem, UnresolvedExprItem, UnresolvedVarItem, AbsentItem } from "./item.js";
 import { CompExprSeq } from "./groupSeq.js";
 
@@ -233,5 +234,7 @@ export class CompContext {
         }
     }
 }
+
+constructors.CompContext = CompContext;
 
 

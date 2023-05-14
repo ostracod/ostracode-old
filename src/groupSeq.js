@@ -1,6 +1,5 @@
 
 import { FlowControl } from "./constants.js";
-import { constructors } from "./constructors.js";
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
@@ -258,7 +257,5 @@ export class CompExprSeq extends ExprSeq {
         return items.map((item) => jsConverter.convertItemToJs(item));
     }
 }
-
-constructors.CompExprSeq = CompExprSeq;
 
 

@@ -1,7 +1,7 @@
 
 import * as niceUtils from "./niceUtils.js";
 import { CompilerErrorThrower } from "./error.js";
-import { OstraCodeFile } from "./ostraCodeFile.js";
+import { constructors } from "./constructors.js";
 import { CompVar } from "./var.js";
 import { CompCompartment, EvalCompartment } from "./compartment.js";
 
@@ -59,7 +59,7 @@ export class Node extends CompilerErrorThrower {
     }
     
     getOstraCodeFile() {
-        return this.getParent(OstraCodeFile);
+        return this.getParent(constructors.OstraCodeFile);
     }
     
     getLineNum() {

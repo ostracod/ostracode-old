@@ -4,6 +4,7 @@ import * as pathUtils from "path";
 import { CompilerError } from "./error.js";
 import { baseImportStmt } from "./constants.js";
 import * as niceUtils from "./niceUtils.js";
+import { constructors } from "./constructors.js";
 import { Node } from "./node.js";
 import { BhvrStmtSeq } from "./groupSeq.js";
 import { BhvrPreStmt } from "./preStmt.js";
@@ -88,5 +89,7 @@ export class OstraCodeFile extends Node {
         fs.writeFileSync(this.destPath, code);
     }
 }
+
+constructors.OstraCodeFile = OstraCodeFile;
 
 
