@@ -358,17 +358,28 @@ Valid contexts:
 
 Asserts that the parent argument or field is optional.
 
-### Key Statement:
+### Key Statements:
 
 ```
 key <$anchor>
 ```
 
 Valid contexts:
-* `feature` and `featureT` specials
+
+* `feature` special
+
+Asserts that the key of the parent feature is the symbol referenced by `$anchor`. This key is used to look up feature instances within their parent objects.
+
+```
+key ($anchor)
+```
+
+Valid contexts:
+
+* `featureT` special
 * `interfaceT` special
 
-Asserts that the key of the parent feature or interface is the symbol referenced by `$anchor`. This key is used to look up feature instances within their parent objects.
+Asserts that the key of the parent feature or interface is the symbol referenced by `$anchor`.
 
 ### Self Feature Statements:
 
