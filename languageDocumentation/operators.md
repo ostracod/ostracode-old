@@ -49,7 +49,7 @@ Supose that `$bool1` and `$bool2` are expressions with type `boolT`. The type of
 
 OstraCode has the following member access operators:
 
-* `$item.$identifier` = Field of discerned feature in `$item` with name `$identifier`
+* `$item.$identifier` = Field of feature in `$item` with name `$identifier`
     * `$item` is an expression with type `itemT`
     * `$identifier` is an identifier
 * `$module@$identifier` = Member of `$module` with name `$identifier`
@@ -63,6 +63,8 @@ OstraCode has the following member access operators:
     * `$collection` is an expression with type `(*SubscriptGetT+:($subscriptType, $memberType))`
     * `$subscript` is an expression with type `$subscriptType`
     * The type of `$collection@/$subscript` is `$memberType`
+
+Suppose that `$anchor` is an expression with type `anchorT($type)`. The expression `%$anchor` dereferences the variable of `$anchor`, and has return type `$type`.
 
 OstraCode has the following type operators:
 
@@ -181,13 +183,13 @@ Creates an interface type whose field types are described by `$attrs`.
 feature [$attrs]
 ```
 
-Creates a feature value whose fields are described by `$attrs`. The output feature has a discerned type.
+Creates a feature value whose fields are described by `$attrs`.
 
 ```
 featureT [$attrs]
 ```
 
-Creates a feature type whose field types are described by `$attrs`. The output type is not discerned.
+Creates a feature type whose field types are described by `$attrs`.
 
 ### Bundle Specials:
 
@@ -231,14 +233,6 @@ genericT [$attrs] ($type)
 
 Returns `$type` as a generic type which may be qualified with arguments described by `$attrs`. The argument variables are evaltime with respect to `$item`.
 
-### Discern Special:
-
-```
-discern ($feature)
-```
-
-Accepts feature value `$feature`, and returns the same feature with a discerned type.
-
 ### Module Special:
 
 ```
@@ -246,5 +240,13 @@ moduleT [$attrs]
 ```
 
 Creates a module type whose member types are described by `$attrs`.
+
+### Anchor Special:
+
+```
+anchorT ($type)
+```
+
+Creates an anchor type whose variable type is `$type`. If `($type)` is excluded, the type of the variable is `itemT`.
 
 

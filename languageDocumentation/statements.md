@@ -313,14 +313,14 @@ Valid contexts:
 Declares a field with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the field will be the type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the field will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the field will be `itemT`.
 
 ```
-($name) <$type> [$attrs] = ($initItem)
+($key) <$type> [$attrs] = ($initItem)
 ```
 
 Valid contexts:
 
 * `fields` statement in `dict` special
 
-Declares a dictionary field whose name is the string returned by `$name`, and otherwise uses the same rules as described above.
+Declares a dictionary field whose key is the string or symbol returned by `$key`, and otherwise uses the same rules as described above.
 
 ```
 $name ($type) [$attrs]
@@ -336,14 +336,14 @@ Valid contexts:
 Declares a field with name identifier `$name` and constraint type `$type`. If `($type)` is excluded, then the constraint type of the field will be `itemT`.
 
 ```
-($name) ($type) [$attrs]
+($key) ($type) [$attrs]
 ```
 
 Valid contexts:
 
 * `fields` statement in `dictT` special
 
-Declares a dictionary field whose name is the string returned by `$name`, and otherwise uses the same rules as described above.
+Declares a dictionary field whose key is the string or symbol returned by `$key`, and otherwise uses the same rules as described above.
 
 ### Optional Statement:
 
@@ -357,6 +357,18 @@ Valid contexts:
 * Field statement in `dict` or `dictT` special
 
 Asserts that the parent argument or field is optional.
+
+### Key Statement:
+
+```
+key <$anchor>
+```
+
+Valid contexts:
+* `feature` and `featureT` specials
+* `interfaceT` special
+
+Asserts that the key of the parent feature or interface is the symbol referenced by `$anchor`. This key is used to look up feature instances within their parent objects.
 
 ### Self Feature Statements:
 

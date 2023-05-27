@@ -18,7 +18,7 @@ In an analagous fashion, each variable is also associated with a time grade. A v
 * Comptime variables store items which are known before evaluation of their parent block.
 * Evaltime variables store items which are only known during evaluation of their parent block.
 
-Note that an expression may not reference an evaltime variable if the expression is comptime with respect to the variable.
+Note that an expression may not access an evaltime variable if the expression is comptime with respect to the variable.
 
 ## Data Types
 
@@ -40,6 +40,7 @@ OstraCode has the following data types:
 * `featureT` is the type of a feature. A feature defines fields and methods, and may implement an interface.
 * `bundleT` is the type of a bundle. A bundle contains one or more features.
 * `objT` is the type of an object. An object contains one or more feature instances.
+* `anchorT` is the type of an anchor. See the section below for an explanation of anchors.
 * `moduleT` is the type of a code file. A module may export one or more variables.
 
 Data types may be categorized into the following supertypes:
@@ -52,5 +53,16 @@ Data types may be categorized into the following supertypes:
 * `genericT` is the type of an item which may be qualified with one or more arguments.
 
 Note that evaltime variables can store items with type `typeT` even at runtime. This allows applications to manipulate types which are not known during compilation.
+
+## Anchors
+
+An anchor is a value which holds a reference to an evaltime variable. When dereferenced, an anchor may be used to read or write the associated variable. The purpose of anchors is to allow comptime expressions to hold a notion of an evaltime variable without actually accessing the variable. Anchors may be passed between comptime expressions, and then transferred to evaltime so that they may be dereferenced.
+
+Anchors have the following restrictions:
+
+* Anchors may only reference variables created with the `const` and `mutable` statements.
+* When creating an anchor, the associated variable must be visible in the current scope.
+* When transferring an anchor from comptime to evaltime, the referenced variable must be visible in the current scope, or the variable must be importable by the current module.
+* An anchor may only be dereferenced in an expression which is evaltime with respect to the associated variable.
 
 

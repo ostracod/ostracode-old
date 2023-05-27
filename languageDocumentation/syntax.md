@@ -41,13 +41,15 @@ The bracket delimiters used in an expression sequence determine the following pr
 
 * The time grade of expressions in the expression sequence
 * The return items of the expression sequence
+* The time grade at which the return items are known
 
 OstraCode includes the following expression sequence bracket delimeters:
 
-* `(` and `)` enclose evaltime expressions, and return the items returned by the expressions.
-* `(*` and `)` enclose an evaltime expression, and return an item type whose factor type is the item returned by the expression.
-* `<` and `>` enclose comptime expressions, and return the items returned by the expressions.
-* `<?` and `>` enclose nevertime expressions, and return the constraint types of the expressions.
+* `(` and `)` enclose evaltime expressions, and return the items returned by the expressions. The return items are known at evaltime.
+* `(*` and `)` enclose evaltime expressions, and return item types whose factor types are the items returned by the expressions. The return items are known at evaltime.
+* `<` and `>` enclose comptime expressions, and return the items returned by the expressions. The return items are known at comptime.
+* `<?` and `>` enclose nevertime expressions, and return the constraint types of the expressions. The return items are known at comptime.
+* `<@` and `>` enclose variable identifiers, and return anchors which reference the variables. The return items are known at comptime.
 * `<*$expr>` is equivalent to `<(*$expr)>`.
 * `<*?$expr>` is equivalent to `<*<?$expr>>`.
 
@@ -58,6 +60,7 @@ Bracket delimiters follow the compatibility rules below:
 * `(*` and `)` may be used in any context which accepts `(` and `)`.
 * `<` and `>` may be used in any context which accepts `(` and `)`.
 * `<?` and `>` may be used in any context which accepts `<` and `>`.
+* `<@` and `>` may be used in any context which accepts `<` and `>`.
 
 ## Statement Syntax
 
