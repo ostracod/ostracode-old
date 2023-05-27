@@ -31,8 +31,9 @@ OstraCode has the following data types:
 * `boolT` is the type of a boolean value. A boolean value is either true or false.
 * `numT` is the type of a number. Every number is a double-precision floating-point number.
 * `strT` is the type of a string. A string stores a sequence of characters.
+* `symbolT` is the type of a symbol. Symbols act as keys which are guaranteed to be unique.
 * `listT` is the type of a list. A list stores a sequence of items.
-* `dictT` is the type of a dictionary. A dictionary stores a map from string key to item.
+* `dictT` is the type of a dictionary. A dictionary stores a map from string or symbol to item.
 * `funcT` is the type of a function. A function accepts argument items and return an item.
 * `methodT` is the type of a method. A method behaves like a function, but references an object for behavior context.
 * `interfaceT` is the type of an interface. An interface defines field types and method signatures.

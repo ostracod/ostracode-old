@@ -58,6 +58,25 @@ while (true) {
 (print(nums))
 ```
 
+The example below demonstrates usage of symbols:
+
+```
+const symbolA = (symbol())
+const symbolB = (symbolA)
+const symbolC = (symbol())
+
+// Prints "true", because `symbolB` holds the same symbol as `symbolA`.
+(print(symbolA #eq symbolB))
+// Prints "false", because `symbolA` and `symbolC` hold the output
+// of different `symbol()` invocations.
+(print(symbolA #eq symbolC))
+// Prints "false".
+(print(symbolB #eq symbolC))
+// Prints "false", because the names assigned to symbols do not
+// affect whether the symbols are equal to each other.
+(print(symbol("test") #eq symbol("test"))
+```
+
 ## Type Wrangling
 
 The example below declares a function which creates dictionary types:

@@ -11,7 +11,7 @@ OstraCode includes the following built-in constants:
 * `null` = Null value
 * `true` = True boolean value
 * `false` = False boolean value
-* `itemT`, `typeT`, `valueT`, `missingT`, `undefT`, `nullT`, `boolT`, `numT`, `strT`, and `factorT` = Types as described earlier in this documentation
+* `itemT`, `typeT`, `valueT`, `missingT`, `undefT`, `nullT`, `boolT`, `numT`, `strT`, `symbolT`, and `factorT` = Types as described earlier in this documentation
 * `this` = Current object whose factor type is specified by the `thisFactor` statement
 * `self` = Current object whose factor type is the parent feature type
 * `configConstants` = Dictionary determined by compilation rules in `ostraConfig.json`.
@@ -21,6 +21,7 @@ OstraCode includes the following built-in constants:
 OstraCode has the following built-in functions:
 
 * `print($item)` prints item `$item` to standard output.
+* `symbol($name)` creates a new symbol. Every symbol is globally unique. `$name` is optional, and must be a string if provided. `$name` is used in the `toString` representation of the symbol, but otherwise does not affect the uniqueness of the symbol.
 * `getType($item)` returns the type of item `$item` known at evaltime.
     * If the type of `$item` conforms to `typeT`, `getType` returns the type of the type.
     * If the type of `$item` conforms to `valueT`, `getType` may return a type which is less specific than the type known at comptime.
