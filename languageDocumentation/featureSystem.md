@@ -5,10 +5,14 @@ This page documents the feature system in OstraCode.
 
 ## Features and Interfaces
 
-Every object in OstraCode includes one or more "features". A feature defines fields which may be accessed from the parent object. Fields declared in `itemFields` are stored in each instance of the object. Fields declared in `sharedFields` are shared between all objects which include the feature. The example below declares a feature and creates two objects which include the feature:
+Every object in OstraCode includes one or more "features". A feature defines fields which may be accessed from the parent object. Fields declared in `itemFields` are stored in each instance of the object. Fields declared in `sharedFields` are shared between all objects which include the feature. Each feature must define a symbol "key" so that the compiler knows how to access different features in the same object. The example below declares a feature and creates two objects which include the feature:
 
 ```
+// Define the symbol key which identifies `MyFeature`.
+const MyFeatureK = (symbol())
+// Define the feature `MyFeature`.
 const MyFeature = (feature [
+    key <@MyFeatureK>
     itemFields [
         myItemField <strT> [public]
     ]
@@ -17,7 +21,7 @@ const MyFeature = (feature [
     ]
 ])
 
-// Creates two objects which includes `MyFeature`.
+// Creates two objects which include `MyFeature`.
 const myObj1 = (obj (MyFeature))
 const myObj2 = (obj (MyFeature))
 
@@ -41,7 +45,9 @@ const myObj2 = (obj (MyFeature))
 Feature fields can store methods which manipulate other fields in the parent object. When a method is invoked, `self` becomes bound to the instance of the parent object. The example below demonstrates usage of methods:
 
 ```
+const CounterK = (symbol())
 const Counter = (feature [
+    key <@CounterK>
     itemFields [
         count <numT> [public] = (0)
     ]
@@ -59,18 +65,22 @@ const myCounter = (obj (Counter))
 (print(myCounter.count))
 ```
 
-An "interface" defines field types without providing default values. Every feature may implement a single interface. Features which implement the same interface may be used interchangeably. The example below declares two features which implement the same interface:
+An "interface" defines field types without providing default values. Every feature may implement a single interface. Features which implement the same interface may be used interchangeably. Interfaces must specify a symbol key in the same manner as features. The example below declares two features which implement the same interface:
 
 ```
 // Declares an interface with one method.
+const SpeakK = (symbol())
 comp SpeakT = <interfaceT [
+    key <@SpeakK>
     sharedFields [
         speak (methodT [returns (strT)]) [publicGet]
     ]
 ]>
 
 // Declares a feature which implements `SpeakT`.
+const DogSpeakK = (symbol())
 const DogSpeak = (feature [
+    key <@DogSpeakK>
     implements <SpeakT>
     sharedFields [
         speak [publicGet] = (method [returns <strT>] {
@@ -80,7 +90,9 @@ const DogSpeak = (feature [
 ])
 
 // Declares another feature which implements `SpeakT`.
+const CatSpeakK = (symbol())
 const CatSpeak = (feature [
+    key <@CatSpeakK>
     implements <SpeakT>
     sharedFields [
         speak [publicGet] = (method [returns <strT>] {
@@ -102,10 +114,12 @@ mutable mySpeaker <*SpeakT>
 (print(mySpeaker.speak())
 ```
 
-Unlike TypeScript, OstraCode enforces nominal typing for interfaces and features. The example below demonstrates how structural compatibility does not suffice for type compatibility:
+If a feature does not implement an interface, the feature cannot be used in a context which requires the interface, even if the feature defines the same fields as the interface. In a similar fashion, two features with different keys cannot be used interchangeably, even if they define the same fields. The example below demonstrates how structural compatibility does not suffice for type compatibility:
 
 ```
+const SizeK = (symbol())
 comp SizeT = <interfaceT [
+    key <@SizeK>
     itemFields [
         size (numT) [public]
     ]
@@ -114,13 +128,17 @@ comp SizeT = <interfaceT [
 // Note how `CargoSize` and `ShirtSize` do not have
 // `implements` statements.
 
+const CargoSizeK = (symbol())
 const CargoSize = (feature [
+    key <@CargoSizeK>
     itemFields [
         size <numT> [public]
     ]
 ])
 
+const ShirtSizeK = (symbol())
 const ShirtSize = (feature [
+    key <@ShirtSizeK>
     itemFields [
         size <numT> [public]
     ]
@@ -140,7 +158,7 @@ const myCargo <*?CargoSize> = (obj (CargoSize))
 const myShirt <*?ShirtSize> = (obj (CargoSize))
 ```
 
-In order to access fields of a feature, the feature must have a "discerned" type. The output of the `feature` special always has a discerned type, but the output of the `featureT` special is not a discerned type. The `discern` special helps in the case when a feature does not have a discerned type. The `discern` special accepts a feature, and returns the same feature with a discerned type. The example below demonstrates usage of the `discern` special:
+In order to access fields of a feature, the feature must have a known symbol key. A feature type is said to be "discerned" if it specifies a symbol key. The `discern` special helps in the case when a feature does not have a discerned type. The `discern` special accepts a feature, and returns the same feature with a discerned type. The example below demonstrates usage of the `discern` special:
 
 ```
 // The output of `createCoinFeature` has a constraint type
@@ -151,6 +169,8 @@ const createCoinFeature = (func [
         flip (methodT [returns (boolT)]) [publicGet]
     ]]>
 ] {
+    // When the `feature` special does not have a `key` statement,
+    // the special will create a new symbol to use as the key.
     return (feature [sharedFields [
         flip [publicGet] = (method [returns <boolT>] {
             return (mathUtils@random() < probability)
@@ -160,8 +180,9 @@ const createCoinFeature = (func [
 
 // `AmbiguousCoin` does not have a discerned type.
 const AmbiguousCoin = (createCoinFeature(0.7))
+mutable DiscernedCoinK <symbolT>
 // `DiscernedCoin` has a discerned type.
-const DiscernedCoin = (discern (AmbiguousCoin))
+const DiscernedCoin = (discern (AmbiguousCoin) <@DiscernedCoinK>)
 const coin1 = (obj (AmbiguousCoin))
 const coin2 = (obj (DiscernedCoin))
 // Throws a compile-time error, because the feature of `coin1`
@@ -176,7 +197,9 @@ const coin2 = (obj (DiscernedCoin))
 A "bundle" is a data structure which can group several features together. When an object includes a bundle, the fields of all features in the bundle belong to the object. Fields may be selected from individual features by casting the object to a type. The example below declares a bundle and creates an object which includes the bundle:
 
 ```
+const AddFiveK = (symbol())
 const AddFive = (feature [
+    key <@AddFiveK>
     sharedFields [
         addFive [publicGet] = (method [
             args [num <numT>]
@@ -187,7 +210,9 @@ const AddFive = (feature [
     ]
 ])
 
+const NameableK = (symbol())
 const Nameable = (feature [
+    key <@NameableK>
     itemFields [
         name <strT> [public]
     ]
@@ -210,15 +235,21 @@ const myObj = (obj (MyBundle))
 Features and bundles are both considered to be "factors". A bundle contains one or more factors, which means that a bundle may store features, other bundles, or a mixture of features and bundles. The example below declares a bundle which contains another bundle:
 
 ```
-const AFeature = (feature [itemFields [
-    a <numT> [public] = (10)
-]])
-const BFeature = (feature [itemFields [
-    b <numT> [public] = (20)
-]])
-const CFeature = (feature [itemFields [
-    c <numT> [public] = (30)
-]])
+const AFeatureK = (symbol())
+const AFeature = (feature [
+    key <@AFeatureK>
+    itemFields [a <numT> [public] = (10)]
+])
+const BFeatureK = (symbol())
+const BFeature = (feature [
+    key <@BFeatureK>
+    itemFields [b <numT> [public] = (20)]
+])
+const CFeatureK = (symbol())
+const CFeature = (feature [
+    key <@CFeatureK>
+    itemFields [c <numT> [public] = (30)]
+])
 
 const BcBundle = (bundle [factors [(BFeature), (CFeature)]])
 
@@ -235,31 +266,39 @@ const myAbc = (obj (AbcBundle))
 Every factor field is associated with an integer "visiblity". A field is only visible from the member access operator (`.`) if the field's visibility is greater than zero. By default, the visibility of every field is 1, but a different visibility may be specified with the `vis` statement. When a factor is included in a bundle, the visibility of all factor fields is decreased by 1. In order to be visible in the bundle, the factor fields must specifiy visibility 2 or higher. The example below demonstrates usage of visibility:
 
 ```
-const IsBig = (feature [sharedFields [
-    isBig [publicGet, vis <2>] = (method [
-        args [value <numT>]
-        returns <boolT>
-    ] {
-        return (value #gt 100)
-    })
-]])
+const IsBigK = (symbol())
+const IsBig = (feature [
+    key <@IsBigK>
+    sharedFields [
+        isBig [publicGet, vis <2>] = (method [
+            args [value <numT>]
+            returns <boolT>
+        ] {
+            return (value #gt 100)
+        })
+    ]
+])
 
-const IsSmall = (feature [sharedFields [
-    isSmall [publicGet, vis <2>] = (method [
-        args [value <numT>]
-        returns <boolT>
-    ] {
-        return (value #lt 0.1)
-    })
-    // The visibility of `isTiny` is 1, because 1 is the default
-    // visibility when a `vis` statement is not provided.
-    isTiny [publicGet] = (method [
-        args [value <numT>]
-        returns <boolT>
-    ] {
-        return (value #lt 0.001)
-    })
-]])
+const IsSmallK = (symbol())
+const IsSmall = (feature [
+    key <@IsSmallK>
+    sharedFields [
+        isSmall [publicGet, vis <2>] = (method [
+            args [value <numT>]
+            returns <boolT>
+        ] {
+            return (value #lt 0.1)
+        })
+        // The visibility of `isTiny` is 1, because 1 is the default
+        // visibility when a `vis` statement is not provided.
+        isTiny [publicGet] = (method [
+            args [value <numT>]
+            returns <boolT>
+        ] {
+            return (value #lt 0.001)
+        })
+    ]
+])
 
 // Within the `SizeCheck` bundle, `isBig` and `isSmall` have
 // visibility 1, while `isTiny` has visibility 0.
@@ -283,12 +322,16 @@ print(sizeChecker:<*?IsSmall>.isTiny(1000))
 In certain cases, it may be desirable to decrease factor visibility in a bundle by a different amount than 1. The `shield` statement may be used to decrease factor visibility by a custom amount. The example below demonstrates usage of the `shield` statement:
 
 ```
-const Age = (feature [itemFields [
-    age <numT> [public]
-]])
-const Height = (feature [itemFields [
-    height <numT> [public]
-]])
+const AgeK = (symbol())
+const Age = (feature [
+    key <@AgeK>
+    itemFields [age <numT> [public]]
+])
+const HeightK = (symbol())
+const Height = (feature [
+    key <@HeightK>
+    itemFields [height <numT> [public]]
+])
 
 // Within the `Profile` bundle, the visibility of `age` is 1,
 // while the visibility of `height` is 0.
@@ -314,17 +357,25 @@ const myProfile = (obj (Profile))
 A "name collision" occurs when two fields with the same name are visible in a bundle. The compiler will throw an error when trying to access a field with a name collision. Effective management of field visibility can prevent this issue. The example below demonstrates a name collision:
 
 ```
-const VideoManager = (feature [sharedFields [
-    play [publicGet, vis <2>] = (method {
-        (print("I will play the video!"))
-    })
-]])
+const VideoManagerK = (symbol())
+const VideoManager = (feature [
+    key <@VideoManagerK>
+    sharedFields [
+        play [publicGet, vis <2>] = (method {
+            (print("I will play the video!"))
+        })
+    ]
+])
 
-const Athlete = (feature [sharedFields [
-    play [publicGet] = (method {
-        (print("I will play the sportsball!"))
-    })
-]])
+const AthleteK = (symbol())
+const Athlete = (feature [
+    key <@AthleteK>
+    sharedFields [
+        play [publicGet] = (method {
+            (print("I will play the sportsball!"))
+        })
+    ]
+])
 
 const steve = (obj (bundle [
     factors [(VideoManager), (Athlete) [shield <0>]]
@@ -343,13 +394,17 @@ const steve = (obj (bundle [
 The `thisFactor` statement determines the type of `this` when referenced in a method. By using the `thisFactor` statement, factors within the same bundle may interact with each other. The example below demonstrates usage of the `thisFactor` statement:
 
 ```
+const CountK = (symbol())
 const Count = (feature [
+    key <@CountK>
     itemFields [
         count <numT> [public, vis <2>] = (0)
     ]
 ])
 
+const IncrementK = (symbol())
 const Increment = (feature [
+    key <@IncrementK>
     // The type of `this` in methods of `Increment` will
     // be `objT <?CountT>`.
     thisFactor <?Count>
@@ -370,7 +425,9 @@ const counter = (obj (bundle [
 A `thisFactor` statement is "unresolved" when the feature is not included in a bundle with the required factor. The compiler will throw an error when creating an object with an unresolved `thisFactor` statement. The example below demonstrates an unresolved `thisFactor` statement:
 
 ```
+const CreateGreetingK = (symbol())
 const CreateGreeting = (feature [
+    key <@CreateGreetingK>
     sharedFields [
         createGreeting [publicGet] = (method [
             args [name <strT>]
@@ -381,7 +438,9 @@ const CreateGreeting = (feature [
     ]
 ])
 
+const GreetWorldK = (symbol())
 const GreetWorld = (feature [
+    key <@GreetWorldK>
     thisFactor <?CreateGreeting>
     sharedFields [
         greetWorld [publicGet] = (method {
@@ -402,13 +461,17 @@ const goodGreeter = (obj (bundle [
 When referenced in a method, the type of `self` is determined by the feature in which the method is defined. Unlike `this`, the type of `self` cannot be changed with an attribute statement. `self` is used to access fields of the parent feature. The example below demonstrates usage of `self`:
 
 ```
+const IsActiveK = (symbol())
 const IsActive = (feature [
+    key <@IsActiveK>
     itemFields [
         isActive <boolT> [public] = (false)
     ]
 ])
 
+const ToggleK = (symbol())
 const Toggle = (feature [
+    key <@ToggleK>
     thisFactor <?IsActive>
     itemFields [
         toggleCount <numT> [public] = (0)
@@ -441,7 +504,9 @@ const toggler = (obj (bundle [
 The `publicGet`, `protectedGet`, and `privateGet` statements determine the contexts in which feature fields may be read. Public fields have no access restrictions. Protected fields may only be accessed by methods belonging to the same object. Private fields may only be accessed by methods which are defined in the same feature. The default read permission is `privateGet` when no permission statement is provided. The example below demonstrates usage of permission statements:
 
 ```
+const UserK = (symbol())
 const User = (feature [sharedFields [
+    key <@UserK>
     getName [publicGet, vis<2>] = (method [
         returns <strT>
     ] {
@@ -466,7 +531,9 @@ const User = (feature [sharedFields [
     })
 ]])
 
+const CitizenToolsK = (symbol())
 const CitizenTools = (feature [sharedFields [
+    key <@CitizenToolsK>
     thisFactor <?User>
     getWarning [publicGet] = (method [returns <strT>] {
         // Does not throw a compile-time error, because
@@ -503,7 +570,9 @@ const citizen = (obj (bundle [
 Fields may specify write permission by using the `publicSet`, `protectedSet`, `privateSet`, and `forbiddenSet` statements. When a field has the `forbiddenSet` statement, it is unable to be modified after initialization. The default write permission is `privateSet` within `itemFields`, and `forbiddenSet` within `sharedFields`. The example below demonstrates usage of write permission statements:
 
 ```
+const TransferK = (symbol())
 const Transfer = (feature [
+    key <@TransferK>
     itemFields [
         source <numT> [privateGet, publicSet]
         dest <numT> [publicGet, privateSet]
@@ -534,7 +603,9 @@ const myExchange = (obj (Transfer))
 For convenience, read and write permissions may be specified together by using the `public`, `protected`, and `private` statements. The example below demonstrates usage of these permission statements:
 
 ```
+const DualCounterK = (symbol())
 const DualCounter = (feature [
+    key <@DualCounterK>
     itemFields [
         hiddenCount <numT> [private] = (0)
         exposedCount <numT> [public] = (0)
@@ -570,11 +641,13 @@ const dualCounter = (obj (DualCounter))
 A generic factor may be "qualified" with one or more arguments. Field types and method signatures may reference the generic arguments. Generic factors may be created by using the `generic` special. The example below demonstrates usage of generic factors:
 
 ```
+const ListNodeK = (symbol())
 // `ListNode` may be qualified with an argument named
 // `contentT`, whose constraint type is `typeT`.
 const ListNode = (generic [
     args [contentT <typeT>]
 ] (feature [
+    key <@ListNodeK>
     itemFields [
         // The constraint type of `content` is equal to the
         // generic argument `contentT`.

@@ -249,4 +249,12 @@ anchorT ($type)
 
 Creates an anchor type whose variable type is `$type`. If `($type)` is excluded, the type of the variable is `itemT`.
 
+### Discern Special:
+
+```
+discern ($feature) <$anchor>
+```
+
+Reads the symbol key of feature value `$feature`, and stores the symbol in the variable referenced by `$anchor`. Returns the same feature, but whose type uses `$anchor` to reference the symbol key.
+
 

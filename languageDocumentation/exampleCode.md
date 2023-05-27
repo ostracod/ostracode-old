@@ -77,6 +77,31 @@ const symbolC = (symbol())
 (print(symbol("test") #eq symbol("test"))
 ```
 
+The example below demonstrates usage of anchors:
+
+```
+mutable myVar = (111)
+// `anchor1` holds a reference to `myVar` at comptime.
+comp anchor1 = <@myVar>
+// Anchors can be passed in comptime expressions.
+comp anchor2 = <anchor1>
+// Transfer `anchor2` from comptime to evaltime.
+const anchor3 = (anchor2)
+
+// Prints "111", which is the value stored in `myVar`.
+(print(%anchor3))
+// Modify the variable referenced by `anchor3`. This
+// changes the value stored in `myVar`.
+(%anchor3 = 222)
+// Prints "222".
+(print(%anchor3))
+// Also prints "222".
+(print(myVar))
+// Throws a compile-time error, because the expression
+// `%anchor1` is comptime with respect to `myVar`.
+comp result = <%anchor1>
+```
+
 ## Type Wrangling
 
 The example below declares a function which creates dictionary types:
