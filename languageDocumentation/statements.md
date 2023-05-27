@@ -22,7 +22,7 @@ const $name <$type> [$attrs] = ($initItem)
 Declares an immutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the type of `$initItem`.
 
 ```
-var $name <$type> [$attrs] = ($initItem)
+mutable $name <$type> [$attrs] = ($initItem)
 ```
 
 Declares a mutable evaltime variable with name identifier `$name`, constraint type `$type`, and initialization item `$initItem`. If `<$type>` is excluded, then the constraint type of the variable will be the type of `$initItem`. If `= ($initItem)` is excluded, then the initial item of the variable will be `undef`. If both `<$type>` and `= ($initItem)` are excluded, then the constraint type of the variable will be `itemT`.

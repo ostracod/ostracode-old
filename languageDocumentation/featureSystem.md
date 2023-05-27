@@ -91,7 +91,7 @@ const CatSpeak = (feature [
 
 // `mySpeaker` can store any object which includes a feature
 // that implements `SpeakT`.
-var mySpeaker <*SpeakT>
+mutable mySpeaker <*SpeakT>
 // Assign an object which includes the `DogSpeak` feature.
 (mySpeaker = obj (DogSpeak))
 // Prints "Woof!".

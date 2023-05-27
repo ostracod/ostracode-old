@@ -476,7 +476,7 @@ export class ImportPackageStmt extends ImportStmt {
 export const bhvrStmtConstructors = {
     comp: CompVarStmt,
     const: ImmutEvalVarStmt,
-    var: MutEvalVarStmt,
+    mutable: MutEvalVarStmt,
     if: IfStmt,
     while: WhileStmt,
     for: ForStmt,

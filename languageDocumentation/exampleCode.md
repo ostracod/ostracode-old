@@ -12,7 +12,7 @@ const isPrime = (func [
     args [value <numT>]
     returns <boolT>
 ] {
-    var factor = (2)
+    mutable factor = (2)
     while (factor #lt value) {
         if (value % factor #eq 0) {
             return (false)
@@ -22,7 +22,7 @@ const isPrime = (func [
     return (true)
 })
 
-var value = (2)
+mutable value = (2)
 while (value #lte 100) {
     if (isPrime(value)) {
         (print(value))
@@ -38,8 +38,8 @@ const nums = (list (30, 15, 18, 3, 20))
 (print(nums))
 
 while (true) {
-    var isSorted = (true)
-    var index = (1)
+    mutable isSorted = (true)
+    mutable index = (1)
     while (index #lt nums.length) {
         const num1 = (nums@/(index - 1))
         const num2 = (nums@/index)
@@ -119,7 +119,7 @@ const myNum2 <myNumT> = (123:<myNumT>)
 The example below demonstrates type checking at runtime:
 
 ```
-var myType <typeT>
+mutable myType <typeT>
 if (mathUtils@random() > 0.5) {
     (myType = numT)
 } else {
