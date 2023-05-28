@@ -1,5 +1,6 @@
 
-import { FlowControl } from "./constants.js";
+import { ExprSeqSelector, FlowControl } from "./constants.js";
+import { constructors } from "./constructors.js";
 import { Node } from "./node.js";
 import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
@@ -167,22 +168,29 @@ export class EvalExprSeq extends ExprSeq {
 }
 
 // CompExprSeq = Comptime expression sequence
-// Represents `<...>`, `<?...>`, `<*...>`, and `<*?...>``.
+// Represents `<...>`, `<?...>`, `<*...>`, `<*?...>`, and `<@...>`.
 export class CompExprSeq extends ExprSeq {
     
-    constructor(hasFactorType, useConstraintTypes, exprs) {
+    constructor(hasFactorType, exprSeqSelector, exprs) {
         super(hasFactorType, exprs);
-        this.useConstraintTypes = useConstraintTypes;
+        this.exprSeqSelector = exprSeqSelector;
     }
     
     resolveCompItem(compContext, expr) {
         expr.validateTypes(compContext);
         // TODO: Use `hasFactorType`.
-        if (this.useConstraintTypes) {
-            return expr.getConstraintType(compContext);
-        } else {
+        if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
             const evalContext = new EvalContext({ compContext, node: this });
             return expr.evaluateToItem(evalContext);
+        } else if (this.exprSeqSelector === ExprSeqSelector.ConstraintTypes) {
+            return expr.getConstraintType(compContext);
+        } else if (this.exprSeqSelector === ExprSeqSelector.Anchors) {
+            if (!(expr instanceof constructors.IdentifierExpr)) {
+                this.throwError("Anchor expression sequences only accept variable identifiers.");
+            }
+            return expr.getNonNullVar().createAnchor();
+        } else {
+            throw new Error(`Unsupported expression sequence selector "${this.exprSeqSelector.description}".`);
         }
     }
     

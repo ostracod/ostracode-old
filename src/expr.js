@@ -1,5 +1,6 @@
 
 import * as compUtils from "./compUtils.js";
+import { constructors } from "./constructors.js";
 import { ResolvedGroup } from "./group.js";
 import { NumType, StrType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
@@ -139,6 +140,8 @@ export class IdentifierExpr extends SingleComponentExpr {
         return jsConverter.convertVarToRefJs(this.getNonNullVar());
     }
 }
+
+constructors.IdentifierExpr = IdentifierExpr;
 
 export class OperatorExpr extends Expr {
     

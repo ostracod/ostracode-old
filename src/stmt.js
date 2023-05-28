@@ -12,6 +12,7 @@ import { Package } from "./package.js";
 import { SpecialExpr, GenericExpr } from "./specialExpr.js";
 import { UnknownItem, AbsentItem } from "./item.js";
 import { ItemType, TypeType } from "./itemType.js";
+import { Anchor } from "./anchor.js";
 
 const initItemName = "initialization item";
 
@@ -166,6 +167,10 @@ export class EvalVarStmt extends VarStmt {
         if (this.initItemExprSeq !== null) {
             this.initItemExprSeq.iterateCompItems(compContext, handle);
         }
+    }
+    
+    createAnchor() {
+        return new Anchor(this.variable);
     }
     
     convertToJs(jsConverter) {

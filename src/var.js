@@ -1,5 +1,7 @@
 
 import * as compUtils from "./compUtils.js";
+import { CompilerError } from "./error.js";
+import { EvalVarStmt } from "./stmt.js";
 
 export class Var {
     // Concrete subclasses of Var must implement these methods:
@@ -11,6 +13,10 @@ export class Var {
     
     isExported() {
         return false;
+    }
+    
+    createAnchor() {
+        throw new CompilerError("Anchors may only reference variables created by `const` or `mutable` statements.");
     }
     
     getJsIdentifier() {
@@ -152,6 +158,13 @@ export class StmtEvalVar extends EvalVar {
     
     getConstraintType(compContext) {
         return this.stmt.getConstraintType(compContext);
+    }
+    
+    createAnchor() {
+        if (this.stmt instanceof EvalVarStmt) {
+            return this.stmt.createAnchor();
+        }
+        return super.createAnchor();
     }
 }
 
