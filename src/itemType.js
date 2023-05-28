@@ -4,14 +4,6 @@ import { constructors } from "./constructors.js";
 import { Item, AbsentItem } from "./item.js";
 import { GenericQualification } from "./qualification.js";
 
-let nextTypeId = 0;
-
-export const createTypeId = () => {
-    const output = nextTypeId;
-    nextTypeId += 1;
-    return output;
-};
-
 const copyType = (type) => {
     if (type instanceof ItemType) {
         return type.copy();

@@ -30,10 +30,6 @@ export class IdentifierOperator extends Operator {
         super(text);
         identifierOperatorMap.set(this.text, this);
     }
-    
-    buildClosureContext(destContext, srcContext, expr, name) {
-        // Do nothing.
-    }
 }
 
 export class FeatureFieldOperator extends IdentifierOperator {
@@ -42,17 +38,6 @@ export class FeatureFieldOperator extends IdentifierOperator {
     
     constructor() {
         super(".");
-    }
-    
-    buildClosureContext(destContext, srcContext, expr, name) {
-        const type = expr.getConstraintType(srcContext.compContext);
-        if (type instanceof ObjType) {
-            const discerner = type.factorType.getDiscerner(name);
-            const content = srcContext.getCompartmentContent(discerner);
-            if (content !== null) {
-                destContext.addCompartmentContent(content);
-            }
-        }
     }
     
     perform(evalContext, expr, name) {
@@ -68,9 +53,8 @@ export class FeatureFieldOperator extends IdentifierOperator {
     convertToJs(expr, name, jsConverter) {
         const type = expr.getConstraintType(jsConverter.getCompContext());
         if (type instanceof ObjType) {
-            const discerner = type.factorType.getDiscerner(name);
-            const compartment = expr.getCompartment(discerner);
-            return `${expr.convertToJs(jsConverter)}[${compartment.convertToJs(jsConverter)}].${compUtils.getJsIdentifier(name)}`;
+            throw new Error("Object member access is not yet implemented.");
+            //return `${expr.convertToJs(jsConverter)}[${...}].${compUtils.getJsIdentifier(name)}`;
         } else {
             throw new Error("Item member access is not yet implemented.");
         }

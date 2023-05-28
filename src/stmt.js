@@ -9,7 +9,7 @@ import { ResolvedGroup } from "./group.js";
 import { StmtParser } from "./groupParser.js";
 import { CompVar, StmtCompVar, StmtEvalVar, ImportVar } from "./var.js";
 import { Package } from "./package.js";
-import { SpecialExpr, FeatureExpr, GenericExpr } from "./specialExpr.js";
+import { SpecialExpr, GenericExpr } from "./specialExpr.js";
 import { UnknownItem, AbsentItem } from "./item.js";
 import { ItemType, TypeType } from "./itemType.js";
 
@@ -450,7 +450,7 @@ export class ImportPathStmt extends ImportStmt {
                 return ostraCodeFile;
             }
         }
-        this.throwError(`Could not find source file with path "${path}".`);
+        this.throwError(`Could not find source file with path "${srcPath}".`);
     }
     
     getJsSpecifier(compContext) {
@@ -578,10 +578,6 @@ export class ArgStmt extends ChildAttrStmt {
         this.variable = null;
     }
     
-    overrideChildCompartments(child) {
-        return (child === this.defaultItemExprSeq);
-    }
-    
     getChildVar() {
         if (this.variable === null) {
             const parentSpecial = this.getParent(SpecialExpr);
@@ -662,11 +658,6 @@ export class FieldStmt extends ChildAttrStmt {
             parser.readEqualSign();
             this.initItemExprSeq = parser.readExprSeq("init item");
         }
-    }
-    
-    overrideChildCompartments(child) {
-        return (child === this.initItemExprSeq
-            && this.getParent(SpecialExpr) instanceof FeatureExpr);
     }
     
     getJsIdentifier() {

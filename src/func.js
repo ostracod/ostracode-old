@@ -134,11 +134,8 @@ export class BoundCustomMethod extends CustomMethod {
     
     getParentContext() {
         const { methodExpr } = this.unboundMethod;
-        const featureExpr = methodExpr.getFeatureExpr();
-        const compartment = featureExpr.getDiscernerCompartment();
         const output = new EvalContext({ parent: super.getParentContext() });
         output.addVar(methodExpr.selfVar, this.featureInstance.obj);
-        output.addCompartment(compartment, this.featureInstance.feature.typeId);
         return output;
     }
     

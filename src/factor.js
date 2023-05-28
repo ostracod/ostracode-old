@@ -1,7 +1,6 @@
 
 import { CompilerError } from "./error.js";
 import * as compUtils from "./compUtils.js";
-import { createTypeId } from "./itemType.js";
 import { UnboundCustomMethod, BoundCustomMethod } from "./func.js";
 import { Item } from "./item.js";
 
@@ -52,7 +51,8 @@ export class Feature extends Factor {
     
     constructor(itemFieldStmts, sharedFieldStmts, evalContext) {
         super();
-        this.typeId = createTypeId();
+        // TODO: This should be determined by the `key` statement.
+        this.key = Symbol("featureKey");
         this.itemFields = itemFieldStmts.map((fieldStmt) => (
             new FeatureField(fieldStmt, evalContext)
         ));
@@ -95,9 +95,8 @@ export class Feature extends Factor {
             const itemCode = jsConverter.convertItemToJs(item);
             sharedFieldCodeList.push(`${identifier} = ${itemCode};`);
         }
-        const typeIdIdentifier = compUtils.getJsTypeIdIdentifier(this.typeId);
         return `(class extends classes.Feature {
-static typeId = typeIds.${typeIdIdentifier};
+//static key = ...;
 constructor(obj) {
 super(obj);
 ${itemFieldCodeList.join("\n")}

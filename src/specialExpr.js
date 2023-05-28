@@ -255,17 +255,11 @@ export class FeatureExpr extends AttrsSpecialExpr {
 export class FeatureValueExpr extends FeatureExpr {
     
     evaluateHelper(evalContext) {
-        const output = new Feature(this.itemFieldStmts, this.sharedFieldStmts, evalContext);
-        evalContext.stowTypeId(this, output.typeId);
-        return output;
+        return new Feature(this.itemFieldStmts, this.sharedFieldStmts, evalContext);
     }
     
     getConstraintTypeHelper() {
         return new FeatureType(this.itemFieldStmts, this.sharedFieldStmts, this);
-    }
-    
-    isDiscerner() {
-        return true;
     }
     
     iterateCompItems(compContext, handle) {
@@ -278,7 +272,6 @@ export class FeatureValueExpr extends FeatureExpr {
     }
     
     convertToJs(jsConverter) {
-        const compartment = this.getDiscernerCompartment();
         const itemFieldCodeList = this.itemFieldStmts.map((stmt) => (
             stmt.convertToItemJs(jsConverter)
         ));
@@ -287,14 +280,13 @@ export class FeatureValueExpr extends FeatureExpr {
         ));
         return `(() => {
 const feature = class extends classes.Feature {
-static typeId = Symbol("typeId");
+//static key = ...;
 constructor(obj) {
 super(obj);
 ${itemFieldCodeList.join("\n")}
 }
 ${sharedFieldCodeList.join("\n")}
 };
-${compartment.convertToJs(jsConverter)} = feature.typeId;
 return feature;
 })()`;
     }
@@ -393,13 +385,7 @@ export class GenericTypeExpr extends SpecialExpr {
 export class DiscernExpr extends ExprSpecialExpr {
     
     evaluateHelper(evalContext) {
-        const output = this.evaluateExpr(evalContext);
-        evalContext.stowTypeId(this, output.typeId);
-        return output;
-    }
-    
-    isDiscerner() {
-        return true;
+        return this.evaluateExpr(evalContext);
     }
 }
 

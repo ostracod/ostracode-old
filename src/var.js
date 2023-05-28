@@ -1,13 +1,11 @@
 
 import * as compUtils from "./compUtils.js";
-import { Container } from "./container.js";
 
-export class Var extends Container {
+export class Var {
     // Concrete subclasses of Var must implement these methods:
     // unwrap, getConstraintType
     
     constructor(name) {
-        super();
         this.name = name;
     }
     

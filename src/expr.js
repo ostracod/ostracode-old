@@ -173,11 +173,6 @@ export class IdentifierAccessExpr extends OperatorExpr {
         return this.name;
     }
     
-    buildClosureContext(destContext, srcContext) {
-        this.operator.buildClosureContext(destContext, srcContext, this.operand, this.name);
-        super.buildClosureContext(destContext, srcContext);
-    }
-    
     evaluate(evalContext) {
         return this.tryOperation(() => (
             this.operator.perform(evalContext, this.operand, this.name)

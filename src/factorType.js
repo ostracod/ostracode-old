@@ -1,38 +1,26 @@
 
 import { CompilerError } from "./error.js";
 import { ItemType } from "./itemType.js";
-import { FeatureMemberRef } from "./itemRef.js";
 
 export class FactorType extends ItemType {
-    // Concrete subclasses of FactorType must implement these methods:
-    // getDiscerner
     
     getObjMember(obj, name, evalContext) {
-        const discerner = this.getDiscerner(name);
-        if (discerner === null) {
-            throw new CompilerError("Cannot retrieve member of feature without discerned type.");
-        }
-        const typeId = evalContext.getTypeId(discerner);
-        const featureInstance = obj.featureInstances.get(typeId);
-        return new FeatureMemberRef(featureInstance, name);
+        throw new CompilerError("This function is not yet implemented.");
+        //const featureInstance = obj.featureInstances.get(key);
+        //return new FeatureMemberRef(featureInstance, name);
     }
 }
 
 export class FeatureType extends FactorType {
     
-    constructor(itemFieldStmts, sharedFieldStmts, discerner = null) {
+    constructor(itemFieldStmts, sharedFieldStmts) {
         super();
         this.itemFieldStmts = itemFieldStmts;
         this.sharedFieldStmts = sharedFieldStmts;
-        this.discerner = discerner;
     }
     
     copyHelper() {
-        return new FeatureType(this.itemFieldStmts, this.sharedFieldStmts, this.discerner);
-    }
-    
-    getDiscerner(name) {
-        return this.discerner;
+        return new FeatureType(this.itemFieldStmts, this.sharedFieldStmts);
     }
 }
 

@@ -51,6 +51,4 @@ export const getJsIdentifier = (name, prefix = "_") => (
 
 export const getJsCompItemIdentifier = (itemId) => getJsIdentifier(`${itemId}`, "C");
 
-export const getJsTypeIdIdentifier = (typeId) => getJsIdentifier(`${typeId}`, "T");
-
 

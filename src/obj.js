@@ -9,7 +9,7 @@ export class Obj {
         this.featureInstances = new Map();
         for (const feature of factor.getFeatures()) {
             const featureInstance = new FeatureInstance(feature, this);
-            this.featureInstances.set(feature.typeId, featureInstance);
+            this.featureInstances.set(feature.key, featureInstance);
         }
     }
 }

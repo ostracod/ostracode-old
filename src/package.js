@@ -145,8 +145,6 @@ export class CompilationPackage extends Package {
     
     constructor(path) {
         super(path);
-        // Set of numbers.
-        this.typeIdSet = new Set();
         this.compContext = null;
         this.aggregator = null;
     }
@@ -180,17 +178,6 @@ export class CompilationPackage extends Package {
         fs.writeFileSync(destPath, JSON.stringify(config, null, 4) + "\n");
     }
     
-    createTypeIdsFile() {
-        const codeList = [];
-        for (const typeId of this.typeIdSet) {
-            const identifier = compUtils.getJsTypeIdIdentifier(typeId);
-            codeList.push(`export const ${identifier} = Symbol("typeId${typeId}");`);
-        }
-        const code = codeList.join("\n") + "\n";
-        const path = pathUtils.join(this.supportPath, "typeIds.js");
-        fs.writeFileSync(path, code);
-    }
-    
     createCompItemsFile() {
         const { itemIdMap, closureItemsMap } = this.aggregator;
         const jsConverter = new SupportJsConverter(this.aggregator);
@@ -211,7 +198,7 @@ export class CompilationPackage extends Package {
                 closureVarDeclarations.push(declaration);
             }
         }
-        const code = baseImportStmt + "\nimport * as typeIds from \"./typeIds.js\";\n" + codeList.concat(assignments, closureVarDeclarations).join("\n") + "\n";
+        const code = baseImportStmt + "\n" + codeList.concat(assignments, closureVarDeclarations).join("\n") + "\n";
         const path = pathUtils.join(this.supportPath, "compItems.js");
         fs.writeFileSync(path, code);
     }
@@ -226,12 +213,10 @@ export class CompilationPackage extends Package {
         this.compContext.resolveCompItems();
         this.aggregator = new CompItemAggregator(this.compContext);
         for (const codeFile of this.ostraCodeFiles) {
-            codeFile.aggregateCompTypeIds(this.compContext, this.typeIdSet);
             codeFile.aggregateCompItems(this.aggregator);
         }
         this.aggregator.addNestedItems();
         niceUtils.ensureDirectoryExists(this.supportPath);
-        this.createTypeIdsFile();
         this.createCompItemsFile();
         const jsConverter = new BuildJsConverter(this.aggregator);
         for (const codeFile of this.ostraCodeFiles) {

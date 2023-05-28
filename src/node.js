@@ -3,7 +3,6 @@ import * as niceUtils from "./niceUtils.js";
 import { CompilerErrorThrower } from "./error.js";
 import { constructors } from "./constructors.js";
 import { CompVar } from "./var.js";
-import { CompCompartment, EvalCompartment } from "./compartment.js";
 
 let nextNodeId = 0;
 
@@ -17,8 +16,6 @@ export class Node extends CompilerErrorThrower {
         this.children = [];
         // Map from variable name to Var.
         this.varMap = new Map();
-        // Map from discerning Expr to Compartment.
-        this.compartmentMap = new Map();
     }
     
     addChild(child) {
@@ -107,52 +104,6 @@ export class Node extends CompilerErrorThrower {
         return output;
     }
     
-    addCompartment(compartment) {
-        this.compartmentMap.set(compartment.discerner, compartment);
-    }
-    
-    addCompartments(compartments) {
-        for (const compartment of compartments) {
-            this.addCompartment(compartment);
-        }
-    }
-    
-    getCompartment(discerner, checkParent = true) {
-        const compartment = this.compartmentMap.get(discerner);
-        if (typeof compartment === "undefined") {
-            if (checkParent) {
-                return (this.parent === null) ? null : this.parent.getCompartment(discerner);
-            } else {
-                return null;
-            }
-        } else {
-            return compartment;
-        }
-    }
-    
-    getCompartments() {
-        return Array.from(this.compartmentMap.values());
-    }
-    
-    getCompCompartments() {
-        const output = [];
-        for (const compartment of this.compartmentMap.values()) {
-            if (compartment instanceof CompCompartment) {
-                output.push(compartment);
-            }
-        }
-        for (const child of this.children) {
-            const compCompartments = child.getCompCompartments();
-            niceUtils.extendList(output, compCompartments);
-        }
-        return output;
-    }
-    
-    // Assumes that this.isDiscerner returns true.
-    getDiscernerCompartment() {
-        return this.getCompartment(this);
-    }
-    
     buildClosureContext(destContext, srcContext) {
         for (const child of this.children) {
             child.buildClosureContext(destContext, srcContext);
@@ -177,63 +128,10 @@ export class Node extends CompilerErrorThrower {
         return textList.join("\n");
     }
     
-    isDiscerner() {
-        return false;
-    }
-    
-    shouldStoreCompartmentsHelper() {
-        return false;
-    }
-    
-    overrideChildCompartments(child) {
-        return false;
-    }
-    
-    shouldStoreCompartments() {
-        if (this.shouldStoreCompartmentsHelper()) {
-            return true;
-        }
-        if (this.parent === null) {
-            return false;
-        }
-        return (this.parent.overrideChildCompartments(this));
-    }
-    
-    resolveCompartments() {
-        const compartments = [];
-        if (this.isDiscerner()) {
-            compartments.push(new EvalCompartment(this));
-        }
-        for (const child of this.children) {
-            const childCompartments = child.resolveCompartments();
-            niceUtils.extendList(compartments, childCompartments);
-        }
-        if (this.shouldStoreCompartments()) {
-            this.addCompartments(compartments);
-            return [];
-        } else {
-            return compartments;
-        }
-    }
-    
     aggregateCompItems(aggregator) {
         this.iterateCompItems(aggregator.compContext, (item) => {
             aggregator.addItem(item);
         });
-    }
-    
-    aggregateCompTypeIds(compContext, typeIdSet) {
-        for (const compartment of this.compartmentMap.values()) {
-            if (compartment instanceof CompCompartment) {
-                const typeId = compContext.getTypeId(compartment);
-                if (typeId !== null) {
-                    typeIdSet.add(typeId);
-                }
-            }
-        }
-        for (const child of this.children) {
-            child.aggregateCompTypeIds(compContext, typeIdSet);
-        }
     }
     
     validateTypes(compContext) {

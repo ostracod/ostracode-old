@@ -38,12 +38,6 @@ export class CompContext {
         for (const variable of compVars) {
             this.varItemMap.set(variable, new UnresolvedVarItem(variable));
         }
-        // Map from CompCompartment to type ID.
-        this.typeIdMap = new Map();
-        const compCompartments = this.node.getCompCompartments();
-        for (const compartment of compCompartments) {
-            this.typeIdMap.set(compartment, null);
-        }
     }
     
     setQualificationVars(qualification) {
@@ -218,20 +212,6 @@ export class CompContext {
             throw new Error(`Could not find comptime var "${compVar.name}".`);
         }
         varItemMap.set(compVar, item);
-    }
-    
-    getTypeId(compCompartment) {
-        const typeId = this.typeIdMap.get(compCompartment);
-        if (typeof typeId !== "undefined") {
-            return typeId;
-        }
-        return (this.parent === null) ? null : this.parent.getTypeId(compCompartment);
-    }
-    
-    stowTypeId(compCompartment, typeId) {
-        if (this.typeIdMap.has(compCompartment)) {
-            this.typeIdMap.set(compCompartment, typeId);
-        }
     }
 }
 

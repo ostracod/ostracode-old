@@ -56,7 +56,6 @@ export class OstraCodeFile extends Node {
         });
         this.bhvrStmtSeq.resolveStmts();
         this.bhvrStmtSeq.resolveExprsAndVars();
-        this.bhvrStmtSeq.resolveCompartments();
     }
     
     getExportedVar(name) {
@@ -81,7 +80,6 @@ export class OstraCodeFile extends Node {
         const code = [
             baseImportStmt,
             // TODO: Fix these import paths.
-            "import * as typeIds from \"../support/typeIds.js\";",
             "import * as compItems from \"../support/compItems.js\";",
             codeList.join("\n"),
             "",

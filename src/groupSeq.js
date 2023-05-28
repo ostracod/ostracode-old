@@ -5,7 +5,6 @@ import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
 import { EvalContext } from "./evalContext.js";
 import { ResultRef } from "./itemRef.js";
-import { EvalCompartment, CompCompartment } from "./compartment.js";
 
 export class GroupSeq extends Node {
     
@@ -64,10 +63,6 @@ export class BhvrStmtSeq extends StmtSeq {
         }
     }
     
-    shouldStoreCompartmentsHelper() {
-        return true;
-    }
-    
     evaluate(parentContext) {
         const evalContext = new EvalContext({ parent: parentContext, node: this });
         for (const stmt of this.groups) {
@@ -86,16 +81,7 @@ export class BhvrStmtSeq extends StmtSeq {
     }
     
     convertToJsList(jsConverter) {
-        const output = [];
-        for (const compartment of this.getCompartments()) {
-            if (compartment instanceof EvalCompartment) {
-                output.push(`let ${compartment.convertToJs(jsConverter)};`);
-            }
-        }
-        this.groups.forEach((stmt) => {
-            output.push(stmt.convertToJs(jsConverter));
-        });
-        return output;
+        return this.groups.map((stmt) => stmt.convertToJs(jsConverter));
     }
     
     convertToJs(jsConverter) {
@@ -189,24 +175,6 @@ export class CompExprSeq extends ExprSeq {
         this.useConstraintTypes = useConstraintTypes;
     }
     
-    stowCompTypeId(compContext, discerner, typeId) {
-        let node = this.parent;
-        while (node !== null) {
-            const compartment = node.getCompartment(discerner, false);
-            if (compartment instanceof CompCompartment) {
-                compContext.stowTypeId(compartment, typeId);
-            }
-            node = node.parent;
-        }
-    }
-    
-    stowCompTypeIds(evalContext) {
-        for (const content of evalContext.compartmentContentMap.values()) {
-            const { compartment: { discerner }, typeId } = content;
-            this.stowCompTypeId(evalContext.compContext, discerner, typeId);
-        }
-    }
-    
     resolveCompItem(compContext, expr) {
         expr.validateTypes(compContext);
         // TODO: Use `hasFactorType`.
@@ -214,25 +182,8 @@ export class CompExprSeq extends ExprSeq {
             return expr.getConstraintType(compContext);
         } else {
             const evalContext = new EvalContext({ compContext, node: this });
-            const output = expr.evaluateToItem(evalContext);
-            this.stowCompTypeIds(evalContext);
-            return output;
+            return expr.evaluateToItem(evalContext);
         }
-    }
-    
-    shouldStoreCompartmentsHelper() {
-        return true;
-    }
-    
-    resolveCompartments() {
-        super.resolveCompartments();
-        const output = [];
-        if (!this.useConstraintTypes) {
-            for (const compartment of this.compartmentMap.values()) {
-                output.push(new CompCompartment(compartment.discerner));
-            }
-        }
-        return output;
     }
     
     validateTypes(compContext) {
@@ -242,10 +193,6 @@ export class CompExprSeq extends ExprSeq {
     evaluate(evalContext) {
         const items = evalContext.compContext.getSeqItems(this);
         return items.map((item) => new ResultRef(item));
-    }
-    
-    aggregateCompTypeIds(compContext, typeIdSet) {
-        // Do nothing.
     }
     
     iterateCompItems(compContext, handle) {
