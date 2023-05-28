@@ -147,7 +147,7 @@ export class NullType extends MissingType {
     }
 }
 
-export class BoolType extends ValueType {
+export class OptionalLiteralType extends ValueType {
     
     constructor(value = null) {
         super();
@@ -155,11 +155,11 @@ export class BoolType extends ValueType {
     }
     
     copyHelper() {
-        return new BoolType(this.value);
+        return new this.constructor(this.value);
     }
     
     containsHelper(type) {
-        if (type instanceof BoolType) {
+        if (type instanceof this.constructor) {
             return (this.value === null) ? true : (this.value === type.value);
         } else {
             return false;
@@ -167,44 +167,20 @@ export class BoolType extends ValueType {
     }
 }
 
-export class NumType extends ValueType {
+export class BoolType extends OptionalLiteralType {
     
-    constructor(value = null) {
-        super();
-        this.value = null;
-    }
-    
-    copyHelper() {
-        return new NumType(this.value);
-    }
-    
-    containsHelper(type) {
-        if (type instanceof NumType) {
-            return (this.value === null) ? true : (this.value === type.value);
-        } else {
-            return false;
-        }
-    }
 }
 
-export class StrType extends ValueType {
+export class NumType extends OptionalLiteralType {
     
-    constructor(value = null) {
-        super();
-        this.value = null;
-    }
+}
+
+export class StrType extends OptionalLiteralType {
     
-    copyHelper() {
-        return new StrType(this.value);
-    }
+}
+
+export class SymbolType extends OptionalLiteralType {
     
-    containsHelper(type) {
-        if (type instanceof StrType) {
-            return (this.value === null) ? true : (this.value === type.value);
-        } else {
-            return false;
-        }
-    }
 }
 
 export class ListType extends ValueType {

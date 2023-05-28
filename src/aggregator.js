@@ -27,7 +27,8 @@ export class CompItemAggregator {
     }
     
     addItem(item) {
-        if (typeof item === "object" && item !== null) {
+        if ((typeof item === "object" && item !== null)
+                || typeof item === "symbol") {
             let itemId = this.itemIdMap.get(item);
             if (typeof itemId === "undefined") {
                 itemId = this.nextItemId;

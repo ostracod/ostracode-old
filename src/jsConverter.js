@@ -38,6 +38,15 @@ export class JsConverter {
         } else if (type === "number" || type === "boolean" || type === "null"
                 || type === "undefined") {
             return `${item}`;
+        } else if (type === "symbol") {
+            const { description } = item;
+            let descriptionArg;
+            if (typeof description === "undefined") {
+                descriptionArg = "";
+            } else {
+                descriptionArg = `"${description}"`;
+            }
+            return `Symbol(${descriptionArg})`
         } else if (type === "object") {
             if (Array.isArray(item)) {
                 const codeList = item.map((element, index) => {
