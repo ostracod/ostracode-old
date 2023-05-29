@@ -85,21 +85,19 @@ mutable myVar = (111)
 comp anchor1 = <@myVar>
 // Anchors can be passed in comptime expressions.
 comp anchor2 = <anchor1>
-// Transfer `anchor2` from comptime to evaltime.
-const anchor3 = (anchor2)
 
 // Prints "111", which is the value stored in `myVar`.
-(print(%anchor3))
-// Modify the variable referenced by `anchor3`. This
+(print(%<anchor2>))
+// Modify the variable referenced by `anchor2`. This
 // changes the value stored in `myVar`.
-(%anchor3 = 222)
+(%<anchor2> = 222)
 // Prints "222".
-(print(%anchor3))
+(print(%<anchor2>))
 // Also prints "222".
 (print(myVar))
 // Throws a compile-time error, because the expression
-// `%anchor1` is comptime with respect to `myVar`.
-comp result = <%anchor1>
+// `%<anchor1>` is comptime with respect to `myVar`.
+comp result = <%<anchor1>>
 ```
 
 ## Type Wrangling

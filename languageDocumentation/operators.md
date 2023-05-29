@@ -64,7 +64,7 @@ OstraCode has the following member access operators:
     * `$subscript` is an expression with type `$subscriptType`
     * The type of `$collection@/$subscript` is `$memberType`
 
-Suppose that `$anchor` is an expression with type `anchorT($type)`. The expression `%$anchor` dereferences the variable of `$anchor`, and has return type `$type`.
+Suppose that `$anchor` is an expression with type `anchorT($type)`. The expression `%<$anchor>` dereferences the variable of `$anchor`, and has return type `$type`.
 
 OstraCode has the following type operators:
 
