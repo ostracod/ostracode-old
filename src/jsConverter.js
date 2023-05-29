@@ -46,7 +46,7 @@ export class JsConverter {
             } else {
                 descriptionArg = `"${description}"`;
             }
-            return `Symbol(${descriptionArg})`
+            return `Symbol(${descriptionArg})`;
         } else if (type === "object") {
             if (Array.isArray(item)) {
                 const codeList = item.map((element, index) => {

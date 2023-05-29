@@ -4,7 +4,7 @@ import { constructors } from "./constructors.js";
 import { Item, AbsentItem } from "./item.js";
 import { GenericQualification } from "./qualification.js";
 
-const copyType = (type) => {
+export const copyType = (type) => {
     if (type instanceof ItemType) {
         return type.copy();
     } else if (type instanceof AbsentItem) {

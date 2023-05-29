@@ -14,6 +14,7 @@ import { Feature } from "./factor.js";
 import { FeatureType } from "./factorType.js";
 import { Obj, ObjType } from "./obj.js";
 import { CompContext } from "./compContext.js";
+import { AnchorType } from "./anchor.js";
 
 export class SpecialExpr extends Expr {
     // Concrete subclasses of SpecialExpr must implement these methods:
@@ -67,7 +68,11 @@ export class SpecialExpr extends Expr {
 export class ExprSpecialExpr extends SpecialExpr {
     
     init(parser) {
-        this.exprSeq = parser.readExprSeq(true);
+        this.exprSeq = parser.readExprSeq(true, this.exprSeqMayBeNull());
+    }
+    
+    exprSeqMayBeNull() {
+        return false;
     }
     
     evaluateExpr(evalContext) {
@@ -382,6 +387,25 @@ export class GenericTypeExpr extends SpecialExpr {
     }
 }
 
+export class AnchorTypeExpr extends ExprSpecialExpr {
+    
+    exprSeqMayBeNull() {
+        return true;
+    }
+    
+    evaluateHelper(evalContext) {
+        if (this.exprSeq === null) {
+            return new AnchorType();
+        } else {
+            return new AnchorType(this.evaluateExpr(evalContext));
+        }
+    }
+    
+    getConstraintType(compContext) {
+        return new TypeType(new AnchorType());
+    }
+}
+
 export class DiscernExpr extends ExprSpecialExpr {
     
     evaluateHelper(evalContext) {
@@ -410,6 +434,7 @@ export const specialConstructorMap = {
     objT: ObjTypeExpr,
     generic: GenericExpr,
     genericT: GenericTypeExpr,
+    anchorT: AnchorTypeExpr,
     discern: DiscernExpr,
     moduleT: ModuleTypeExpr,
 };

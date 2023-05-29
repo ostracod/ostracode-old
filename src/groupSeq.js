@@ -6,6 +6,8 @@ import { PreStmt } from "./preStmt.js";
 import { PreExpr } from "./preExpr.js";
 import { EvalContext } from "./evalContext.js";
 import { ResultRef } from "./itemRef.js";
+import { TypeType } from "./itemType.js";
+import { AnchorType } from "./anchor.js";
 
 export class GroupSeq extends Node {
     
@@ -122,8 +124,12 @@ export class ExprSeq extends GroupSeq {
         super.resolveExprsAndVars();
     }
     
+    getConstraintTypeHelper(compContext, expr) {
+        return expr.getConstraintType(compContext);
+    }
+    
     getConstraintTypesHelper(compContext) {
-        return this.groups.map((expr) => expr.getConstraintType(compContext));
+        return this.groups.map((expr) => this.getConstraintTypeHelper(compContext, expr));
     }
     
     getConstraintTypes(compContext) {
@@ -174,6 +180,17 @@ export class CompExprSeq extends ExprSeq {
     constructor(hasFactorType, exprSeqSelector, exprs) {
         super(hasFactorType, exprs);
         this.exprSeqSelector = exprSeqSelector;
+    }
+    
+    getConstraintTypeHelper(compContext, expr) {
+        const type = expr.getConstraintType(compContext);
+        if (this.exprSeqSelector === ExprSeqSelector.ReturnItems) {
+            return type;
+        } else if (this.exprSeqSelector === ExprSeqSelector.ConstraintTypes) {
+            return new TypeType(type);
+        } else if (this.exprSeqSelector === ExprSeqSelector.Anchors) {
+            return new AnchorType(type);
+        }
     }
     
     resolveCompItem(compContext, expr) {
