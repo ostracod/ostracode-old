@@ -116,6 +116,15 @@ export class EvalContext {
         }
         return output;
     }
+    
+    derefAnchor(anchor) {
+        const { name } = anchor.variable;
+        const { variable, content } = this.getVar(name);
+        if (variable !== anchor.variable || content === null) {
+            throw new CompilerError(`Cannot dereference variable "${name}" in this context.`);
+        }
+        return new VarRef(content);
+    }
 }
 
 

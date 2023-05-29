@@ -15,10 +15,24 @@ export class Operator {
 export const unaryOperatorMap = new Map();
 
 export class UnaryOperator extends Operator {
+    // Concrete subclasses of BinaryOperator must implement these methods:
+    // perform
     
     constructor(text) {
         super(text);
         unaryOperatorMap.set(this.text, this);
+    }
+}
+
+export class DereferenceOperator extends UnaryOperator {
+    
+    constructor() {
+        super("%");
+    }
+    
+    perform(evalContext, expr) {
+        const anchor = expr.evaluateToItem(evalContext);
+        return evalContext.derefAnchor(anchor);
     }
 }
 
@@ -174,6 +188,7 @@ export class AssignOperator extends BinaryOperator {
 new UnaryOperator("-");
 new UnaryOperator("~");
 new UnaryOperator("!");
+new DereferenceOperator();
 
 new FeatureFieldOperator();
 new IdentifierSubscriptOperator();

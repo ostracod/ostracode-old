@@ -161,6 +161,12 @@ export class UnaryExpr extends OperatorExpr {
         super(components, operator);
         this.operand = this.addChild(operand);
     }
+    
+    evaluate(evalContext) {
+        return this.tryOperation(() => (
+            this.operator.perform(evalContext, this.operand)
+        ));
+    }
 }
 
 export class IdentifierAccessExpr extends OperatorExpr {
