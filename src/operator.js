@@ -16,11 +16,15 @@ export const unaryOperatorMap = new Map();
 
 export class UnaryOperator extends Operator {
     // Concrete subclasses of BinaryOperator must implement these methods:
-    // perform
+    // perform, convertToJs
     
     constructor(text) {
         super(text);
         unaryOperatorMap.set(this.text, this);
+    }
+    
+    iterateCompItems(compContext, expr, handle) {
+        expr.iterateCompItems(compContext, handle);
     }
 }
 
@@ -33,6 +37,16 @@ export class DereferenceOperator extends UnaryOperator {
     perform(evalContext, expr) {
         const anchor = expr.evaluateToItem(evalContext);
         return evalContext.derefAnchor(anchor);
+    }
+    
+    iterateCompItems(compContext, expr, handle) {
+        // `expr` is not transferred from comptime to evaltime.
+    }
+    
+    convertToJs(expr, jsConverter) {
+        const anchor = jsConverter.getCompContext().getSeqItem(expr.exprSeq);
+        // TODO: Handle the case when the variable must be imported.
+        return anchor.variable.getJsIdentifier();
     }
 }
 

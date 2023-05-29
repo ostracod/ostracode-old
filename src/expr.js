@@ -7,7 +7,9 @@ import { ResultRef } from "./itemRef.js";
 
 export class Expr extends ResolvedGroup {
     // Concrete subclasses of Expr must implement these methods:
-    // getConstraintType, evaluate
+    // getConstraintType, evaluate, iterateCompItems
+    // `iterateCompItems` is called on every item which is
+    // transferred from comptime to evaltime.
     
     getConstraintType(compContext) {
         this.throwError("getConstraintType is not yet implemented for this expression type.");
@@ -166,6 +168,14 @@ export class UnaryExpr extends OperatorExpr {
         return this.tryOperation(() => (
             this.operator.perform(evalContext, this.operand)
         ));
+    }
+    
+    iterateCompItems(compContext, handle) {
+        this.operator.iterateCompItems(compContext, this.operand, handle);
+    }
+    
+    convertToJs(jsConverter) {
+        return this.operator.convertToJs(this.operand, jsConverter);
     }
 }
 
