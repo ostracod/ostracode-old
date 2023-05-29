@@ -49,14 +49,19 @@ const createItemMap = (fields) => {
 
 export class Feature extends Factor {
     
-    constructor(itemFieldStmts, sharedFieldStmts, evalContext) {
+    constructor(featureExpr, evalContext) {
         super();
-        // TODO: This should be determined by the `key` statement.
-        this.key = Symbol("featureKey");
-        this.itemFields = itemFieldStmts.map((fieldStmt) => (
+        this.featureExpr = featureExpr;
+        const anchor = this.featureExpr.getAnchor(evalContext.compContext);
+        if (anchor === null) {
+            this.key = null;
+        } else {
+            this.key = evalContext.derefAnchor(anchor).read();
+        }
+        this.itemFields = this.featureExpr.itemFieldStmts.map((fieldStmt) => (
             new FeatureField(fieldStmt, evalContext)
         ));
-        const sharedFields = sharedFieldStmts.map((fieldStmt) => (
+        const sharedFields = this.featureExpr.sharedFieldStmts.map((fieldStmt) => (
             new FeatureField(fieldStmt, evalContext)
         ));
         this.sharedItemMap = createItemMap(sharedFields);

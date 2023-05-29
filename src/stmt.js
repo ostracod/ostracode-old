@@ -702,6 +702,13 @@ export class OptionalStmt extends AttrStmt {
     
 }
 
+export class KeyStmt extends ExprAttrStmt {
+    
+    getErrorName() {
+        return "key anchor";
+    }
+}
+
 export class SelfFeatureStmt extends ExprAttrStmt {
     
     getErrorName() {
@@ -868,6 +875,7 @@ export const attrStmtConstructors = {
     itemFields: ItemFieldsStmt,
     sharedFields: SharedFieldsStmt,
     optional: OptionalStmt,
+    key: KeyStmt,
     selfFeature: SelfFeatureStmt,
     thisFactor: ThisFactorsStmt,
     factors: FactorsStmt,

@@ -2,6 +2,7 @@
 import * as compUtils from "./compUtils.js";
 import { CompilerError } from "./error.js";
 import { EvalVarStmt } from "./stmt.js";
+import { ObjType } from "./obj.js";
 
 export class Var {
     // Concrete subclasses of Var must implement these methods:
@@ -127,17 +128,19 @@ export class EvalVar extends UnwrappedVar {
 
 export class BuiltInEvalVar extends EvalVar {
     
-    constructor(name, constraintType) {
-        super(name);
-        this.constraintType = constraintType;
-    }
-    
-    getConstraintType(compContext) {
-        return this.constraintType;
-    }
 }
 
 export class ReflexiveVar extends BuiltInEvalVar {
+    
+    constructor(name, featureExpr) {
+        super(name);
+        this.featureExpr = featureExpr;
+    }
+    
+    getConstraintType(compContext) {
+        const featureType = this.featureExpr.getConstraintType(compContext);
+        return new ObjType(featureType);
+    }
     
     convertToRefJs() {
         return "this.obj";

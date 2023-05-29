@@ -39,6 +39,15 @@ export class EvalContext {
         this.varContentMap.set(varContent.variable.name, varContent);
     }
     
+    getVarHelper(name) {
+        const content = this.varContentMap.get(name);
+        if (typeof content === "undefined") {
+            return null;
+        } else {
+            return { variable: content.variable, content };
+        }
+    }
+    
     getVar(name) {
         const result = this.getVarHelper(name);
         if (result !== null) {
@@ -81,17 +90,13 @@ export class EvalContext {
         }
     }
     
-    getVarHelper(name) {
-        const content = this.varContentMap.get(name);
-        if (typeof content === "undefined") {
-            return null;
-        } else {
-            return { variable: content.variable, content };
-        }
-    }
-    
     getVarContent(name) {
         return this.getVar(name).content;
+    }
+    
+    getVarContentByVar(variable) {
+        const result = this.getVar(variable.name);
+        return (result.variable === variable) ? result.content : null;
     }
     
     getRef(name) {
@@ -118,10 +123,9 @@ export class EvalContext {
     }
     
     derefAnchor(anchor) {
-        const { name } = anchor.variable;
-        const { variable, content } = this.getVar(name);
-        if (variable !== anchor.variable || content === null) {
-            throw new CompilerError(`Cannot dereference variable "${name}" in this context.`);
+        const content = this.getVarContentByVar(anchor.variable);
+        if (content === null) {
+            throw new CompilerError(`Cannot dereference variable "${anchor.variable.name}" in this context.`);
         }
         return new VarRef(content);
     }

@@ -3,6 +3,7 @@ import { CompilerError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { ObjType } from "./obj.js";
 import { ResultRef, SubscriptRef } from "./itemRef.js";
+import { Anchor } from "./anchor.js";
 
 export class Operator {
     
@@ -58,6 +59,10 @@ export class IdentifierOperator extends Operator {
         super(text);
         identifierOperatorMap.set(this.text, this);
     }
+    
+    buildClosureContext(destContext, srcContext, expr, name) {
+        // Do nothing.
+    }
 }
 
 export class FeatureFieldOperator extends IdentifierOperator {
@@ -66,6 +71,19 @@ export class FeatureFieldOperator extends IdentifierOperator {
     
     constructor() {
         super(".");
+    }
+    
+    buildClosureContext(destContext, srcContext, expr, name) {
+        const type = expr.getConstraintType(srcContext.compContext);
+        if (type instanceof ObjType) {
+            const anchor = type.factorType.getAnchor(name);
+            if (anchor instanceof Anchor) {
+                const content = srcContext.getVarContentByVar(anchor.variable);
+                if (content !== null) {
+                    destContext.addVarContent(content);
+                }
+            }
+        }
     }
     
     perform(evalContext, expr, name) {

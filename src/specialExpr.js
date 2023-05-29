@@ -2,7 +2,7 @@
 import { UnknownItemError } from "./error.js";
 import * as nodeUtils from "./nodeUtils.js";
 import { AttrStmtSeq } from "./groupSeq.js";
-import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt, ElemTypeStmt } from "./stmt.js";
+import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt, ElemTypeStmt, KeyStmt } from "./stmt.js";
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc, UnboundCustomMethod } from "./func.js";
@@ -219,9 +219,7 @@ export class MethodExpr extends InvocableExpr {
     
     resolveVars() {
         super.resolveVars();
-        const featureType = this.getFeatureExpr().getConstraintTypeHelper();
-        const objType = new ObjType(featureType);
-        this.selfVar = new ReflexiveVar("self", objType);
+        this.selfVar = new ReflexiveVar("self", this.getFeatureExpr());
         this.addVar(this.selfVar);
     }
     
@@ -243,28 +241,33 @@ export class AwaitExpr extends ExprSpecialExpr {}
 export class InterfaceTypeExpr extends AttrsSpecialExpr {}
 
 export class FeatureExpr extends AttrsSpecialExpr {
-    // Concrete subclasses of FeatureExpr must implement these methods:
-    // getConstraintTypeHelper
     
     constructor(components, groupSeqs) {
         super(components, groupSeqs);
+        const keyStmt = this.getAttrStmt(KeyStmt);
+        this.keyExprSeq = (keyStmt === null) ? null : keyStmt.exprSeq;
         this.itemFieldStmts = this.getAttrStmtChildren(ItemFieldsStmt);
         this.sharedFieldStmts = this.getAttrStmtChildren(SharedFieldsStmt);
-    }
-    
-    getConstraintType(compContext) {
-        return this.getConstraintTypeHelper();
     }
 }
 
 export class FeatureValueExpr extends FeatureExpr {
     
-    evaluateHelper(evalContext) {
-        return new Feature(this.itemFieldStmts, this.sharedFieldStmts, evalContext);
+    getAnchor(compContext) {
+        if (this.keyExprSeq === null) {
+            return null;
+        } else {
+            return compContext.getSeqItem(this.keyExprSeq);
+        }
     }
     
-    getConstraintTypeHelper() {
-        return new FeatureType(this.itemFieldStmts, this.sharedFieldStmts, this);
+    evaluateHelper(evalContext) {
+        return new Feature(this, evalContext);
+    }
+    
+    getConstraintType(compContext) {
+        const anchor = this.getAnchor(compContext);
+        return new FeatureType(this, anchor);
     }
     
     iterateCompItems(compContext, handle) {
@@ -300,11 +303,17 @@ return feature;
 export class FeatureTypeExpr extends FeatureExpr {
     
     evaluateHelper(evalContext) {
-        return new FeatureType(this.fieldStmts, this.methodStmts);
+        let anchor;
+        if (this.keyExprSeq === null) {
+            anchor = null;
+        } else {
+            anchor = this.keyExprSeq.evaluateToItem(evalContext);
+        }
+        return new FeatureType(this, anchor);
     }
     
-    getConstraintTypeHelper() {
-        return new TypeType(new FeatureType([], []));
+    getConstraintType(compContext) {
+        return new TypeType(new FeatureType(this));
     }
 }
 
