@@ -48,7 +48,9 @@ export class JsConverter {
             }
             return `Symbol(${descriptionArg})`;
         } else if (type === "object") {
-            if (Array.isArray(item)) {
+            if (item === null) {
+                return "null";
+            } else if (Array.isArray(item)) {
                 const codeList = item.map((element, index) => {
                     const nest = new ListNest(item, element, index);
                     return this.convertNestedItem(nest);

@@ -1,8 +1,8 @@
 
-import { CompilerError } from "./error.js";
+import { CompilerError, UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { UnboundCustomMethod, BoundCustomMethod } from "./func.js";
-import { Item } from "./item.js";
+import { Item, UnknownItem } from "./item.js";
 
 export class Factor extends Item {
     // Concrete subclasses of Factor must implement these methods:
@@ -53,6 +53,9 @@ export class Feature extends Factor {
         super();
         this.featureExpr = featureExpr;
         const anchor = this.featureExpr.getAnchor(evalContext.compContext);
+        if (anchor instanceof UnknownItem) {
+            throw new UnknownItemError(anchor);
+        }
         if (anchor === null) {
             this.key = null;
         } else {
@@ -74,6 +77,10 @@ export class Feature extends Factor {
     iterateNestedItems(handle) {
         for (const field of this.itemFields) {
             field.iterateNestedItems(handle);
+        }
+        const result = handle(this.key);
+        if (typeof result !== "undefined") {
+            this.key = result.item;
         }
         for (const name of this.sharedItemMap.keys()) {
             let item = this.sharedItemMap.get(name);
@@ -101,7 +108,7 @@ export class Feature extends Factor {
             sharedFieldCodeList.push(`${identifier} = ${itemCode};`);
         }
         return `(class extends classes.Feature {
-//static key = ...;
+static key = ${jsConverter.convertItemToJs(this.key)};
 constructor(obj) {
 super(obj);
 ${itemFieldCodeList.join("\n")}

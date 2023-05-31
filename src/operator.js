@@ -99,8 +99,8 @@ export class FeatureFieldOperator extends IdentifierOperator {
     convertToJs(expr, name, jsConverter) {
         const type = expr.getConstraintType(jsConverter.getCompContext());
         if (type instanceof ObjType) {
-            throw new Error("Object member access is not yet implemented.");
-            //return `${expr.convertToJs(jsConverter)}[${...}].${compUtils.getJsIdentifier(name)}`;
+            const anchor = type.factorType.getAnchor(name);
+            return `${expr.convertToJs(jsConverter)}[${anchor.variable.getJsIdentifier()}].${compUtils.getJsIdentifier(name)}`;
         } else {
             throw new Error("Item member access is not yet implemented.");
         }

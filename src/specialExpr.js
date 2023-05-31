@@ -286,9 +286,10 @@ export class FeatureValueExpr extends FeatureExpr {
         const sharedFieldCodeList = this.sharedFieldStmts.map((stmt) => (
             stmt.convertToSharedJs(jsConverter)
         ));
+        const anchor = this.getAnchor(jsConverter.getCompContext());
         return `(() => {
 const feature = class extends classes.Feature {
-//static key = ...;
+static key = ${anchor.variable.getJsIdentifier()};
 constructor(obj) {
 super(obj);
 ${itemFieldCodeList.join("\n")}
