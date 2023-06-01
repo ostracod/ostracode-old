@@ -1,7 +1,7 @@
 
 import * as compUtils from "./compUtils.js";
 import { CompilerError } from "./error.js";
-import { EvalVarStmt } from "./stmt.js";
+import { CompVarStmt, EvalVarStmt } from "./stmt.js";
 import { ObjType } from "./obj.js";
 
 export class Var {
@@ -17,7 +17,7 @@ export class Var {
     }
     
     createAnchor() {
-        throw new CompilerError("Anchors may only reference variables created by `const` or `mutable` statements.");
+        throw new CompilerError("Anchors may only reference variables declared by `comp`, `const`, or `mutable` statements.");
     }
     
     getJsIdentifier() {
@@ -116,6 +116,13 @@ export class StmtCompVar extends CompVar {
     
     resolveCompItem(compContext) {
         return this.stmt.resolveCompItem(compContext);
+    }
+    
+    createAnchor() {
+        if (this.stmt instanceof CompVarStmt) {
+            return this.stmt.createAnchor();
+        }
+        return super.createAnchor();
     }
 }
 

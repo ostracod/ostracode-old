@@ -123,11 +123,7 @@ export class EvalContext {
     }
     
     derefAnchor(anchor) {
-        const content = this.getVarContentByVar(anchor.variable);
-        if (content === null) {
-            throw new CompilerError(`Cannot dereference variable "${anchor.variable.name}" in this context.`);
-        }
-        return new VarRef(content);
+        return this.getRef(anchor.variable.name);
     }
 }
 

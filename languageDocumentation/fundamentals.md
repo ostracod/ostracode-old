@@ -56,13 +56,13 @@ Note that evaltime variables can store items with type `typeT` even at runtime. 
 
 ## Anchors
 
-An anchor is a value which holds a reference to an evaltime variable. When dereferenced, an anchor may be used to read or write the associated variable. The purpose of anchors is to allow comptime expressions to hold the notion of an evaltime variable without actually accessing the variable. Anchors may be passed between comptime expressions, and then dereferenced in evaltime expressions.
+An anchor is a value which holds a reference to a variable. When dereferenced, an anchor may be used to read or write the associated variable. The purpose of anchors is to allow comptime expressions to hold the notion of an evaltime variable without actually accessing the variable. Anchors may be passed between comptime expressions, and then dereferenced in evaltime expressions.
 
 Anchors have the following restrictions:
 
-* Anchors may only reference variables created with the `const` and `mutable` statements.
+* Anchors may only reference variables declared by `comp`, `const`, and `mutable` statements.
 * When creating an anchor, the associated variable must be visible in the current scope.
 * When dereferencing an anchor, the referenced variable must be visible in the current scope, or the variable must be importable by the current module.
-* An anchor may only be dereferenced in an expression which is evaltime with respect to the associated variable.
+* If an anchor references an evaltime variable, the anchor may not be dereferenced in an expression which is comptime with respect to the variable.
 
 

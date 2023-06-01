@@ -4,6 +4,7 @@ import * as compUtils from "./compUtils.js";
 import { ObjType } from "./obj.js";
 import { ResultRef, SubscriptRef } from "./itemRef.js";
 import { Anchor } from "./anchor.js";
+import { CompVar } from "./var.js";
 
 export class Operator {
     
@@ -40,14 +41,25 @@ export class DereferenceOperator extends UnaryOperator {
         return evalContext.derefAnchor(anchor);
     }
     
+    getAnchorVar(compContext, expr) {
+        return compContext.getSeqItem(expr.exprSeq).variable;
+    }
+    
     iterateCompItems(compContext, expr, handle) {
-        // `expr` is not transferred from comptime to evaltime.
+        const variable = this.getAnchorVar(compContext, expr);
+        variable.iterateCompItems(compContext, handle);
     }
     
     convertToJs(expr, jsConverter) {
-        const anchor = jsConverter.getCompContext().getSeqItem(expr.exprSeq);
+        const compContext = jsConverter.getCompContext();
+        const variable = this.getAnchorVar(compContext, expr);
         // TODO: Handle the case when the variable must be imported.
-        return anchor.variable.getJsIdentifier();
+        if (variable instanceof CompVar) {
+            const item = compContext.getVarItem(variable);
+            return jsConverter.convertItemToJs(item);
+        } else {
+            return variable.getJsIdentifier();
+        }
     }
 }
 

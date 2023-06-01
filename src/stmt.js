@@ -121,6 +121,10 @@ export class VarStmt extends BhvrStmt {
         }
         super.validateTypes(compContext);
     }
+    
+    createAnchor() {
+        return new Anchor(this.variable);
+    }
 }
 
 export class CompVarStmt extends VarStmt {
@@ -167,10 +171,6 @@ export class EvalVarStmt extends VarStmt {
         if (this.initItemExprSeq !== null) {
             this.initItemExprSeq.iterateCompItems(compContext, handle);
         }
-    }
-    
-    createAnchor() {
-        return new Anchor(this.variable);
     }
     
     convertToJs(jsConverter) {
