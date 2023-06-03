@@ -117,7 +117,7 @@ export class IdentifierExpr extends SingleComponentExpr {
     }
     
     buildClosureContext(destContext, srcContext) {
-        const content = srcContext.getVarContent(this.name);
+        const { content } = srcContext.findVarByName(this.name);
         if (content !== null) {
             destContext.addVarContent(content);
         }
@@ -126,7 +126,7 @@ export class IdentifierExpr extends SingleComponentExpr {
     
     evaluate(evalContext) {
         return this.tryOperation(() => (
-            evalContext.getRef(this.name)
+            evalContext.getRefByName(this.name)
         ));
     }
     

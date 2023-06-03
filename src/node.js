@@ -14,6 +14,8 @@ export class Node extends CompilerErrorThrower {
         nextNodeId += 1;
         this.parent = null;
         this.children = [];
+        // Set of Var.
+        this.varSet = new Set();
         // Map from variable name to Var.
         this.varMap = new Map();
     }
@@ -64,6 +66,7 @@ export class Node extends CompilerErrorThrower {
     }
     
     addVar(variable) {
+        this.varSet.add(variable);
         this.varMap.set(variable.name, variable);
     }
     
@@ -87,12 +90,12 @@ export class Node extends CompilerErrorThrower {
     }
     
     getVars() {
-        return Array.from(this.varMap.values());
+        return Array.from(this.varSet);
     }
     
     getCompVars() {
         const output = [];
-        for (const variable of this.varMap.values()) {
+        for (const variable of this.varSet) {
             if (variable instanceof CompVar) {
                 output.push(variable);
             }
@@ -102,6 +105,10 @@ export class Node extends CompilerErrorThrower {
             niceUtils.extendList(output, compVars);
         }
         return output;
+    }
+    
+    hasVar(variable) {
+        return this.varSet.has(variable);
     }
     
     buildClosureContext(destContext, srcContext) {

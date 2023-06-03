@@ -161,7 +161,7 @@ export class EvalVarStmt extends VarStmt {
     
     evaluate(evalContext) {
         if (this.initItemExprSeq !== null) {
-            const itemRef = evalContext.getRef(this.name);
+            const itemRef = evalContext.getRefByName(this.name);
             itemRef.write(this.initItemExprSeq.evaluateToItem(evalContext));
         }
         return { flowControl: FlowControl.None };

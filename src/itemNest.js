@@ -1,6 +1,6 @@
 
 export class ItemNest {
-    // Concrete subclasses of getRefJs must implement these methods:
+    // Concrete subclasses of ItemNest must implement these methods:
     // convertToJs
     
     constructor(parentItem, childItem) {

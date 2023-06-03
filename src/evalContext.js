@@ -9,6 +9,8 @@ export class EvalContext {
     constructor(options = {}) {
         const { compContext = null, parent = null, node = null } = options;
         // Map from name to VarContent.
+        this.nameContentMap = new Map();
+        // Map from EvalVar to VarContent.
         this.varContentMap = new Map();
         this.parent = parent;
         if (compContext === null) {
@@ -36,25 +38,20 @@ export class EvalContext {
     }
     
     addVarContent(varContent) {
-        this.varContentMap.set(varContent.variable.name, varContent);
+        const { variable } = varContent;
+        this.nameContentMap.set(variable.name, varContent);
+        this.varContentMap.set(variable, varContent);
     }
     
-    getVarHelper(name) {
-        const content = this.varContentMap.get(name);
-        if (typeof content === "undefined") {
-            return null;
-        } else {
+    // `checkContext` accepts an EvalContext, and returns VarContent or null.
+    // `checkNode` accepts a Node, and returns a Var or null.
+    findVar(checkContext, checkNode) {
+        const content = checkContext(this);
+        if (content !== null) {
             return { variable: content.variable, content };
         }
-    }
-    
-    getVar(name) {
-        const result = this.getVarHelper(name);
-        if (result !== null) {
-            return result;
-        }
         if (this.node !== null) {
-            const variable = this.node.getVar(name, false);
+            const variable = checkNode(this.node);
             if (variable !== null) {
                 return { variable, content: null };
             }
@@ -67,16 +64,16 @@ export class EvalContext {
                 endNode = node;
                 break;
             }
-            const result = parentContext.getVarHelper(name);
-            if (result !== null) {
-                return result;
+            const content = checkContext(parentContext);
+            if (content !== null) {
+                return { variable: content.variable, content };
             }
             parentContext = parentContext.parent;
         }
         if (this.node !== null) {
             let parentNode = this.node.parent;
             while (parentNode !== null && parentNode !== endNode) {
-                const variable = parentNode.getVar(name, false);
+                const variable = checkNode(parentNode);
                 if (variable !== null) {
                     return { variable, content: null };
                 }
@@ -86,24 +83,31 @@ export class EvalContext {
         if (parentContext === null) {
             return { variable: null, content: null };
         } else {
-            return parentContext.getVar(name);
+            return parentContext.findVar(checkContext, checkNode);
         }
     }
     
-    getVarContent(name) {
-        return this.getVar(name).content;
+    findVarByName(name) {
+        return this.findVar(
+            (context) => {
+                const content = context.nameContentMap.get(name);
+                return (typeof content === "undefined") ? null : content;
+            },
+            (node) => node.getVar(name, false),
+        );
     }
     
-    getVarContentByVar(variable) {
-        const result = this.getVar(variable.name);
-        return (result.variable === variable) ? result.content : null;
+    getVarContent(variable) {
+        return this.findVar(
+            (context) => {
+                const content = context.varContentMap.get(variable);
+                return (typeof content === "undefined") ? null : content;
+            },
+            (node) => node.hasVar(variable) ? variable : null,
+        ).content;
     }
     
-    getRef(name) {
-        const { variable, content } = this.getVar(name);
-        if (variable === null) {
-            throw new CompilerError(`Cannot find variable with name "${name}".`);
-        }
+    getRefHelper(variable, content) {
         const unwrappedVar = variable.unwrap(this.compContext);
         if (unwrappedVar instanceof CompVar) {
             return new ResultRef(this.compContext.getVarItem(unwrappedVar));
@@ -111,7 +115,20 @@ export class EvalContext {
         if (content !== null) {
             return new VarRef(content);
         }
-        throw new CompilerError(`Cannot access variable "${name}" in this context.`);
+        throw new CompilerError(`Cannot access variable "${variable.name}" in this context.`);
+    }
+    
+    getRefByName(name) {
+        const { variable, content } = this.findVarByName(name);
+        if (variable === null) {
+            throw new CompilerError(`Cannot find variable with name "${name}".`);
+        }
+        return this.getRefHelper(variable, content);
+    }
+    
+    getRefByVar(variable) {
+        const content = this.getVarContent(variable);
+        return this.getRefHelper(variable, content);
     }
     
     getVarItemMap() {
@@ -123,7 +140,7 @@ export class EvalContext {
     }
     
     derefAnchor(anchor) {
-        return this.getRef(anchor.variable.name);
+        return this.getRefByVar(anchor.variable);
     }
 }
 

@@ -43,7 +43,7 @@ export class DereferenceOperator extends UnaryOperator {
     
     buildClosureContext(destContext, srcContext, expr) {
         const variable = this.getAnchorVar(srcContext.compContext, expr);
-        const content = srcContext.getVarContentByVar(variable);
+        const content = srcContext.getVarContent(variable);
         if (content !== null) {
             destContext.addVarContent(content);
         }
@@ -107,7 +107,7 @@ export class FeatureFieldOperator extends IdentifierOperator {
         if (type instanceof ObjType) {
             const anchor = type.factorType.getAnchor(name);
             if (anchor instanceof Anchor) {
-                const content = srcContext.getVarContentByVar(anchor.variable);
+                const content = srcContext.getVarContent(anchor.variable);
                 if (content !== null) {
                     destContext.addVarContent(content);
                 }
