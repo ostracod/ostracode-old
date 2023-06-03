@@ -58,7 +58,7 @@ export class JsConverter {
                 return `[${codeList.join(", ")}]`;
             } else if (item instanceof Item) {
                 const closureItemMap = this.aggregator.closureItemsMap.get(item);
-                const jsConverter = new ClosureJsConverter(this.aggregator, closureItemMap);
+                const jsConverter = new ClosureJsConverter(this, closureItemMap);
                 return item.convertToJs(jsConverter);
             }
         }
@@ -127,8 +127,9 @@ export class SupportJsConverter extends JsConverter {
 
 export class ClosureJsConverter extends JsConverter {
     
-    constructor(aggregator, closureItemMap) {
-        super(aggregator);
+    constructor(parent, closureItemMap) {
+        super(parent.aggregator);
+        this.parent = parent;
         this.closureItemMap = closureItemMap;
     }
     
@@ -139,6 +140,10 @@ export class ClosureJsConverter extends JsConverter {
         } else {
             return closureItem.getJsIdentifier();
         }
+    }
+    
+    convertNestedItem(nest) {
+        return this.parent.convertNestedItem(nest);
     }
 }
 

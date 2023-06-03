@@ -21,4 +21,15 @@ export class ListNest extends ItemNest {
     }
 }
 
+export class FeatureKeyNest extends ItemNest {
+    
+    constructor(feature) {
+        super(feature, feature.key);
+    }
+    
+    convertToJs(parentRefCode, childRefCode) {
+        return `${parentRefCode}.key = ${childRefCode};`;
+    }
+}
+
 

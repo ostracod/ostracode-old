@@ -112,7 +112,7 @@ export class FeatureFieldOperator extends IdentifierOperator {
         const type = expr.getConstraintType(jsConverter.getCompContext());
         if (type instanceof ObjType) {
             const anchor = type.factorType.getAnchor(name);
-            return `${expr.convertToJs(jsConverter)}[${anchor.variable.getJsIdentifier()}].${compUtils.getJsIdentifier(name)}`;
+            return `${expr.convertToJs(jsConverter)}[${jsConverter.convertVarToRefJs(anchor.variable)}].${compUtils.getJsIdentifier(name)}`;
         } else {
             throw new Error("Item member access is not yet implemented.");
         }

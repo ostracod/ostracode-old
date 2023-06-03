@@ -3,6 +3,7 @@ import { CompilerError, UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { UnboundCustomMethod, BoundCustomMethod } from "./func.js";
 import { Item, UnknownItem } from "./item.js";
+import { FeatureKeyNest } from "./itemNest.js";
 
 export class Factor extends Item {
     // Concrete subclasses of Factor must implement these methods:
@@ -107,8 +108,9 @@ export class Feature extends Factor {
             const itemCode = jsConverter.convertItemToJs(item);
             sharedFieldCodeList.push(`${identifier} = ${itemCode};`);
         }
+        const nest = new FeatureKeyNest(this);
         return `(class extends classes.Feature {
-static key = ${jsConverter.convertItemToJs(this.key)};
+static key = ${jsConverter.convertNestedItem(nest)};
 constructor(obj) {
 super(obj);
 ${itemFieldCodeList.join("\n")}

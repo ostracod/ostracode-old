@@ -22,7 +22,7 @@ class PrintFunc extends BuiltInFunc {
         console.log(args[0]);
     }
     
-    convertToJs(convertNestedItem) {
+    convertToJs(jsConverter) {
         return "console.log";
     }
 }
@@ -33,7 +33,7 @@ class SymbolFunc extends BuiltInFunc {
         return (args.length > 0) ? Symbol(args[0]) : Symbol();
     }
     
-    convertToJs(convertNestedItem) {
+    convertToJs(jsConverter) {
         return "Symbol";
     }
 }
