@@ -58,7 +58,7 @@ export class Feature extends Factor {
             throw new UnknownItemError(anchor);
         }
         if (anchor === null) {
-            this.key = null;
+            this.key = Symbol();
         } else {
             this.key = evalContext.derefAnchor(anchor).read();
         }

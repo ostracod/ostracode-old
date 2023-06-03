@@ -6,7 +6,7 @@ import { ArgsStmt, ItemFieldsStmt, SharedFieldsStmt, ElemTypeStmt, KeyStmt } fro
 import { Expr } from "./expr.js";
 import { SpecialParser } from "./groupParser.js";
 import { CustomFunc, UnboundCustomMethod } from "./func.js";
-import { UnresolvedItem } from "./item.js";
+import { UnknownItem, UnresolvedItem } from "./item.js";
 import { ItemType, TypeType, ListType } from "./itemType.js";
 import { ResultRef } from "./itemRef.js";
 import { ReflexiveVar } from "./var.js";
@@ -289,7 +289,7 @@ export class FeatureValueExpr extends FeatureExpr {
         const anchor = this.getAnchor(jsConverter.getCompContext());
         return `(() => {
 const feature = class extends classes.Feature {
-static key = ${anchor.variable.getJsIdentifier()};
+static key = ${(anchor === null) ? "Symbol()" : anchor.variable.getJsIdentifier()};
 constructor(obj) {
 super(obj);
 ${itemFieldCodeList.join("\n")}
@@ -416,10 +416,42 @@ export class AnchorTypeExpr extends ExprSpecialExpr {
     }
 }
 
-export class DiscernExpr extends ExprSpecialExpr {
+export class DiscernExpr extends SpecialExpr {
+    
+    init(parser) {
+        this.featureExprSeq = parser.readExprSeq(true);
+        this.anchorExprSeq = parser.readExprSeq(true);
+    }
+    
+    getAnchor(compContext) {
+        return compContext.getSeqItem(this.anchorExprSeq);
+    }
+    
+    getConstraintType(compContext) {
+        const featureType = this.featureExprSeq.getConstraintType(compContext);
+        const output = featureType.copy();
+        output.setAnchor(this.getAnchor(compContext));
+        return output;
+    }
     
     evaluateHelper(evalContext) {
-        return this.evaluateExpr(evalContext);
+        const feature = this.featureExprSeq.evaluateToItem(evalContext);
+        const anchor = this.getAnchor(evalContext.compContext);
+        if (anchor instanceof UnknownItem) {
+            throw new UnknownItemError(anchor);
+        }
+        evalContext.derefAnchor(anchor).write(feature.key);
+        return feature;
+    }
+    
+    iterateCompItems(compContext, handle) {
+        this.featureExprSeq.iterateCompItems(compContext, handle);
+    }
+    
+    convertToJs(jsConverter) {
+        const anchor = this.getAnchor(jsConverter.getCompContext());
+        const featureCode = this.featureExprSeq.convertToJs(jsConverter);
+        return `(() => { const feature = ${featureCode}; ${anchor.variable.getJsIdentifier()} = feature.key; return feature; })()`;
     }
 }
 

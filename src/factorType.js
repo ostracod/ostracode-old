@@ -34,6 +34,10 @@ export class FeatureType extends FactorType {
     constructor(featureExpr, anchor = null) {
         super();
         this.featureExpr = featureExpr;
+        this.setAnchor(anchor);
+    }
+    
+    setAnchor(anchor) {
         this.anchor = anchor;
     }
     
