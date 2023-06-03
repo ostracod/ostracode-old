@@ -164,6 +164,11 @@ export class UnaryExpr extends OperatorExpr {
         this.operand = this.addChild(operand);
     }
     
+    buildClosureContext(destContext, srcContext) {
+        this.operator.buildClosureContext(destContext, srcContext, this.operand);
+        super.buildClosureContext(destContext, srcContext);
+    }
+    
     evaluate(evalContext) {
         return this.tryOperation(() => (
             this.operator.perform(evalContext, this.operand)

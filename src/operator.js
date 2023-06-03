@@ -1,7 +1,8 @@
 
-import { CompilerError } from "./error.js";
+import { CompilerError, UnknownItemError } from "./error.js";
 import * as compUtils from "./compUtils.js";
 import { ObjType } from "./obj.js";
+import { UnknownItem } from "./item.js";
 import { ResultRef, SubscriptRef } from "./itemRef.js";
 import { Anchor } from "./anchor.js";
 import { CompVar } from "./var.js";
@@ -25,6 +26,10 @@ export class UnaryOperator extends Operator {
         unaryOperatorMap.set(this.text, this);
     }
     
+    buildClosureContext(destContext, srcContext, expr) {
+        // Do nothing.
+    }
+    
     iterateCompItems(compContext, expr, handle) {
         expr.iterateCompItems(compContext, handle);
     }
@@ -36,13 +41,25 @@ export class DereferenceOperator extends UnaryOperator {
         super("%");
     }
     
+    buildClosureContext(destContext, srcContext, expr) {
+        const variable = this.getAnchorVar(srcContext.compContext, expr);
+        const content = srcContext.getVarContentByVar(variable);
+        if (content !== null) {
+            destContext.addVarContent(content);
+        }
+    }
+    
     perform(evalContext, expr) {
         const anchor = expr.evaluateToItem(evalContext);
         return evalContext.derefAnchor(anchor);
     }
     
     getAnchorVar(compContext, expr) {
-        return compContext.getSeqItem(expr.exprSeq).variable;
+        const anchor = compContext.getSeqItem(expr.exprSeq);
+        if (anchor instanceof UnknownItem) {
+            throw new UnknownItemError(anchor);
+        }
+        return anchor.variable;
     }
     
     iterateCompItems(compContext, expr, handle) {
