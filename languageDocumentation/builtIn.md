@@ -14,7 +14,7 @@ OstraCode includes the following built-in constants:
 * `itemT`, `typeT`, `valueT`, `missingT`, `undefT`, `nullT`, `boolT`, `numT`, `strT`, `symbolT`, and `factorT` = Types as described earlier in this documentation
 * `this` = Current object whose factor type is specified by the `thisFactor` statement
 * `self` = Current object whose factor type is the parent feature type
-* `configConstants` = Dictionary determined by compilation rules in `ostraConfig.json`.
+* `configConstants` = Dictionary determined by compilation rules in `ostraConfig.json`
 
 ## Built-In Functions
 
@@ -120,7 +120,7 @@ comp SubscriptDeleteT = <genericT [
 ])>
 ```
 
-The `deleteMember` method deletes the member located at `subscript`. Dictionaries implement `SubscriptDeleteT`.
+The `deleteMember` method deletes the member located at `subscript`. Lists and dictionaries implement `SubscriptDeleteT`.
 
 ### Iterator Interface:
 

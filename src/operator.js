@@ -51,6 +51,9 @@ export class DereferenceOperator extends UnaryOperator {
     
     perform(evalContext, expr) {
         const anchor = expr.evaluateToItem(evalContext);
+        if (anchor instanceof UnknownItem) {
+            throw new UnknownItemError(anchor);
+        }
         return evalContext.derefAnchor(anchor);
     }
     
